@@ -23,7 +23,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.24.x' # Or use 'any' to always use the latest stable
 
       - name: Install dependencies
         working-directory: ./flutter_app
