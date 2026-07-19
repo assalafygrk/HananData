@@ -67,7 +67,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             // Content
             Expanded(
               child: Padding(

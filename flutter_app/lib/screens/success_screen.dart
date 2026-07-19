@@ -69,7 +69,6 @@ class _SuccessScreenState extends State<SuccessScreen>
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),

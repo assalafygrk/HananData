@@ -29,125 +29,6 @@ TextStyle dFont({
       letterSpacing: letterSpacing,
     );
 
-// ─── StatusBar ────────────────────────────────────────────────────────────────
-
-class AppStatusBar extends StatelessWidget {
-  final bool dark;
-  const AppStatusBar({super.key, this.dark = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = dark ? Colors.white.withValues(alpha: 0.8) : kPrimaryDark;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('9:41', style: dFont(size: 11, weight: FontWeight.w700, color: color)),
-          Row(
-            children: [
-              _SignalIcon(color: color),
-              const SizedBox(width: 6),
-              _WifiIcon(color: color),
-              const SizedBox(width: 6),
-              _BatteryIcon(color: color),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SignalIcon extends StatelessWidget {
-  final Color color;
-  const _SignalIcon({required this.color});
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        for (final h in [4.0, 6.0, 9.0, 11.0])
-          Padding(
-            padding: const EdgeInsets.only(left: 1.5),
-            child: Container(
-              width: 3, height: h,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: h < 9 ? 0.5 : 1.0),
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _WifiIcon extends StatelessWidget {
-  final Color color;
-  const _WifiIcon({required this.color});
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(15, 11),
-      painter: _WifiPainter(color: color),
-    );
-  }
-}
-
-class _WifiPainter extends CustomPainter {
-  final Color color;
-  _WifiPainter({required this.color});
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = color..strokeWidth = 1.6..style = PaintingStyle.stroke..strokeCap = StrokeCap.round;
-    final w = size.width; final h = size.height;
-    canvas.drawArc(Rect.fromLTRB(0, 0, w, h * 1.4), 3.93, 2.51, false, p);
-    canvas.drawArc(Rect.fromLTRB(w * .2, h * .2, w * .8, h * 1.15), 3.93, 2.51, false, p);
-    canvas.drawArc(Rect.fromLTRB(w * .38, h * .4, w * .62, h * .97), 3.93, 2.51, false, p);
-    canvas.drawCircle(Offset(w / 2, h * .97), 1.5, Paint()..color = color);
-  }
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _BatteryIcon extends StatelessWidget {
-  final Color color;
-  const _BatteryIcon({required this.color});
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24, height: 12,
-      child: Stack(
-        alignment: Alignment.centerLeft,
-        children: [
-          Container(
-            width: 22, height: 11,
-            decoration: BoxDecoration(
-              border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Positioned(
-            left: 2, top: 2,
-            child: Container(
-              width: 15, height: 7,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 0,
-            child: Container(width: 2, height: 5, color: color.withValues(alpha: 0.6)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ─── BottomNav ────────────────────────────────────────────────────────────────
 
 class AppBottomNav extends StatelessWidget {
@@ -414,7 +295,7 @@ class NetworkBadge extends StatelessWidget {
     final n = kNetworks.firstWhere(
       (x) => x.name == network || x.id == network.toLowerCase(),
       orElse: () => NetworkInfo(
-        id: '', name: network,
+        id: '', name: network, logoLetter: network.isNotEmpty ? network[0] : '?',
         color: kMutedText, bg: kBackground,
         text: kMutedText, dot: kMutedText,
       ),
@@ -437,78 +318,334 @@ class NetworkBadge extends StatelessWidget {
   }
 }
 
+// ─── NetworkLogoChip ──────────────────────────────────────────────────────────
+// Circular logo for network / cable provider selection
+
+class NetworkLogoChip extends StatelessWidget {
+  final String letter;
+  final String label;
+  final Color brandColor;
+  final Color bgColor;
+  final Color textColor;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const NetworkLogoChip({
+    super.key,
+    required this.letter,
+    required this.label,
+    required this.brandColor,
+    required this.bgColor,
+    required this.textColor,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        decoration: BoxDecoration(
+          color: selected ? bgColor : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? brandColor : kCardBorder,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Circular logo
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: selected ? brandColor : brandColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                letter,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: selected ? Colors.white : brandColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: dFont(
+                size: 11,
+                weight: FontWeight.w700,
+                color: selected ? textColor : kMutedText,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── DiscoLogoChip (Electricity) — shows logo + name ─────────────────────────
+
+class DiscoLogoChip extends StatelessWidget {
+  final String shortName;
+  final Color brandColor;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const DiscoLogoChip({
+    super.key,
+    required this.shortName,
+    required this.brandColor,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? brandColor.withValues(alpha: 0.12) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? brandColor : kCardBorder,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Round logo circle
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: selected ? brandColor : brandColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                shortName[0],
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: selected ? Colors.white : brandColor,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Name
+            Text(
+              shortName,
+              style: dFont(
+                size: 12,
+                weight: FontWeight.w700,
+                color: selected ? brandColor : kMediumText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── TxnRow ───────────────────────────────────────────────────────────────────
 
 class TxnRow extends StatelessWidget {
   final HistoryItem txn;
-  const TxnRow({super.key, required this.txn});
+  final bool tappable;
+  const TxnRow({super.key, required this.txn, this.tappable = true});
 
   @override
   Widget build(BuildContext context) {
     final isPos = txn.amount > 0;
-    final icon = _txnIcon(txn.type);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF0F4FA)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F4FA),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: kPrimaryNavy, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(txn.desc,
-                  overflow: TextOverflow.ellipsis,
-                  style: dFont(size: 14, weight: FontWeight.w600, color: kPrimaryDark)),
-                const SizedBox(height: 3),
-                Row(
-                  children: [
-                    if (txn.network != null) ...[
-                      NetworkBadge(network: txn.network!),
-                      const SizedBox(width: 6),
+
+    return GestureDetector(
+      onTap: tappable ? () => _showDetail(context) : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFF0F4FA)),
+        ),
+        child: Row(
+          children: [
+            // Company logo circle
+            _TxnLogo(txn: txn),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(txn.desc,
+                    overflow: TextOverflow.ellipsis,
+                    style: dFont(size: 14, weight: FontWeight.w600, color: kPrimaryDark)),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      if (txn.network != null) ...[
+                        NetworkBadge(network: txn.network!),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(txn.date, style: dFont(size: 11, color: kMutedText)),
                     ],
-                    Text(txn.date, style: dFont(size: 11, color: kMutedText)),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isPos ? '+' : ''}₦${fmtNaira(txn.amount.abs())}',
+                  style: dFont(
+                    size: 14, weight: FontWeight.w700,
+                    color: isPos ? kAccentGreen2 : kPrimaryDark,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  txn.status.toUpperCase(),
+                  style: dFont(
+                    size: 10, weight: FontWeight.w700,
+                    color: txn.status == 'success' ? kAccentGreen : kErrorRed,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${isPos ? '+' : ''}₦${fmtNaira(txn.amount.abs())}',
-                style: dFont(
-                  size: 14, weight: FontWeight.w700,
-                  color: isPos ? kAccentGreen2 : kPrimaryDark,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                txn.status.toUpperCase(),
-                style: dFont(
-                  size: 10, weight: FontWeight.w700,
-                  color: txn.status == 'success' ? kAccentGreen : kErrorRed,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showDetail(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TxnDetailSheet(txn: txn),
+    );
+  }
+}
+
+// ─── TxnLogo ─────────────────────────────────────────────────────────────────
+
+class _TxnLogo extends StatelessWidget {
+  final HistoryItem txn;
+  const _TxnLogo({required this.txn});
+
+  @override
+  Widget build(BuildContext context) {
+    // For network-based types (data, airtime, airtimecash)
+    if (txn.network != null) {
+      final net = kNetworks.firstWhere(
+        (n) => n.name == txn.network || n.id == txn.network!.toLowerCase(),
+        orElse: () => NetworkInfo(
+          id: '', name: txn.network!, logoLetter: txn.network![0],
+          color: kMutedText, bg: kBackground, text: kMutedText, dot: kMutedText,
+        ),
+      );
+      return Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: net.color.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          net.logoLetter,
+          style: GoogleFonts.inter(
+            fontSize: 18, fontWeight: FontWeight.w900, color: net.color,
+          ),
+        ),
+      );
+    }
+
+    // For cable TV
+    if (txn.type == 'cable' && txn.provider != null) {
+      final prov = kCableProviders.firstWhere(
+        (p) => p.name == txn.provider,
+        orElse: () => CableProvider(
+          id: '', name: txn.provider!, logoLetter: txn.provider![0],
+          color: kPrimaryNavy, bg: kBackground,
+        ),
+      );
+      return Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: prov.color.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          prov.logoLetter,
+          style: GoogleFonts.inter(
+            fontSize: 18, fontWeight: FontWeight.w900, color: prov.color,
+          ),
+        ),
+      );
+    }
+
+    // For electricity
+    if (txn.type == 'electricity' && txn.provider != null) {
+      final c = discoColor(txn.provider!);
+      return Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: c.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          txn.provider![0],
+          style: GoogleFonts.inter(
+            fontSize: 18, fontWeight: FontWeight.w900, color: c,
+          ),
+        ),
+      );
+    }
+
+    // Wallet
+    if (txn.type == 'wallet') {
+      return Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: kAccentGreen.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.account_balance_wallet_outlined, color: kAccentGreen, size: 20),
+      );
+    }
+
+    // Fallback generic icon
+    return Container(
+      width: 44, height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(_txnIcon(txn.type), color: kPrimaryNavy, size: 20),
     );
   }
 
@@ -522,6 +659,208 @@ class TxnRow extends StatelessWidget {
       case 'wallet':      return Icons.account_balance_wallet_outlined;
       default:            return Icons.receipt_long_rounded;
     }
+  }
+}
+
+// ─── TxnDetailSheet ───────────────────────────────────────────────────────────
+
+class TxnDetailSheet extends StatelessWidget {
+  final HistoryItem txn;
+  const TxnDetailSheet({super.key, required this.txn});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPos = txn.amount > 0;
+    final statusColor = txn.status == 'success' ? kAccentGreen : kErrorRed;
+    final statusBg = txn.status == 'success' ? const Color(0xFFE6F9F4) : const Color(0xFFFEE2E2);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 60),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: kCardBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with logo + title
+                  Row(
+                    children: [
+                      _TxnLogo(txn: txn),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(txn.desc,
+                              style: dFont(size: 16, weight: FontWeight.w800, color: kPrimaryDark)),
+                            const SizedBox(height: 2),
+                            Text(txn.date, style: dFont(size: 12, color: kMutedText)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Amount display
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isPos
+                            ? [const Color(0xFF00C896), const Color(0xFF00A87D)]
+                            : [kPrimaryNavy, kPrimaryBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          isPos ? 'Amount Received' : 'Amount Paid',
+                          style: dFont(size: 12, color: Colors.white.withValues(alpha: 0.8)),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${isPos ? '+' : '−'}₦${fmtNaira(txn.amount.abs())}',
+                          style: GoogleFonts.inter(
+                            fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Status badge
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(color: statusColor),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            txn.status == 'success'
+                                ? Icons.check_circle_rounded
+                                : Icons.cancel_rounded,
+                            color: statusColor, size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            txn.status == 'success' ? 'Transaction Successful' : 'Transaction Failed',
+                            style: dFont(size: 13, weight: FontWeight.w700, color: statusColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Details card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: kBackground,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: kCardBorder),
+                    ),
+                    child: Column(
+                      children: [
+                        _detailRow('Type', txn.type.toUpperCase()),
+                        const Divider(height: 1, color: kCardBorder),
+                        if (txn.network != null) ...[
+                          _detailRow('Network', txn.network!),
+                          const Divider(height: 1, color: kCardBorder),
+                        ],
+                        if (txn.provider != null) ...[
+                          _detailRow('Provider', txn.provider!),
+                          const Divider(height: 1, color: kCardBorder),
+                        ],
+                        if (txn.plan != null) ...[
+                          _detailRow('Plan / Package', txn.plan!),
+                          const Divider(height: 1, color: kCardBorder),
+                        ],
+                        _detailRow('Date', txn.date),
+                        const Divider(height: 1, color: kCardBorder),
+                        _detailRow('Reference', txn.refId,
+                          valueColor: kPrimaryNavy,
+                          valueBold: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Share receipt button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.share_rounded, size: 18),
+                      label: const Text('Share Receipt'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: kPrimaryNavy,
+                        side: const BorderSide(color: kCardBorder, width: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(
+    String label,
+    String value, {
+    Color? valueColor,
+    bool valueBold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: dFont(size: 13, color: kMutedText)),
+          const SizedBox(width: 16),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: dFont(
+                size: 13,
+                weight: valueBold ? FontWeight.w700 : FontWeight.w600,
+                color: valueColor ?? kPrimaryDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -682,6 +1021,124 @@ class PillSegment extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+// ─── AppLoader ────────────────────────────────────────────────────────────────
+
+class AppLoader extends StatefulWidget {
+  final String? message;
+  const AppLoader({super.key, this.message});
+
+  @override
+  State<AppLoader> createState() => _AppLoaderState();
+}
+
+class _AppLoaderState extends State<AppLoader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _rotate;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+    _rotate = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.linear),
+    );
+    _scale = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, __) => Transform.scale(
+            scale: _scale.value,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Outer spinning ring
+                Transform.rotate(
+                  angle: _rotate.value * 2 * 3.14159,
+                  child: const SizedBox(
+                    width: 54, height: 54,
+                    child: CircularProgressIndicator(
+                      value: 0.75,
+                      strokeWidth: 3,
+                      backgroundColor: kCardBorder,
+                      valueColor: AlwaysStoppedAnimation<Color>(kAccentGreen),
+                      strokeCap: StrokeCap.round,
+                    ),
+                  ),
+                ),
+                // Inner logo
+                Container(
+                  width: 38, height: 38,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [kPrimaryNavy, kPrimaryBlue],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text('H',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (widget.message != null) ...[
+          const SizedBox(height: 16),
+          Text(
+            widget.message!,
+            style: dFont(size: 14, color: kMutedText),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// Full-screen loading overlay
+class AppLoadingOverlay extends StatelessWidget {
+  final String? message;
+  const AppLoadingOverlay({super.key, this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      width: double.infinity,
+      height: double.infinity,
+      child: Center(
+        child: AppLoader(message: message),
       ),
     );
   }

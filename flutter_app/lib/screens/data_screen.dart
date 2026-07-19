@@ -49,7 +49,6 @@ class _DataScreenState extends State<DataScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             BackHeader(title: 'Buy Data', onBack: () => Navigator.pop(context)),
             Expanded(
               child: SingleChildScrollView(
@@ -62,33 +61,24 @@ class _DataScreenState extends State<DataScreen> {
                     const SizedBox(height: 8),
                     _textField(controller: _phoneCtrl),
                     const SizedBox(height: 20),
-                    // Network
+                    // Network — rounded logo chips
                     const SectionLabel('Network'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Row(
                       children: kNetworks.asMap().entries.map((e) {
                         final i = e.key; final n = e.value;
                         final on = i == _netIdx;
                         return Expanded(
                           child: Padding(
-                            padding: EdgeInsets.only(right: i < 3 ? 8 : 0),
-                            child: GestureDetector(
+                            padding: EdgeInsets.only(right: i < kNetworks.length - 1 ? 10 : 0),
+                            child: NetworkLogoChip(
+                              letter: n.logoLetter,
+                              label: n.name,
+                              brandColor: n.color,
+                              bgColor: n.bg,
+                              textColor: n.text,
+                              selected: on,
                               onTap: () => setState(() { _netIdx = i; _selectedId = null; }),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: on ? n.bg : Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: on ? n.dot : kCardBorder, width: 2,
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(n.name,
-                                  style: dFont(size: 12, weight: FontWeight.w700,
-                                    color: on ? n.text : kMutedText)),
-                              ),
                             ),
                           ),
                         );

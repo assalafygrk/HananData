@@ -19,6 +19,7 @@ import 'screens/failed_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/wallet_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/notification_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,22 +57,23 @@ class HananDataApp extends StatelessWidget {
       // ─── Named Routes ──────────────────────────────────────────────────────
       initialRoute: '/splash',
       routes: {
-        '/splash':       (_) => const SplashScreen(),
-        '/onboarding':   (_) => const OnboardingScreen(),
-        '/login':        (_) => const LoginScreen(),
-        '/signup':       (_) => const SignupScreen(),
-        '/home':         (_) => const HomeScreen(),
-        '/data':         (_) => const DataScreen(),
-        '/airtime':      (_) => const AirtimeScreen(),
-        '/cable':        (_) => const CableScreen(),
-        '/electricity':  (_) => const ElectricityScreen(),
-        '/airtimecash':  (_) => const AirtimeCashScreen(),
-        '/confirm':      (_) => const ConfirmScreen(),
-        '/success':      (_) => const SuccessScreen(),
-        '/failed':       (_) => const FailedScreen(),
-        '/history':      (_) => const HistoryScreen(),
-        '/wallet':       (_) => const WalletScreen(),
-        '/profile':      (_) => const ProfileScreen(),
+        '/splash':         (_) => const SplashScreen(),
+        '/onboarding':     (_) => const OnboardingScreen(),
+        '/login':          (_) => const LoginScreen(),
+        '/signup':         (_) => const SignupScreen(),
+        '/home':           (_) => const HomeScreen(),
+        '/data':           (_) => const DataScreen(),
+        '/airtime':        (_) => const AirtimeScreen(),
+        '/cable':          (_) => const CableScreen(),
+        '/electricity':    (_) => const ElectricityScreen(),
+        '/airtimecash':    (_) => const AirtimeCashScreen(),
+        '/confirm':        (_) => const ConfirmScreen(),
+        '/success':        (_) => const SuccessScreen(),
+        '/failed':         (_) => const FailedScreen(),
+        '/history':        (_) => const HistoryScreen(),
+        '/wallet':         (_) => const WalletScreen(),
+        '/profile':        (_) => const ProfileScreen(),
+        '/notifications':  (_) => const NotificationScreen(),
       },
       // ─── Custom page transitions ───────────────────────────────────────────
       onGenerateRoute: (settings) {
@@ -102,20 +104,21 @@ class HananDataApp extends StatelessWidget {
 
 // Builders map for onGenerateRoute (same screens — covers argument-passing routes)
 final _routeBuilders = <String, WidgetBuilder>{
-  '/splash':      (_) => const SplashScreen(),
-  '/onboarding':  (_) => const OnboardingScreen(),
-  '/login':       (_) => const LoginScreen(),
-  '/signup':      (_) => const SignupScreen(),
-  '/home':        (_) => const HomeScreen(),
-  '/data':        (_) => const DataScreen(),
-  '/airtime':     (_) => const AirtimeScreen(),
-  '/cable':       (_) => const CableScreen(),
-  '/electricity': (_) => const ElectricityScreen(),
-  '/airtimecash': (_) => const AirtimeCashScreen(),
-  '/confirm':     (_) => const ConfirmScreen(),
-  '/success':     (_) => const SuccessScreen(),
-  '/failed':      (_) => const FailedScreen(),
-  '/history':     (_) => const HistoryScreen(),
-  '/wallet':      (_) => const WalletScreen(),
-  '/profile':     (_) => const ProfileScreen(),
+  '/splash':        (_) => const SplashScreen(),
+  '/onboarding':    (_) => const OnboardingScreen(),
+  '/login':         (_) => const LoginScreen(),
+  '/signup':        (_) => const SignupScreen(),
+  '/home':          (_) => const HomeScreen(),
+  '/data':          (_) => const DataScreen(),
+  '/airtime':       (_) => const AirtimeScreen(),
+  '/cable':         (_) => const CableScreen(),
+  '/electricity':   (_) => const ElectricityScreen(),
+  '/airtimecash':   (_) => const AirtimeCashScreen(),
+  '/confirm':       (_) => const ConfirmScreen(),
+  '/success':       (_) => const SuccessScreen(),
+  '/failed':        (_) => const FailedScreen(),
+  '/history':       (_) => const HistoryScreen(),
+  '/wallet':        (_) => const WalletScreen(),
+  '/profile':       (_) => const ProfileScreen(),
+  '/notifications': (_) => const NotificationScreen(),
 };

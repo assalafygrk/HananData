@@ -49,7 +49,6 @@ class _CableScreenState extends State<CableScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             BackHeader(title: 'Cable TV', onBack: () => Navigator.pop(context)),
             Expanded(
               child: SingleChildScrollView(
@@ -57,33 +56,24 @@ class _CableScreenState extends State<CableScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Provider
+                    // Provider — rounded logo chips
                     const SectionLabel('Provider'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Row(
                       children: kCableProviders.asMap().entries.map((e) {
                         final i = e.key; final p = e.value;
                         final on = i == _provIdx;
                         return Expanded(
                           child: Padding(
-                            padding: EdgeInsets.only(right: i < 2 ? 10 : 0),
-                            child: GestureDetector(
+                            padding: EdgeInsets.only(right: i < kCableProviders.length - 1 ? 10 : 0),
+                            child: NetworkLogoChip(
+                              letter: p.logoLetter,
+                              label: p.name,
+                              brandColor: p.color,
+                              bgColor: p.bg,
+                              textColor: p.color,
+                              selected: on,
                               onTap: () => setState(() { _provIdx = i; _selectedId = null; }),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                decoration: BoxDecoration(
-                                  color: on ? p.bg : Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: on ? p.color : kCardBorder, width: 2,
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(p.name,
-                                  style: dFont(size: 13, weight: FontWeight.w700,
-                                    color: on ? p.color : kMutedText)),
-                              ),
                             ),
                           ),
                         );

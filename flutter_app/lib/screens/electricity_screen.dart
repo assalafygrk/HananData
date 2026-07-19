@@ -19,6 +19,17 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
 
   final _quickAmounts = [1000, 2000, 5000, 10000];
 
+  // Pre-computed short names for all discos
+  late final List<String> _discoShorts;
+  late final List<Color> _discoColors;
+
+  @override
+  void initState() {
+    super.initState();
+    _discoShorts = kDiscos.map(discoShortName).toList();
+    _discoColors = _discoShorts.map(discoColor).toList();
+  }
+
   @override
   void dispose() {
     _meterCtrl.dispose();
@@ -34,9 +45,10 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   void _proceed() {
     final amt = int.tryParse(_amountCtrl.text) ?? 0;
     final disco = kDiscos[_discoIdx];
+    final short = _discoShorts[_discoIdx];
     final txn = TxnData(
       type: 'Electricity',
-      provider: disco,
+      provider: short,
       recipient: _meterType == 'prepaid'
           ? 'Prepaid · ${_meterCtrl.text}'
           : 'Postpaid · ${_meterCtrl.text}',
@@ -58,7 +70,6 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             BackHeader(title: 'Electricity', onBack: () => Navigator.pop(context)),
             Expanded(
               child: SingleChildScrollView(
@@ -75,33 +86,51 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                       onSelect: (v) => setState(() => _meterType = v),
                     ),
                     const SizedBox(height: 20),
-                    // Disco selector
+                    // DISCO selector — horizontal scrollable logo + name chips
                     const SectionLabel('Distribution Company'),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: kCardBorder, width: 2),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 62,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: kDiscos.length,
+                        itemBuilder: (_, i) {
+                          final short = _discoShorts[i];
+                          final color = _discoColors[i];
+                          final on = i == _discoIdx;
+                          return DiscoLogoChip(
+                            shortName: short,
+                            brandColor: color,
+                            selected: on,
+                            onTap: () => setState(() => _discoIdx = i),
+                          );
+                        },
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<int>(
-                          value: _discoIdx,
-                          isExpanded: true,
-                          icon: const Padding(
-                            padding: EdgeInsets.only(right: 12),
-                            child: Icon(Icons.keyboard_arrow_down_rounded, color: kMutedText),
-                          ),
-                          style: dFont(size: 14, color: kPrimaryDark),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          borderRadius: BorderRadius.circular(16),
-                          items: kDiscos.asMap().entries.map((e) =>
-                            DropdownMenuItem(
-                              value: e.key,
-                              child: Text(e.value, style: dFont(size: 14)),
+                    ),
+                    // Selected DISCO full name display
+                    const SizedBox(height: 8),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Container(
+                        key: ValueKey(_discoIdx),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _discoColors[_discoIdx].withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: _discoColors[_discoIdx].withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.bolt_rounded, color: _discoColors[_discoIdx], size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                kDiscos[_discoIdx],
+                                style: dFont(size: 13, weight: FontWeight.w600,
+                                  color: _discoColors[_discoIdx]),
+                              ),
                             ),
-                          ).toList(),
-                          onChanged: (v) => setState(() => _discoIdx = v!),
+                          ],
                         ),
                       ),
                     ),

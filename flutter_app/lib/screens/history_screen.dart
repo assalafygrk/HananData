@@ -30,11 +30,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             // Header
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
               child: Row(
                 children: [
                   Text('Transactions',
@@ -82,7 +81,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
             const Divider(height: 1, color: kCardBorder),
-            // List
+            // List — each row tappable showing detail sheet
             Expanded(
               child: items.isEmpty
                   ? Center(
@@ -100,7 +99,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       padding: const EdgeInsets.all(16),
                       itemCount: items.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (ctx, i) => TxnRow(txn: items[i]),
+                      itemBuilder: (ctx, i) => TxnRow(txn: items[i], tappable: true),
                     ),
             ),
             // Bottom nav

@@ -49,7 +49,6 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             BackHeader(
               title: 'Create Account',
               onBack: () {

@@ -33,122 +33,106 @@ class HomeScreen extends StatelessWidget {
             ),
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  const AppStatusBar(dark: true),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                    child: Column(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Column(
+                  children: [
+                    // Greeting row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Greeting row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Good morning,',
-                                  style: dFont(size: 12, color: const Color(0xFF7BAED4))),
-                                const SizedBox(height: 2),
-                                Text('Aisha Bello 👋',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
-                                  )),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                Container(
-                                  width: 40, height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.notifications_outlined,
-                                    color: Colors.white, size: 22),
-                                ),
-                                Positioned(
-                                  top: 8, right: 8,
-                                  child: Container(
-                                    width: 8, height: 8,
-                                    decoration: BoxDecoration(
-                                      color: kAccentGreen,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: kPrimaryNavy, width: 1.5),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            Text('Good morning,',
+                              style: dFont(size: 12, color: const Color(0xFF7BAED4))),
+                            const SizedBox(height: 2),
+                            Text('Aisha Bello 👋',
+                              style: GoogleFonts.inter(
+                                fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
+                              )),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        // Balance card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // Notification bell — functional
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, '/notifications'),
+                          child: Stack(
                             children: [
-                              Text('Wallet Balance',
-                                style: dFont(size: 11, weight: FontWeight.w600, color: const Color(0xFF7BAED4))),
-                              const SizedBox(height: 4),
-                              Text('₦48,750.00',
-                                style: GoogleFonts.inter(
-                                  fontSize: 30, fontWeight: FontWeight.w800,
-                                  color: Colors.white, letterSpacing: -0.5,
-                                )),
-                              const SizedBox(height: 2),
-                              Text('0123 456 789 · HananData MFB',
-                                style: dFont(size: 11, color: const Color(0xFF7BAED4))),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  // Add money
-                                  GestureDetector(
-                                    onTap: () => Navigator.pushNamed(context, '/wallet'),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: kAccentGreen,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.add_circle_outline, color: Colors.white, size: 14),
-                                          const SizedBox(width: 6),
-                                          Text('Add Money',
-                                            style: dFont(size: 13, weight: FontWeight.w700, color: Colors.white)),
-                                        ],
-                                      ),
-                                    ),
+                              Container(
+                                width: 42, height: 42,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.notifications_outlined,
+                                  color: Colors.white, size: 22),
+                              ),
+                              // Unread badge
+                              Positioned(
+                                top: 6, right: 6,
+                                child: Container(
+                                  width: 10, height: 10,
+                                  decoration: BoxDecoration(
+                                    color: kAccentGreen,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFF0D1B35), width: 1.5),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text('Send Money',
-                                        style: dFont(size: 13, weight: FontWeight.w600, color: Colors.white)),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    // Balance card
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Wallet Balance',
+                            style: dFont(size: 11, weight: FontWeight.w600, color: const Color(0xFF7BAED4))),
+                          const SizedBox(height: 4),
+                          Text('₦48,750.00',
+                            style: GoogleFonts.inter(
+                              fontSize: 30, fontWeight: FontWeight.w800,
+                              color: Colors.white, letterSpacing: -0.5,
+                            )),
+                          const SizedBox(height: 2),
+                          Text('0123 456 789 · HananData MFB',
+                            style: dFont(size: 11, color: const Color(0xFF7BAED4))),
+                          const SizedBox(height: 16),
+                          // Add money only (Send Money removed)
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(context, '/wallet'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: kAccentGreen,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.add_circle_outline, color: Colors.white, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text('Add Money',
+                                    style: dFont(size: 14, weight: FontWeight.w700, color: Colors.white)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

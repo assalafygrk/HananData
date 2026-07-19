@@ -42,7 +42,6 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             BackHeader(
               title: 'Confirm Transaction',
               onBack: () => Navigator.pop(context),

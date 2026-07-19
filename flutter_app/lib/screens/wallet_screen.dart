@@ -33,7 +33,6 @@ class _WalletScreenState extends State<WalletScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const AppStatusBar(),
             // Header
             Container(
               color: Colors.white,
