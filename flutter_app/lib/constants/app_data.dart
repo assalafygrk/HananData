@@ -352,6 +352,17 @@ Color discoColor(String discoShort) {
   return map[discoShort] ?? const Color(0xFF1B3A6B);
 }
 
+String? discoLogoUrl(String discoShort) {
+  const map = {
+    'IKEDC':  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Ikeja_Electric_Logo.png/320px-Ikeja_Electric_Logo.png',
+    'EKEDC':  'https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Eko_Electricity_Distribution_Company_Logo.png/320px-Eko_Electricity_Distribution_Company_Logo.png',
+    'AEDC':   'https://upload.wikimedia.org/wikipedia/en/thumb/2/23/Abuja_Electricity_Distribution_Company_logo.png/320px-Abuja_Electricity_Distribution_Company_logo.png',
+    'PHED':   'https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Port_Harcourt_Electricity_Distribution_Company_logo.png/320px-Port_Harcourt_Electricity_Distribution_Company_logo.png',
+    'IBEDC':  'https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Ibadan_Electricity_Distribution_Company_logo.jpg/320px-Ibadan_Electricity_Distribution_Company_logo.jpg',
+  };
+  return map[discoShort];
+}
+
 // ─── History Items ────────────────────────────────────────────────────────────
 
 class HistoryItem {

@@ -401,6 +401,7 @@ class NetworkLogoChip extends StatelessWidget {
 
 class DiscoLogoChip extends StatelessWidget {
   final String shortName;
+  final String? logoUrl;
   final Color brandColor;
   final bool selected;
   final VoidCallback onTap;
@@ -408,6 +409,7 @@ class DiscoLogoChip extends StatelessWidget {
   const DiscoLogoChip({
     super.key,
     required this.shortName,
+    this.logoUrl,
     required this.brandColor,
     required this.selected,
     required this.onTap,
@@ -441,16 +443,14 @@ class DiscoLogoChip extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: Text(
-                shortName[0],
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  color: selected ? Colors.white : brandColor,
-                ),
-              ),
+              child: logoUrl != null
+                  ? Image.network(
+                      logoUrl!, width: 24, height: 24, fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => _fallbackText(),
+                    )
+                  : _fallbackText(),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             // Name
             Text(
               shortName,
@@ -462,6 +462,17 @@ class DiscoLogoChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _fallbackText() {
+    return Text(
+      shortName[0],
+      style: GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w900,
+        color: selected ? Colors.white : brandColor,
       ),
     );
   }
@@ -574,12 +585,12 @@ class _TxnLogo extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
-        child: Text(
-          net.logoLetter,
-          style: GoogleFonts.inter(
-            fontSize: 18, fontWeight: FontWeight.w900, color: net.color,
-          ),
-        ),
+        child: net.logoUrl != null
+            ? Image.network(net.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Text(net.logoLetter,
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: net.color)))
+            : Text(net.logoLetter,
+                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: net.color)),
       );
     }
 
@@ -599,18 +610,20 @@ class _TxnLogo extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
-        child: Text(
-          prov.logoLetter,
-          style: GoogleFonts.inter(
-            fontSize: 18, fontWeight: FontWeight.w900, color: prov.color,
-          ),
-        ),
+        child: prov.logoUrl != null
+            ? Image.network(prov.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Text(prov.logoLetter,
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: prov.color)))
+            : Text(prov.logoLetter,
+                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: prov.color)),
       );
     }
 
     // For electricity
     if (txn.type == 'electricity' && txn.provider != null) {
-      final c = discoColor(txn.provider!);
+      final short = discoShortName(txn.provider!);
+      final c = discoColor(short);
+      final lUrl = discoLogoUrl(short);
       return Container(
         width: 44, height: 44,
         decoration: BoxDecoration(
@@ -618,12 +631,12 @@ class _TxnLogo extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
-        child: Text(
-          txn.provider![0],
-          style: GoogleFonts.inter(
-            fontSize: 18, fontWeight: FontWeight.w900, color: c,
-          ),
-        ),
+        child: lUrl != null
+            ? Image.network(lUrl, width: 28, height: 28, fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Text(short[0],
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: c)))
+            : Text(short[0],
+                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: c)),
       );
     }
 

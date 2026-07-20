@@ -100,6 +100,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                           final on = i == _discoIdx;
                           return DiscoLogoChip(
                             shortName: short,
+                            logoUrl: discoLogoUrl(short),
                             brandColor: color,
                             selected: on,
                             onTap: () => setState(() => _discoIdx = i),
