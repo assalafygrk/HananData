@@ -324,6 +324,7 @@ class NetworkBadge extends StatelessWidget {
 class NetworkLogoChip extends StatelessWidget {
   final String letter;
   final String label;
+  final String? logoUrl;
   final Color brandColor;
   final Color bgColor;
   final Color textColor;
@@ -334,6 +335,7 @@ class NetworkLogoChip extends StatelessWidget {
     super.key,
     required this.letter,
     required this.label,
+    this.logoUrl,
     required this.brandColor,
     required this.bgColor,
     required this.textColor,
@@ -359,7 +361,7 @@ class NetworkLogoChip extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Circular logo
+            // Circular logo — real image when URL provided, letter fallback
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               width: 44,

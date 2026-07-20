@@ -14,7 +14,8 @@ Color hexColor(String hex) {
 class NetworkInfo {
   final String id;
   final String name;
-  final String logoLetter;   // Letter shown in logo circle
+  final String logoLetter;
+  final String? logoUrl;       // Real logo URL (nullable for fallback)
   final Color color;
   final Color bg;
   final Color text;
@@ -24,6 +25,7 @@ class NetworkInfo {
     required this.id,
     required this.name,
     required this.logoLetter,
+    this.logoUrl,
     required this.color,
     required this.bg,
     required this.text,
@@ -34,25 +36,59 @@ class NetworkInfo {
 final List<NetworkInfo> kNetworks = [
   const NetworkInfo(
     id: 'mtn', name: 'MTN', logoLetter: 'M',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/New-mtn-logo.png/200px-New-mtn-logo.png',
     color: Color(0xFFFFCC00), bg: Color(0xFFFFFBE6),
     text: Color(0xFF7A6000), dot: Color(0xFFE6B800),
   ),
   const NetworkInfo(
     id: 'airtel', name: 'Airtel', logoLetter: 'A',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Airtel_Nigeria_logo.svg/200px-Airtel_Nigeria_logo.svg.png',
     color: Color(0xFFE4002B), bg: Color(0xFFFFF0F2),
     text: Color(0xFFB80022), dot: Color(0xFFE4002B),
   ),
   const NetworkInfo(
     id: 'glo', name: 'Glo', logoLetter: 'G',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Globacom_logo.svg/200px-Globacom_logo.svg.png',
     color: Color(0xFF009A44), bg: Color(0xFFE8F5EE),
     text: Color(0xFF006B2F), dot: Color(0xFF009A44),
   ),
   const NetworkInfo(
     id: '9mobile', name: '9mobile', logoLetter: '9',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a5/9mobile_logo_2015.png/200px-9mobile_logo_2015.png',
     color: Color(0xFF006E51), bg: Color(0xFFE6F1EE),
     text: Color(0xFF004D38), dot: Color(0xFF006E51),
   ),
 ];
+
+// ─── Data Types ───────────────────────────────────────────────────────────────
+
+class DataType {
+  final String id;
+  final String name;
+  final String description;
+  const DataType({required this.id, required this.name, required this.description});
+}
+
+/// Data types per network ID
+final Map<String, List<DataType>> kDataTypes = {
+  'mtn': [
+    const DataType(id: 'sme',    name: 'SME Data',        description: 'Cheaper, share-able bundles'),
+    const DataType(id: 'cg',     name: 'Corp. Gifting',   description: 'Send to others'),
+    const DataType(id: 'normal', name: 'Standard',        description: 'Regular MTN data'),
+  ],
+  'airtel': [
+    const DataType(id: 'cg',     name: 'Corp. Gifting',   description: 'Compressed bulk data'),
+    const DataType(id: 'normal', name: 'Standard',        description: 'Regular Airtel data'),
+  ],
+  'glo': [
+    const DataType(id: 'berekete', name: 'Berekete',      description: 'Glo bulk data'),
+    const DataType(id: 'normal',   name: 'Standard',      description: 'Regular Glo data'),
+  ],
+  '9mobile': [
+    const DataType(id: 'true',   name: 'TrueUnlimited',   description: 'Truly unlimited data'),
+    const DataType(id: 'normal', name: 'Standard',        description: 'Regular 9mobile data'),
+  ],
+};
 
 // ─── Data Plans ───────────────────────────────────────────────────────────────
 
@@ -64,25 +100,149 @@ class DataPlan {
   const DataPlan({required this.id, required this.size, required this.price, required this.validity});
 }
 
-final Map<String, List<DataPlan>> kDataPlans = {
-  'daily': [
-    const DataPlan(id: 'd1', size: '100MB', price: 100, validity: '1 Day'),
-    const DataPlan(id: 'd2', size: '200MB', price: 150, validity: '1 Day'),
-    const DataPlan(id: 'd3', size: '500MB', price: 200, validity: '1 Day'),
-    const DataPlan(id: 'd4', size: '1GB',   price: 350, validity: '1 Day'),
-  ],
-  'weekly': [
-    const DataPlan(id: 'w1', size: '1GB',  price: 300,  validity: '7 Days'),
-    const DataPlan(id: 'w2', size: '2GB',  price: 500,  validity: '7 Days'),
-    const DataPlan(id: 'w3', size: '5GB',  price: 1000, validity: '7 Days'),
-    const DataPlan(id: 'w4', size: '10GB', price: 1500, validity: '7 Days'),
-  ],
-  'monthly': [
-    const DataPlan(id: 'm1', size: '3GB',  price: 1000, validity: '30 Days'),
-    const DataPlan(id: 'm2', size: '10GB', price: 2500, validity: '30 Days'),
-    const DataPlan(id: 'm3', size: '20GB', price: 4500, validity: '30 Days'),
-    const DataPlan(id: 'm4', size: '50GB', price: 9000, validity: '30 Days'),
-  ],
+/// Plans: networkId-typeId → validity → plans
+final Map<String, Map<String, List<DataPlan>>> kNetworkDataPlans = {
+  // MTN SME
+  'mtn-sme': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '500MB',  price: 135,  validity: '1 Day'),
+      const DataPlan(id: 'd2', size: '1GB',    price: 260,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '2GB',   price: 490,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '5GB',   price: 850,  validity: '7 Days'),
+      const DataPlan(id: 'w3', size: '10GB',  price: 1650, validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '5GB',   price: 1200,  validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '10GB',  price: 2100,  validity: '30 Days'),
+      const DataPlan(id: 'm3', size: '20GB',  price: 3900,  validity: '30 Days'),
+      const DataPlan(id: 'm4', size: '50GB',  price: 8500,  validity: '30 Days'),
+    ],
+  },
+  // MTN Corporate Gifting
+  'mtn-cg': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '1GB',    price: 300,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '5GB',   price: 900,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '10GB',  price: 1700, validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '10GB',  price: 2500,  validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '25GB',  price: 5500,  validity: '30 Days'),
+      const DataPlan(id: 'm3', size: '50GB',  price: 9500,  validity: '30 Days'),
+    ],
+  },
+  // MTN Normal
+  'mtn-normal': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '100MB', price: 100,  validity: '1 Day'),
+      const DataPlan(id: 'd2', size: '200MB', price: 200,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '1.5GB', price: 500,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '3GB',   price: 900,  validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '3GB',   price: 1000,  validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '10GB',  price: 2500,  validity: '30 Days'),
+      const DataPlan(id: 'm3', size: '20GB',  price: 4500,  validity: '30 Days'),
+    ],
+  },
+  // Airtel Corporate Gifting
+  'airtel-cg': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '1GB',    price: 280,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '5GB',   price: 800,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '10GB',  price: 1500, validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '10GB',  price: 2300,  validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '25GB',  price: 5000,  validity: '30 Days'),
+    ],
+  },
+  // Airtel Normal
+  'airtel-normal': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '200MB', price: 150,  validity: '1 Day'),
+      const DataPlan(id: 'd2', size: '500MB', price: 250,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '1GB',  price: 350,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '2GB',  price: 600,  validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '3GB',   price: 1000,  validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '10GB',  price: 2500,  validity: '30 Days'),
+      const DataPlan(id: 'm3', size: '20GB',  price: 4500,  validity: '30 Days'),
+    ],
+  },
+  // Glo Berekete
+  'glo-berekete': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '1GB',   price: 270,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '5GB',  price: 900,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '10GB', price: 1600, validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '10GB', price: 2400, validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '20GB', price: 4200, validity: '30 Days'),
+    ],
+  },
+  // Glo Normal
+  'glo-normal': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '100MB', price: 100,  validity: '1 Day'),
+      const DataPlan(id: 'd2', size: '500MB', price: 250,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '1.5GB', price: 500,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '5GB',  price: 1000, validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '5GB',  price: 1500, validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '15GB', price: 3500, validity: '30 Days'),
+    ],
+  },
+  // 9mobile TrueUnlimited
+  '9mobile-true': {
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '1GB',   price: 400,  validity: '7 Days'),
+      const DataPlan(id: 'w2', size: '2.5GB', price: 800,  validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '5GB',  price: 1500, validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '11GB', price: 2500, validity: '30 Days'),
+    ],
+  },
+  // 9mobile Normal
+  '9mobile-normal': {
+    'daily':   [
+      const DataPlan(id: 'd1', size: '150MB', price: 100,  validity: '1 Day'),
+    ],
+    'weekly':  [
+      const DataPlan(id: 'w1', size: '1GB',  price: 350,  validity: '7 Days'),
+    ],
+    'monthly': [
+      const DataPlan(id: 'm1', size: '3GB',  price: 1000, validity: '30 Days'),
+      const DataPlan(id: 'm2', size: '10GB', price: 2500, validity: '30 Days'),
+    ],
+  },
+};
+
+// ─── Airtime transfer numbers per network ────────────────────────────────────
+
+final Map<String, String> kAirtimeTransferNumbers = {
+  'mtn':     '0706 012 0120',
+  'airtel':  '0802 000 0000',
+  'glo':     '0805 286 0000',
+  '9mobile': '0809 091 0909',
 };
 
 // ─── Cable ────────────────────────────────────────────────────────────────────
@@ -90,13 +250,15 @@ final Map<String, List<DataPlan>> kDataPlans = {
 class CableProvider {
   final String id;
   final String name;
-  final String logoLetter;  // Letter(s) for logo circle
+  final String logoLetter;
+  final String? logoUrl;
   final Color color;
   final Color bg;
   const CableProvider({
     required this.id,
     required this.name,
     required this.logoLetter,
+    this.logoUrl,
     required this.color,
     required this.bg,
   });
@@ -111,9 +273,21 @@ class CablePackage {
 }
 
 final List<CableProvider> kCableProviders = [
-  const CableProvider(id: 'dstv',      name: 'DStv',      logoLetter: 'D', color: Color(0xFF003087), bg: Color(0xFFE8F0FB)),
-  const CableProvider(id: 'gotv',      name: 'GOtv',      logoLetter: 'G', color: Color(0xFF0070BA), bg: Color(0xFFE8F4FB)),
-  const CableProvider(id: 'startimes', name: 'StarTimes',  logoLetter: 'S', color: Color(0xFFCC1020), bg: Color(0xFFFDEBEC)),
+  const CableProvider(
+    id: 'dstv', name: 'DStv', logoLetter: 'D',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/DStv_logo.svg/200px-DStv_logo.svg.png',
+    color: Color(0xFF003087), bg: Color(0xFFE8F0FB),
+  ),
+  const CableProvider(
+    id: 'gotv', name: 'GOtv', logoLetter: 'G',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/GOtv_Logo.svg/200px-GOtv_Logo.svg.png',
+    color: Color(0xFF0070BA), bg: Color(0xFFE8F4FB),
+  ),
+  const CableProvider(
+    id: 'startimes', name: 'StarTimes', logoLetter: 'S',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/StarTimes_logo.svg/200px-StarTimes_logo.svg.png',
+    color: Color(0xFFCC1020), bg: Color(0xFFFDEBEC),
+  ),
 ];
 
 final Map<String, List<CablePackage>> kCablePackages = {
@@ -156,13 +330,11 @@ final List<String> kDiscos = [
   'Yola Electric (YEDC)',
 ];
 
-/// Short display name extracted from parentheses, e.g. "IKEDC"
 String discoShortName(String disco) {
   final match = RegExp(r'\(([^)]+)\)').firstMatch(disco);
   return match?.group(1) ?? disco;
 }
 
-/// Brand color per disco
 Color discoColor(String discoShort) {
   const map = {
     'IKEDC':  Color(0xFF003087),
@@ -186,9 +358,9 @@ class HistoryItem {
   final String id;
   final String type;
   final String? network;
-  final String? provider;   // for cable/electricity
+  final String? provider;
   final String desc;
-  final String? plan;       // data plan / cable package etc
+  final String? plan;
   final int amount;
   final String date;
   final String status;
@@ -212,7 +384,7 @@ final List<HistoryItem> kHistoryItems = [
   const HistoryItem(id: 'h2', type: 'airtime',     network: 'Airtel',  desc: '₦500 Airtime',            plan: null,                     amount: -500,   date: 'Today, 9:15 AM',   status: 'success', refId: 'HNDZ1Q9R'),
   const HistoryItem(id: 'h3', type: 'cable',       provider: 'DStv',   desc: 'DStv Compact',            plan: 'Compact · 190 channels', amount: -10500, date: 'Jul 14, 9:00 AM',  status: 'success', refId: 'HNDM7Y2K'),
   const HistoryItem(id: 'h4', type: 'electricity', provider: 'IKEDC',  desc: 'Ikeja Electric · ₦5,000', plan: 'Prepaid · Meter 12345',  amount: -5000,  date: 'Jul 12, 3:45 PM',  status: 'failed',  refId: 'HNDP4W6L'),
-  const HistoryItem(id: 'h5', type: 'wallet',      desc: 'Wallet Funding',          plan: null,                     amount: 20000,  date: 'Jul 10, 10:20 AM', status: 'success', refId: 'HNDB9T1V'),
+  const HistoryItem(id: 'h5', type: 'wallet',      desc: 'Wallet Funding',                              plan: null,                     amount: 20000,  date: 'Jul 10, 10:20 AM', status: 'success', refId: 'HNDB9T1V'),
   const HistoryItem(id: 'h6', type: 'data',        network: 'Glo',     desc: '10GB Data · 30 Days',     plan: '10GB · 30 Days',         amount: -2500,  date: 'Jul 8, 8:00 AM',   status: 'success', refId: 'HNDC5R3N'),
   const HistoryItem(id: 'h7', type: 'airtimecash', network: 'MTN',     desc: '₦500 Airtime → Cash',     plan: '25% fee applied',        amount: 375,    date: 'Jul 7, 1:00 PM',   status: 'success', refId: 'HNDE2H8J'),
   const HistoryItem(id: 'h8', type: 'airtime',     network: '9mobile', desc: '₦200 Airtime',            plan: null,                     amount: -200,   date: 'Jul 5, 6:10 PM',   status: 'success', refId: 'HNDF6U4S'),
@@ -226,8 +398,8 @@ class AppNotification {
   final String title;
   final String body;
   final String time;
-  final String icon;     // emoji icon
-  final String? route;   // optional navigation route
+  final String icon;
+  final String? route;
   final bool isRead;
   const AppNotification({
     required this.id,
@@ -242,65 +414,40 @@ class AppNotification {
 
 final List<AppNotification> kNotifications = [
   const AppNotification(
-    id: 'n1',
-    title: 'Transaction Successful! 🎉',
+    id: 'n1', title: 'Transaction Successful! 🎉',
     body: 'Your MTN 5GB data bundle has been activated on 08012345678.',
-    time: 'Just now',
-    icon: '📶',
-    route: '/history',
-    isRead: false,
+    time: 'Just now', icon: '📶', route: '/history', isRead: false,
   ),
   const AppNotification(
-    id: 'n2',
-    title: 'Wallet Funded',
+    id: 'n2', title: 'Wallet Funded',
     body: '₦20,000 has been added to your HananData wallet. New balance: ₦48,750.',
-    time: '2 hours ago',
-    icon: '💰',
-    route: '/wallet',
-    isRead: false,
+    time: '2 hours ago', icon: '💰', route: '/wallet', isRead: false,
   ),
   const AppNotification(
-    id: 'n3',
-    title: 'Airtime Purchase',
+    id: 'n3', title: 'Airtime Purchase',
     body: 'Your Airtel ₦500 airtime recharge was successful.',
-    time: 'Today, 9:15 AM',
-    icon: '📱',
-    route: '/history',
-    isRead: true,
+    time: 'Today, 9:15 AM', icon: '📱', route: '/history', isRead: true,
   ),
   const AppNotification(
-    id: 'n4',
-    title: 'Transaction Failed ❌',
+    id: 'n4', title: 'Transaction Failed ❌',
     body: 'Your Ikeja Electric payment of ₦5,000 could not be processed. Please retry.',
-    time: 'Jul 12, 3:45 PM',
-    icon: '⚡',
-    route: '/electricity',
-    isRead: true,
+    time: 'Jul 12, 3:45 PM', icon: '⚡', route: '/electricity', isRead: true,
   ),
   const AppNotification(
-    id: 'n5',
-    title: 'Special Offer 🔥',
+    id: 'n5', title: 'Special Offer 🔥',
     body: 'Get 2x data on MTN! Buy 10GB for the price of 5GB today only.',
-    time: 'Jul 11, 12:00 PM',
-    icon: '🎁',
-    route: '/data',
-    isRead: true,
+    time: 'Jul 11, 12:00 PM', icon: '🎁', route: '/data', isRead: true,
   ),
   const AppNotification(
-    id: 'n6',
-    title: 'Security Alert',
+    id: 'n6', title: 'Security Alert',
     body: 'Your account was accessed from a new device. If this wasn\'t you, change your PIN immediately.',
-    time: 'Jul 10, 8:00 AM',
-    icon: '🔐',
-    route: '/profile',
-    isRead: true,
+    time: 'Jul 10, 8:00 AM', icon: '🔐', route: '/profile', isRead: true,
   ),
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 String fmtNaira(int n) {
-  // Nigerian locale number formatting with commas
   final s = n.abs().toString();
   final buf = StringBuffer();
   for (int i = 0; i < s.length; i++) {

@@ -2,23 +2,31 @@
 import 'package:flutter/material.dart';
 import '../widgets/shared_widgets.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _darkMode = false;
 
   @override
   Widget build(BuildContext context) {
     final accountSettings = [
-      _MenuItem(icon: '👤', label: 'Account Details',   sub: 'Name, email, BVN',      onTap: () => _showAccountDetails(context)),
-      _MenuItem(icon: '🔐', label: 'Change PIN',         sub: 'Update your 6-digit PIN', onTap: () => _showChangePIN(context)),
-      _MenuItem(icon: '🔑', label: 'Transaction PIN',    sub: '4-digit payment PIN',    onTap: () => _showTransactionPIN(context)),
-      _MenuItem(icon: '🔔', label: 'Notifications',      sub: 'Push alerts & SMS',       onTap: () => _showNotificationPrefs(context)),
-      _MenuItem(icon: '🛡️', label: 'Security & Privacy', sub: 'Biometrics, data',       onTap: () => _showSecurity(context)),
+      _MenuItem(icon: '👤', label: 'Account Details',    sub: 'Name, email, BVN',        onTap: () => _showAccountDetails(context)),
+      _MenuItem(icon: '🔐', label: 'Change PIN',          sub: 'Update your 6-digit PIN',  onTap: () => _showChangePIN(context)),
+      _MenuItem(icon: '🔑', label: 'Transaction PIN',     sub: '4-digit payment PIN',      onTap: () => _showTransactionPIN(context)),
+      _MenuItem(icon: '🔔', label: 'Notifications',       sub: 'Push alerts & SMS',        onTap: () => _showNotificationPrefs(context)),
+      _MenuItem(icon: '🛡️', label: 'Security & Privacy',  sub: 'Biometrics, data',        onTap: () => _showSecurity(context)),
+      _MenuItem(icon: '📊', label: 'Account Limit',       sub: 'View & upgrade your tier', onTap: () => Navigator.pushNamed(context, '/account-limit')),
     ];
 
     final supportItems = [
-      _MenuItem(icon: '💬', label: 'Help & Support',   sub: 'Chat, call, or email us', highlight: true, onTap: () => _showHelp(context)),
-      _MenuItem(icon: '⭐', label: 'Rate HananData',   sub: 'Leave us a review',       onTap: () => _showRating(context)),
-      _MenuItem(icon: 'ℹ️', label: 'About HananData',  sub: 'Version 2.4.1',           onTap: () => _showAbout(context)),
+      _MenuItem(icon: '💬', label: 'Help & Support',    sub: 'Chat, call, or email us',  highlight: true, onTap: () => _showHelp(context)),
+      _MenuItem(icon: '⭐', label: 'Rate HananData',    sub: 'Leave us a review',         onTap: () => _showRating(context)),
+      _MenuItem(icon: '📜', label: 'Legal',              sub: 'Terms, Privacy & Policies', onTap: () => Navigator.pushNamed(context, '/legal')),
+      _MenuItem(icon: 'ℹ️', label: 'About HananData',   sub: 'Version 2.4.1',             onTap: () => _showAbout(context)),
     ];
 
     return Scaffold(
@@ -122,6 +130,30 @@ class ProfileScreen extends StatelessWidget {
                             child: _MenuTile(item: item),
                           ),
                         ).toList(),
+                      ),
+                    ),
+                    // Preferences
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: SectionLabel('Preferences'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          // Dark Mode — toggle inline (no sub-screen)
+                          _DarkModeTile(
+                            value: _darkMode,
+                            onChanged: (v) => setState(() => _darkMode = v),
+                          ),
+                          const SizedBox(height: 8),
+                          // Settings
+                          _MenuTile(item: _MenuItem(
+                            icon: '⚙️', label: 'Settings',
+                            sub: 'App preferences & security',
+                            onTap: () => Navigator.pushNamed(context, '/settings'),
+                          )),
+                        ],
                       ),
                     ),
                     // Support & Info
@@ -765,6 +797,54 @@ class _MenuTile extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right_rounded,
           color: Color(0xFFB8C4D9), size: 20),
         onTap: item.onTap,
+      ),
+    );
+  }
+}
+
+// ─── Dark Mode toggle tile (inline — no sub-screen) ───────────────────────────
+
+class _DarkModeTile extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  const _DarkModeTile({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: value ? const Color(0xFF1B3A6B).withValues(alpha: 0.08) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: value ? kPrimaryNavy.withValues(alpha: 0.3) : const Color(0xFFF0F4FA),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Text(value ? '🌙' : '☀️', style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Dark Mode',
+                    style: dFont(size: 14, weight: FontWeight.w600, color: kPrimaryDark)),
+                  Text(value ? 'Dark theme enabled' : 'Light theme active',
+                    style: dFont(size: 12, color: kMutedText)),
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeTrackColor: kPrimaryNavy,
+              thumbColor: WidgetStateProperty.all(Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }

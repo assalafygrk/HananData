@@ -75,6 +75,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                             child: NetworkLogoChip(
                               letter: n.logoLetter,
                               label: n.name,
+              logoUrl: n.logoUrl,
                               brandColor: n.color,
                               bgColor: n.bg,
                               textColor: n.text,

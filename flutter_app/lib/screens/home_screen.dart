@@ -108,25 +108,55 @@ class HomeScreen extends StatelessWidget {
                           Text('0123 456 789 · HananData MFB',
                             style: dFont(size: 11, color: const Color(0xFF7BAED4))),
                           const SizedBox(height: 16),
-                          // Add money only (Send Money removed)
-                          GestureDetector(
-                            onTap: () => Navigator.pushNamed(context, '/wallet'),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: kAccentGreen,
-                                borderRadius: BorderRadius.circular(12),
+                          // Action buttons row
+                          Row(
+                            children: [
+                              // Add Money
+                              GestureDetector(
+                                onTap: () => Navigator.pushNamed(context, '/wallet'),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: kAccentGreen,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.add_circle_outline, color: Colors.white, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text('Add Money',
+                                        style: dFont(size: 13, weight: FontWeight.w700, color: Colors.white)),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.add_circle_outline, color: Colors.white, size: 16),
-                                  const SizedBox(width: 8),
-                                  Text('Add Money',
-                                    style: dFont(size: 14, weight: FontWeight.w700, color: Colors.white)),
-                                ],
+                              const SizedBox(width: 10),
+                              // Referral
+                              GestureDetector(
+                                onTap: () => _showReferral(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF7B2FBE), Color(0xFF9B59B6)],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 16),
+                                      const SizedBox(width: 8),
+                                      Text('Refer & Earn',
+                                        style: dFont(size: 13, weight: FontWeight.w700, color: Colors.white)),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
@@ -198,6 +228,129 @@ class HomeScreen extends StatelessWidget {
               if (id != 'home') Navigator.pushNamed(context, '/$id');
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  static void _showReferral(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.only(top: 60),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40, height: 4,
+              decoration: BoxDecoration(color: kCardBorder, borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+              child: Column(
+                children: [
+                  // Icon
+                  Container(
+                    width: 64, height: 64,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7B2FBE), Color(0xFF9B59B6)],
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Refer & Earn', style: dFont(size: 22, weight: FontWeight.w800)),
+                  const SizedBox(height: 6),
+                  Text('Share your code. Earn ₦200 for each friend who signs up and makes their first transaction.',
+                    style: dFont(size: 13, color: kMutedText), textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  // Referral code box
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F0FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF7B2FBE).withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      children: [
+                        Text('Your Referral Code', style: dFont(size: 12, color: kMutedText)),
+                        const SizedBox(height: 6),
+                        Text('HANAN-A2B3C4',
+                          style: dFont(size: 24, weight: FontWeight.w900, color: const Color(0xFF7B2FBE),
+                            letterSpacing: 2)),
+                        const SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: () {
+                            // Copy code
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF7B2FBE),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.copy_rounded, color: Colors.white, size: 14),
+                                const SizedBox(width: 6),
+                                Text('Copy Code', style: dFont(size: 13, weight: FontWeight.w700, color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Stats row
+                  Row(
+                    children: [
+                      Expanded(child: _statBox('12', 'Friends\nReferred', const Color(0xFF7B2FBE))),
+                      const SizedBox(width: 12),
+                      Expanded(child: _statBox('₦2,400', 'Total\nEarned', kAccentGreen)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _statBox('₦200', 'Per\nReferral', kPrimaryNavy)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  PrimaryBtn(
+                    label: 'Share Referral Link',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _statBox(String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(value, style: dFont(size: 16, weight: FontWeight.w800, color: color)),
+          const SizedBox(height: 4),
+          Text(label, style: dFont(size: 10, color: kMutedText), textAlign: TextAlign.center),
         ],
       ),
     );

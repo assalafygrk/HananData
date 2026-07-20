@@ -12,6 +12,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   int _step = 0;
   final _nameCtrl  = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   String _pin     = '';
   String _confirm = '';
@@ -19,6 +20,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _emailCtrl.dispose();
     _phoneCtrl.dispose();
     super.dispose();
   }
@@ -40,7 +42,15 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  bool get _step0Valid => _nameCtrl.text.trim().isNotEmpty && _phoneCtrl.text.length >= 10;
+  bool get _emailValid {
+    final email = _emailCtrl.text.trim();
+    return RegExp(r'^[\w\-.]+@[\w\-]+\.\w{2,}$').hasMatch(email);
+  }
+
+  bool get _step0Valid =>
+      _nameCtrl.text.trim().isNotEmpty &&
+      _emailValid &&
+      _phoneCtrl.text.length >= 10;
 
   @override
   Widget build(BuildContext context) {
@@ -90,33 +100,31 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 4),
                       Text('Tell us a bit about yourself', style: dFont(size: 14, color: kMutedText)),
                       const SizedBox(height: 24),
+                      // Full Name
                       const SectionLabel('Full Name'),
                       const SizedBox(height: 8),
-                      TextField(
+                      _inputField(
                         controller: _nameCtrl,
-                        style: dFont(size: 15, weight: FontWeight.w600),
-                        decoration: InputDecoration(
-                          hintText: 'Amaka Okonkwo',
-                          hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: kCardBorder, width: 2),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: kCardBorder, width: 2),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: kPrimaryNavy, width: 2),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        ),
-                        onChanged: (_) => setState(() {}),
+                        hint: 'Amaka Okonkwo',
+                        icon: Icons.person_outline_rounded,
                       ),
                       const SizedBox(height: 16),
+                      // Email Address (new)
+                      const SectionLabel('Email Address'),
+                      const SizedBox(height: 8),
+                      _inputField(
+                        controller: _emailCtrl,
+                        hint: 'amaka@email.com',
+                        icon: Icons.email_outlined,
+                        type: TextInputType.emailAddress,
+                        suffix: _emailCtrl.text.isNotEmpty
+                            ? Icon(
+                                _emailValid ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                                color: _emailValid ? kAccentGreen : kErrorRed, size: 18)
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      // Phone Number
                       const SectionLabel('Phone Number'),
                       const SizedBox(height: 8),
                       Container(
@@ -195,6 +203,45 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType type = TextInputType.text,
+    Widget? suffix,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kCardBorder, width: 2),
+      ),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 14),
+            child: Icon(icon, color: kMutedText, size: 20),
+          ),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              keyboardType: type,
+              style: dFont(size: 15, weight: FontWeight.w600),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
+                border: InputBorder.none,
+                suffixIcon: suffix != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix) : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -20,6 +20,9 @@ import 'screens/history_screen.dart';
 import 'screens/wallet_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/notification_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/account_limit_screen.dart';
+import 'screens/legal_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +77,9 @@ class HananDataApp extends StatelessWidget {
         '/wallet':         (_) => const WalletScreen(),
         '/profile':        (_) => const ProfileScreen(),
         '/notifications':  (_) => const NotificationScreen(),
+        '/settings':       (_) => const SettingsScreen(),
+        '/account-limit':  (_) => const AccountLimitScreen(),
+        '/legal':          (_) => const LegalScreen(),
       },
       // ─── Custom page transitions ───────────────────────────────────────────
       onGenerateRoute: (settings) {
@@ -121,4 +127,7 @@ final _routeBuilders = <String, WidgetBuilder>{
   '/wallet':        (_) => const WalletScreen(),
   '/profile':       (_) => const ProfileScreen(),
   '/notifications': (_) => const NotificationScreen(),
+  '/settings':      (_) => const SettingsScreen(),
+  '/account-limit': (_) => const AccountLimitScreen(),
+  '/legal':         (_) => const LegalScreen(),
 };

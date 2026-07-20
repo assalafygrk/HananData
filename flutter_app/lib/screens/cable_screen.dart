@@ -69,6 +69,7 @@ class _CableScreenState extends State<CableScreen> {
                             child: NetworkLogoChip(
                               letter: p.logoLetter,
                               label: p.name,
+                              logoUrl: p.logoUrl,
                               brandColor: p.color,
                               bgColor: p.bg,
                               textColor: p.color,
