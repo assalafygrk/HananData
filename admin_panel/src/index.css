@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "sans-serif";
+  --color-primary: #1B3A6B;
+  --color-primary-light: #2A5A9E;
+  --color-primary-dark: #12284D;
+  
+  --color-network-mtn: #FFCC00;
+  --color-network-mtn-bg: #FFFBE6;
+  --color-network-mtn-text: #7A6000;
+  
+  --color-network-airtel: #E4002B;
+  --color-network-airtel-bg: #FFF0F2;
+  --color-network-airtel-text: #B80022;
+  
+  --color-network-glo: #009A44;
+  --color-network-glo-bg: #E8F5EE;
+  --color-network-glo-text: #006B2F;
+  
+  --color-network-9mobile: #006B2F;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
+}

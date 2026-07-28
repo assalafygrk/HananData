@@ -1,0 +1,100 @@
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, Users, CreditCard, Tag, Link2, 
+  Bell, Shield, Settings, LogOut, Menu
+} from 'lucide-react';
+import { useState } from 'react';
+
+export function Layout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const navItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Users', path: '/users', icon: Users },
+    { name: 'Transactions', path: '/transactions', icon: CreditCard },
+    { name: 'Pricing', path: '/pricing', icon: Tag },
+    { name: 'Aggregator', path: '/aggregator', icon: Link2 },
+    { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: 'Roles', path: '/roles', icon: Shield },
+    { name: 'Settings', path: '/settings', icon: Settings },
+  ];
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-20 bg-gray-900/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-[#1B3A6B] text-white transition-transform duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-center h-16 border-b border-white/10">
+          <h1 className="text-xl font-bold tracking-wider">HANAN DATA</h1>
+        </div>
+        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname.startsWith(item.path);
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-white/10 text-white font-medium' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Icon className="w-5 h-5 mr-3" />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8">
+          <button 
+            className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-md"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          
+          <div className="flex-1" />
+          
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-right hidden sm:block">
+              <p className="font-medium text-gray-900">Super Admin</p>
+              <p className="text-gray-500 text-xs">admin@hanandata.com</p>
+            </div>
+            <div className="h-9 w-9 rounded-full bg-blue-100 text-[#1B3A6B] flex items-center justify-center font-bold">
+              SA
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors ml-2"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}

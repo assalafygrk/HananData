@@ -1,0 +1,120 @@
+import { useState } from 'react';
+import { Save, Settings2, ShieldAlert, CreditCard } from 'lucide-react';
+
+export function AdminSettings() {
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [minFunding, setMinFunding] = useState('100');
+  const [tier1Limit, setTier1Limit] = useState('10000');
+  const [tier2Limit, setTier2Limit] = useState('50000');
+  const [tier3Limit, setTier3Limit] = useState('500000');
+  
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Platform Settings</h2>
+      </div>
+
+      <form onSubmit={handleSave} className="space-y-6">
+        {/* General Settings */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex items-center gap-2 bg-gray-50">
+            <Settings2 className="w-5 h-5 text-[#1B3A6B]" />
+            <h3 className="font-bold text-gray-900">General Settings</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div>
+                <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-500" />
+                  Maintenance Mode
+                </h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  Disables user access to the platform. Only Super Admins can log in.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer"
+                  checked={maintenanceMode}
+                  onChange={() => setMaintenanceMode(!maintenanceMode)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Financial Limits */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex items-center gap-2 bg-gray-50">
+            <CreditCard className="w-5 h-5 text-[#1B3A6B]" />
+            <h3 className="font-bold text-gray-900">Financial Limits</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Minimum Wallet Funding (₦)</label>
+              <input 
+                type="number" 
+                value={minFunding}
+                onChange={(e) => setMinFunding(e.target.value)}
+                className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+              />
+            </div>
+            
+            <div className="pt-4 border-t border-gray-100">
+              <h4 className="font-bold text-gray-900 mb-4">Daily Transaction Limits (₦)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tier 1 Users</label>
+                  <input 
+                    type="number" 
+                    value={tier1Limit}
+                    onChange={(e) => setTier1Limit(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tier 2 Users</label>
+                  <input 
+                    type="number" 
+                    value={tier2Limit}
+                    onChange={(e) => setTier2Limit(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tier 3 Users</label>
+                  <input 
+                    type="number" 
+                    value={tier3Limit}
+                    onChange={(e) => setTier3Limit(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button 
+            type="submit"
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#1B3A6B] text-white font-medium rounded-lg hover:bg-[#2A5A9E] transition-colors shadow-sm"
+          >
+            <Save className="w-4 h-4" />
+            {isSaved ? 'Settings Saved' : 'Save All Settings'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
