@@ -10,6 +10,10 @@ import { AggregatorSettings } from './pages/AggregatorSettings'
 import { NotificationsBroadcast } from './pages/NotificationsBroadcast'
 import { AdminRoles } from './pages/AdminRoles'
 import { AdminSettings } from './pages/AdminSettings'
+import { Analytics } from './pages/Analytics'
+import { ReferralManagement } from './pages/ReferralManagement'
+import { ApiWallets } from './pages/ApiWallets'
+import { SystemLogs } from './pages/SystemLogs'
 import { Layout } from './components/Layout/Layout'
 
 function App() {
@@ -25,8 +29,12 @@ function App() {
         <Route path="/transactions/:id" element={<TransactionDetail />} />
         <Route path="/pricing" element={<PricingManagement />} />
         <Route path="/aggregator" element={<AggregatorSettings />} />
+        <Route path="/api-wallets" element={<ApiWallets />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/referrals" element={<ReferralManagement />} />
         <Route path="/notifications" element={<NotificationsBroadcast />} />
         <Route path="/roles" element={<AdminRoles />} />
+        <Route path="/system-logs" element={<SystemLogs />} />
         <Route path="/settings" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

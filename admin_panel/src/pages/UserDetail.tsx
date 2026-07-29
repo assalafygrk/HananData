@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockUsers, mockTransactions } from '../mocks/data';
 import { User } from '../mocks/types';
-import { ArrowLeft, UserCircle, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, UserCircle, Wallet, AlertTriangle, ShieldCheck, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 
 export function UserDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [actionModal, setActionModal] = useState<{isOpen: boolean, type: 'credit' | 'debit' | null}>({ isOpen: false, type: null });
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentNote, setAdjustmentNote] = useState('');
 
@@ -29,13 +30,17 @@ export function UserDetail() {
     e.preventDefault();
     if (!adjustmentNote) return;
     
-    const amount = parseInt(adjustmentAmount);
-    if (!isNaN(amount)) {
-      setUser(prev => prev ? { ...prev, walletBalance: prev.walletBalance + amount } : null);
-      setIsModalOpen(false);
-      setAdjustmentAmount('');
-      setAdjustmentNote('');
+    let amount = parseInt(adjustmentAmount);
+    if (isNaN(amount) || amount <= 0) return;
+    
+    if (actionModal.type === 'debit') {
+      amount = -amount;
     }
+    
+    setUser(prev => prev ? { ...prev, walletBalance: prev.walletBalance + amount } : null);
+    setActionModal({ isOpen: false, type: null });
+    setAdjustmentAmount('');
+    setAdjustmentNote('');
   };
 
   return (
@@ -112,12 +117,20 @@ export function UserDetail() {
                 <p className="text-3xl font-bold mt-1">₦{user.walletBalance.toLocaleString()}</p>
               </div>
             </div>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-white text-[#1B3A6B] font-medium rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap"
-            >
-              Adjust Balance
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setActionModal({ isOpen: true, type: 'credit' })}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors whitespace-nowrap border border-green-400"
+              >
+                <ArrowUpCircle className="w-4 h-4" /> Credit
+              </button>
+              <button 
+                onClick={() => setActionModal({ isOpen: true, type: 'debit' })}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors whitespace-nowrap border border-red-400"
+              >
+                <ArrowDownCircle className="w-4 h-4" /> Debit
+              </button>
+            </div>
           </div>
 
           {/* Transaction History */}
@@ -163,27 +176,28 @@ export function UserDetail() {
       </div>
 
       {/* Adjust Balance Modal */}
-      {isModalOpen && (
+      {actionModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <AlertTriangle className="text-yellow-500 w-5 h-5" />
-                Manual Wallet Adjustment
+              <h3 className={`text-lg font-bold flex items-center gap-2 capitalize ${actionModal.type === 'credit' ? 'text-green-700' : 'text-red-700'}`}>
+                {actionModal.type === 'credit' ? <ArrowUpCircle className="w-6 h-6" /> : <ArrowDownCircle className="w-6 h-6" />}
+                {actionModal.type} User Wallet
               </h3>
             </div>
             <form onSubmit={handleWalletAdjustment} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount (₦) <span className="text-xs text-gray-500 ml-1">Use negative value to deduct</span>
+                  Amount (₦)
                 </label>
                 <input 
                   type="number" 
                   required
+                  min="1"
                   value={adjustmentAmount}
                   onChange={(e) => setAdjustmentAmount(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] focus:border-[#1B3A6B] outline-none"
-                  placeholder="e.g. 5000 or -5000"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                  placeholder="e.g. 5000"
                 />
               </div>
               <div>
@@ -194,14 +208,14 @@ export function UserDetail() {
                   required
                   value={adjustmentNote}
                   onChange={(e) => setAdjustmentNote(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] focus:border-[#1B3A6B] outline-none resize-none h-24"
-                  placeholder="Explain why this adjustment is being made..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none resize-none h-24"
+                  placeholder={`Explain why you are ${actionModal.type}ing the wallet...`}
                 />
               </div>
               <div className="pt-4 flex gap-3 justify-end">
                 <button 
                   type="button" 
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => setActionModal({ isOpen: false, type: null })}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancel
@@ -209,9 +223,11 @@ export function UserDetail() {
                 <button 
                   type="submit"
                   disabled={!adjustmentNote || !adjustmentAmount}
-                  className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E] transition-colors disabled:opacity-50"
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                    actionModal.type === 'credit' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                  }`}
                 >
-                  Confirm Adjustment
+                  Confirm {actionModal.type}
                 </button>
               </div>
             </form>

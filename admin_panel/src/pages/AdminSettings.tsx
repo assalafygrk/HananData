@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Save, Settings2, ShieldAlert, CreditCard } from 'lucide-react';
+import { Save, Settings2, ShieldAlert, CreditCard, UserX } from 'lucide-react';
 
 export function AdminSettings() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [disableRegistration, setDisableRegistration] = useState(false);
+  
   const [minFunding, setMinFunding] = useState('100');
   const [tier1Limit, setTier1Limit] = useState('10000');
   const [tier2Limit, setTier2Limit] = useState('50000');
@@ -29,7 +31,7 @@ export function AdminSettings() {
             <Settings2 className="w-5 h-5 text-[#1B3A6B]" />
             <h3 className="font-bold text-gray-900">General Settings</h3>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-4">
             <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
               <div>
                 <h4 className="font-bold text-gray-900 flex items-center gap-2">
@@ -48,6 +50,27 @@ export function AdminSettings() {
                   onChange={() => setMaintenanceMode(!maintenanceMode)}
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div>
+                <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                  <UserX className="w-4 h-4 text-orange-500" />
+                  Disable New Registrations
+                </h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  Temporarily stop new users from creating accounts on the platform.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer"
+                  checked={disableRegistration}
+                  onChange={() => setDisableRegistration(!disableRegistration)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
               </label>
             </div>
           </div>

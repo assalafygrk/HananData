@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, CreditCard, Tag, Link2, 
-  Bell, Shield, Settings, LogOut, Menu
+  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -15,9 +15,13 @@ export function Layout() {
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Transactions', path: '/transactions', icon: CreditCard },
     { name: 'Pricing', path: '/pricing', icon: Tag },
+    { name: 'API Wallets', path: '/api-wallets', icon: Wallet },
+    { name: 'Analytics', path: '/analytics', icon: BarChart3 },
+    { name: 'Referrals', path: '/referrals', icon: Gift },
     { name: 'Aggregator', path: '/aggregator', icon: Link2 },
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: 'Roles', path: '/roles', icon: Shield },
+    { name: 'System Logs', path: '/system-logs', icon: ActivitySquare },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
