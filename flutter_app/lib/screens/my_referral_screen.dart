@@ -1,0 +1,239 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../widgets/shared_widgets.dart';
+
+class MyReferralScreen extends StatelessWidget {
+  const MyReferralScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kBackground,
+      body: SafeArea(
+        child: Column(
+          children: [
+            BackHeader(title: 'My Referral', onBack: () => Navigator.pop(context)),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Banner Illustration
+                      Container(
+                        width: 80, height: 80,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF7B2FBE), Color(0xFF9B59B6)],
+                            begin: Alignment.topLeft, end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 40),
+                      ),
+                      const SizedBox(height: 20),
+                      Text('Invite & Earn Rewards', style: dFont(size: 22, weight: FontWeight.w800, color: kPrimaryDark)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Share your referral code. You and your friend both earn ₦200 when they make their first transaction.',
+                        style: dFont(size: 14, color: kMutedText),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Referral Code Box
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F0FF),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF7B2FBE).withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('Your Referral Code', style: dFont(size: 13, color: kMutedText)),
+                            const SizedBox(height: 8),
+                            Text('HANAN-A2B3C4',
+                              style: dFont(size: 28, weight: FontWeight.w900, color: const Color(0xFF7B2FBE), letterSpacing: 2)),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Clipboard.setData(const ClipboardData(text: 'HANAN-A2B3C4'));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Code copied!', style: dFont(size: 14)), backgroundColor: const Color(0xFF7B2FBE)),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF7B2FBE),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.copy_rounded, color: Colors.white, size: 16),
+                                        const SizedBox(width: 8),
+                                        Text('Copy Code', style: dFont(size: 14, weight: FontWeight.w700, color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Share action
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: const Color(0xFF7B2FBE)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.share_rounded, color: Color(0xFF7B2FBE), size: 16),
+                                        const SizedBox(width: 8),
+                                        Text('Share', style: dFont(size: 14, weight: FontWeight.w700, color: Color(0xFF7B2FBE))),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Stats
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(title: 'Total Referrals', value: '12', icon: Icons.group_rounded, color: kAccentGreen),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _StatCard(title: 'Total Earned', value: '₦2,400', icon: Icons.account_balance_wallet_rounded, color: const Color(0xFFF6A623)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Referred Users List
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Recent Referrals', style: dFont(size: 16, weight: FontWeight.w700)),
+                          Text('See All', style: dFont(size: 13, weight: FontWeight.w600, color: kPrimaryNavy)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _ReferralRow(name: 'Ahmad Musa', date: 'Oct 12, 2026', status: 'Completed', reward: '+₦200'),
+                      _ReferralRow(name: 'Fatima Kabir', date: 'Oct 10, 2026', status: 'Completed', reward: '+₦200'),
+                      _ReferralRow(name: 'Ibrahim Ali', date: 'Oct 09, 2026', status: 'Pending', reward: '₦0'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kCardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 12),
+          Text(title, style: dFont(size: 12, color: kMutedText)),
+          const SizedBox(height: 4),
+          Text(value, style: dFont(size: 18, weight: FontWeight.w800, color: kPrimaryDark)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReferralRow extends StatelessWidget {
+  final String name;
+  final String date;
+  final String status;
+  final String reward;
+
+  const _ReferralRow({required this.name, required this.date, required this.status, required this.reward});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isCompleted = status == 'Completed';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kCardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(
+              color: kPrimaryNavy.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(name[0], style: dFont(size: 16, weight: FontWeight.w800, color: kPrimaryNavy)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: dFont(size: 14, weight: FontWeight.w700, color: kPrimaryDark)),
+                const SizedBox(height: 4),
+                Text(date, style: dFont(size: 12, color: kMutedText)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(reward, style: dFont(size: 14, weight: FontWeight.w700, color: isCompleted ? kAccentGreen : kMutedText)),
+              const SizedBox(height: 4),
+              Text(status, style: dFont(size: 12, weight: FontWeight.w600, color: isCompleted ? kAccentGreen : const Color(0xFFF6A623))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -15,11 +15,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final accountSettings = [
       _MenuItem(icon: '👤', label: 'Account Details',    sub: 'Name, email, BVN',        onTap: () => _showAccountDetails(context)),
-      _MenuItem(icon: '🔐', label: 'Change PIN',          sub: 'Update your 6-digit PIN',  onTap: () => _showChangePIN(context)),
-      _MenuItem(icon: '🔑', label: 'Transaction PIN',     sub: '4-digit payment PIN',      onTap: () => _showTransactionPIN(context)),
-      _MenuItem(icon: '🔔', label: 'Notifications',       sub: 'Push alerts & SMS',        onTap: () => _showNotificationPrefs(context)),
-      _MenuItem(icon: '🛡️', label: 'Security & Privacy',  sub: 'Biometrics, data',        onTap: () => _showSecurity(context)),
       _MenuItem(icon: '📊', label: 'Account Limit',       sub: 'View & upgrade your tier', onTap: () => Navigator.pushNamed(context, '/account-limit')),
+      _MenuItem(icon: '🎁', label: 'My Referral',         sub: 'Share & earn rewards',     onTap: () => Navigator.pushNamed(context, '/my-referral')),
     ];
 
     final supportItems = [
@@ -238,57 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ));
   }
 
-  void _showChangePIN(BuildContext context) {
-    _showSheet(context, title: 'Change PIN', icon: '🔐', child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Enter your current PIN, then set a new one.',
-          style: dFont(size: 13, color: kMutedText)),
-        const SizedBox(height: 20),
-        _pinField(label: 'Current PIN'),
-        const SizedBox(height: 16),
-        _pinField(label: 'New PIN'),
-        const SizedBox(height: 16),
-        _pinField(label: 'Confirm New PIN'),
-        const SizedBox(height: 24),
-        PrimaryBtn(label: 'Update PIN', onPressed: () => Navigator.pop(context)),
-      ],
-    ));
-  }
 
-  void _showTransactionPIN(BuildContext context) {
-    _showSheet(context, title: 'Transaction PIN', icon: '🔑', child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Your 4-digit PIN is required for all payments.',
-          style: dFont(size: 13, color: kMutedText)),
-        const SizedBox(height: 20),
-        _pinField(label: 'Current Transaction PIN', max: 4),
-        const SizedBox(height: 16),
-        _pinField(label: 'New Transaction PIN', max: 4),
-        const SizedBox(height: 24),
-        PrimaryBtn(label: 'Save Changes', onPressed: () => Navigator.pop(context)),
-      ],
-    ));
-  }
-
-  void _showNotificationPrefs(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _NotificationPrefsSheet(),
-    );
-  }
-
-  void _showSecurity(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _SecuritySheet(),
-    );
-  }
 
   void _showHelp(BuildContext context) {
     _showSheet(context, title: 'Help & Support', icon: '💬', child: Column(
@@ -375,35 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  static Widget _pinField({required String label, int max = 6}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: dFont(size: 12, weight: FontWeight.w600, color: kMutedText)),
-        const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: kCardBorder, width: 2),
-          ),
-          child: TextField(
-            obscureText: true,
-            maxLength: max,
-            keyboardType: TextInputType.number,
-            style: dFont(size: 20, letterSpacing: 4),
-            decoration: InputDecoration(
-              hintText: '•' * max,
-              hintStyle: dFont(size: 20, color: kCardBorder, letterSpacing: 4),
-              border: InputBorder.none,
-              counterText: '',
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   static Widget _contactTile({
     required IconData icon,
@@ -496,192 +415,7 @@ class _ProfileSheet extends StatelessWidget {
   }
 }
 
-// ─── Notification preferences sheet ───────────────────────────────────────────
 
-class _NotificationPrefsSheet extends StatefulWidget {
-  const _NotificationPrefsSheet();
-  @override
-  State<_NotificationPrefsSheet> createState() => _NotificationPrefsSheetState();
-}
-
-class _NotificationPrefsSheetState extends State<_NotificationPrefsSheet> {
-  bool _push = true;
-  bool _sms = true;
-  bool _email = false;
-  bool _promos = true;
-  bool _security = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 60),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40, height: 4,
-            decoration: BoxDecoration(color: kCardBorder, borderRadius: BorderRadius.circular(2)),
-          ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    const Text('🔔', style: TextStyle(fontSize: 24)),
-                    const SizedBox(width: 10),
-                    Text('Notifications', style: dFont(size: 20, weight: FontWeight.w800)),
-                  ]),
-                  const SizedBox(height: 20),
-                  _toggleRow('Push Notifications', 'App alerts on your device', _push,
-                    (v) => setState(() => _push = v)),
-                  const Divider(height: 1, color: kCardBorder),
-                  _toggleRow('SMS Alerts', 'Text message notifications', _sms,
-                    (v) => setState(() => _sms = v)),
-                  const Divider(height: 1, color: kCardBorder),
-                  _toggleRow('Email Notifications', 'Receive updates via email', _email,
-                    (v) => setState(() => _email = v)),
-                  const Divider(height: 1, color: kCardBorder),
-                  _toggleRow('Promotional Offers', 'Deals and offers from HananData', _promos,
-                    (v) => setState(() => _promos = v)),
-                  const Divider(height: 1, color: kCardBorder),
-                  _toggleRow('Security Alerts', 'Login and account security alerts', _security,
-                    (v) => setState(() => _security = v)),
-                  const SizedBox(height: 24),
-                  PrimaryBtn(label: 'Save Preferences', onPressed: () => Navigator.pop(context)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _toggleRow(String label, String sub, bool value, ValueChanged<bool> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: dFont(size: 14, weight: FontWeight.w600)),
-              Text(sub, style: dFont(size: 12, color: kMutedText)),
-            ]),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeTrackColor: kAccentGreen,
-            thumbColor: WidgetStateProperty.all(Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Security sheet ────────────────────────────────────────────────────────────
-
-class _SecuritySheet extends StatefulWidget {
-  const _SecuritySheet();
-  @override
-  State<_SecuritySheet> createState() => _SecuritySheetState();
-}
-
-class _SecuritySheetState extends State<_SecuritySheet> {
-  bool _biometrics = false;
-  bool _txnConfirm = true;
-  bool _loginAlert = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 60),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40, height: 4,
-            decoration: BoxDecoration(color: kCardBorder, borderRadius: BorderRadius.circular(2)),
-          ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    const Text('🛡️', style: TextStyle(fontSize: 24)),
-                    const SizedBox(width: 10),
-                    Text('Security & Privacy', style: dFont(size: 20, weight: FontWeight.w800)),
-                  ]),
-                  const SizedBox(height: 20),
-                  _toggleRow('Biometric Login', 'Use fingerprint or face ID', _biometrics,
-                    (v) => setState(() => _biometrics = v)),
-                  const Divider(height: 1, color: kCardBorder),
-                  _toggleRow('Transaction Confirmation', 'Require PIN for all payments', _txnConfirm,
-                    (v) => setState(() => _txnConfirm = v)),
-                  const Divider(height: 1, color: kCardBorder),
-                  _toggleRow('Login Alerts', 'Notify on new device login', _loginAlert,
-                    (v) => setState(() => _loginAlert = v)),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3E2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF6A623)),
-                    ),
-                    child: Text(
-                      'Your data is encrypted with bank-grade AES-256 security.',
-                      style: dFont(size: 12, color: const Color(0xFFB87A00)),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  PrimaryBtn(label: 'Save Settings', onPressed: () => Navigator.pop(context)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _toggleRow(String label, String sub, bool value, ValueChanged<bool> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: dFont(size: 14, weight: FontWeight.w600)),
-              Text(sub, style: dFont(size: 12, color: kMutedText)),
-            ]),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeTrackColor: kAccentGreen,
-            thumbColor: WidgetStateProperty.all(Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ─── Rating sheet ─────────────────────────────────────────────────────────────
 

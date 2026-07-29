@@ -15,6 +15,8 @@ class HomeScreen extends StatelessWidget {
       const _QuickAction(label: 'Cable TV',      icon: Icons.tv_rounded,                  route: '/cable'),
       const _QuickAction(label: 'Electricity',   icon: Icons.bolt_rounded,                route: '/electricity'),
       const _QuickAction(label: 'Airtime→Cash',  icon: Icons.swap_horiz_rounded,          route: '/airtimecash'),
+      const _QuickAction(label: 'Exam PIN',      icon: Icons.school_rounded,              route: '/exam-pin'),
+      const _QuickAction(label: 'Bulk SMS',      icon: Icons.sms_rounded,                 route: '/bulk-sms'),
       const _QuickAction(label: 'Fund Wallet',   icon: Icons.account_balance_wallet_outlined, route: '/wallet'),
     ];
 
@@ -181,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                         const SectionLabel('Quick Actions'),
                         const SizedBox(height: 12),
                         GridView.count(
-                          crossAxisCount: 3,
+                          crossAxisCount: 4,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           mainAxisSpacing: 10,

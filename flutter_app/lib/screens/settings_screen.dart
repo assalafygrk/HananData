@@ -98,7 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: kErrorRed,
                         label: 'Change Login PIN',
                         sub: 'Update your 6-digit PIN',
-                        onTap: () {},
+                        onTap: () => _showChangePIN(context),
                         showArrow: true,
                       ),
                       const _Divider(),
@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: kMediumText,
                         label: 'Login Activity',
                         sub: 'View recent sessions',
-                        onTap: () {},
+                        onTap: () => _showComingSoon(context),
                         showArrow: true,
                       ),
                     ]),
@@ -160,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: kPrimaryBlue,
                         label: 'Download My Data',
                         sub: 'Export account data',
-                        onTap: () {},
+                        onTap: () => _showComingSoon(context),
                         showArrow: true,
                       ),
                       const _Divider(),
@@ -182,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: kAccentGreen,
                         label: 'App Version',
                         sub: '2.4.1 (latest)',
-                        onTap: () {},
+                        onTap: () => _showComingSoon(context),
                       ),
                       const _Divider(),
                       _TapTile(
@@ -190,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         iconColor: kMediumText,
                         label: 'Clear Cache',
                         sub: 'Free up storage space',
-                        onTap: () {},
+                        onTap: () => _showComingSoon(context),
                         showArrow: true,
                       ),
                     ]),
@@ -202,6 +202,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Feature coming soon!', style: dFont(size: 14)),
+        backgroundColor: kPrimaryNavy,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showChangePIN(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.only(top: 60),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4, decoration: BoxDecoration(color: kCardBorder, borderRadius: BorderRadius.circular(2))),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      const Text('🔐', style: TextStyle(fontSize: 24)),
+                      const SizedBox(width: 10),
+                      Text('Change PIN', style: dFont(size: 20, weight: FontWeight.w800)),
+                    ]),
+                    const SizedBox(height: 20),
+                    Text('Enter your current PIN, then set a new one.', style: dFont(size: 13, color: kMutedText)),
+                    const SizedBox(height: 20),
+                    _pinField(label: 'Current PIN'),
+                    const SizedBox(height: 16),
+                    _pinField(label: 'New PIN'),
+                    const SizedBox(height: 16),
+                    _pinField(label: 'Confirm New PIN'),
+                    const SizedBox(height: 24),
+                    PrimaryBtn(label: 'Update PIN', onPressed: () => Navigator.pop(context)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pinField({required String label, int max = 6}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: dFont(size: 12, weight: FontWeight.w600, color: kMutedText)),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: kCardBorder, width: 2),
+          ),
+          child: TextField(
+            obscureText: true,
+            maxLength: max,
+            keyboardType: TextInputType.number,
+            style: dFont(size: 20, letterSpacing: 4),
+            decoration: InputDecoration(
+              hintText: '•' * max,
+              hintStyle: dFont(size: 20, color: kCardBorder, letterSpacing: 4),
+              border: InputBorder.none,
+              counterText: '',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
