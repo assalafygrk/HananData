@@ -7,7 +7,7 @@ export function SystemLogs() {
   const [levelFilter, setLevelFilter] = useState<'all' | 'info' | 'warning' | 'error' | 'critical'>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'admin_panel' | 'mobile_app' | 'system'>('all');
   
-  const [selectedLog, setSelectedLog] = useState<SystemLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<any | null>(null);
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 
@@ -31,7 +31,7 @@ export function SystemLogs() {
     }
   };
 
-  const getLevelIcon = (level: SystemLog['level']) => {
+  const getLevelIcon = (level: string) => {
     switch (level) {
       case 'info': return <Info className="w-4 h-4 text-blue-500" />;
       case 'warning': return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
@@ -40,7 +40,7 @@ export function SystemLogs() {
     }
   };
 
-  const getLevelBadge = (level: SystemLog['level']) => {
+  const getLevelBadge = (level: string) => {
     switch (level) {
       case 'info': return 'bg-blue-100 text-blue-800';
       case 'warning': return 'bg-yellow-100 text-yellow-800';
@@ -49,7 +49,7 @@ export function SystemLogs() {
     }
   };
 
-  const getSourceBadge = (source: SystemLog['source']) => {
+  const getSourceBadge = (source: string) => {
     switch (source) {
       case 'admin_panel': return 'bg-purple-100 text-purple-800';
       case 'mobile_app': return 'bg-green-100 text-green-800';
