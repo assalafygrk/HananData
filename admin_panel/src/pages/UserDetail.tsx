@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserCircle, Wallet, AlertTriangle, ShieldCheck, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, Wallet, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import api from '../api';
 
 export function UserDetail() {

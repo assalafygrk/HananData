@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Server, CreditCard, Plus, Trash2, Edit2, Activity, X } from 'lucide-react';
+import { Save, Server, CreditCard, Plus, Trash2, Edit2, X } from 'lucide-react';
 import api from '../api';
 
 export function AggregatorSettings() {

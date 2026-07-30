@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, AlertTriangle, Edit2, X } from 'lucide-react';
+import { Save, Edit2, X } from 'lucide-react';
 import api from '../api';
 
 export function PricingManagement() {

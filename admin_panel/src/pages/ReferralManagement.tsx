@@ -111,7 +111,7 @@ export function ReferralManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {mockReferrals.map((ref) => (
+                  {referrals.map((ref: any) => (
                     <tr key={ref.id} className="hover:bg-gray-50">
                       <td className="py-4 px-6 text-sm text-gray-500">
                         {new Date(ref.date).toLocaleDateString()}
@@ -137,7 +137,7 @@ export function ReferralManagement() {
                       </td>
                     </tr>
                   ))}
-                  {mockReferrals.length === 0 && (
+                  {referrals.length === 0 && (
                     <tr>
                       <td colSpan={4} className="py-8 text-center text-gray-500">
                         No referral activity found.
