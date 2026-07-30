@@ -17,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _pin = '';
   bool _onPin = false;
   bool _isLoading = false;
+  bool _useEmail = false;
 
   @override
   void dispose() {
@@ -69,7 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final phoneValid = _phoneCtrl.text.length >= 10;
+    final identifierValid = _useEmail
+        ? RegExp(r'^[\w\-.]+@[\w\-]+\.\w{2,}$').hasMatch(_phoneCtrl.text.trim())
+        : _phoneCtrl.text.length >= 10;
 
     return Scaffold(
       backgroundColor: kBackground,
@@ -147,7 +150,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 32),
                     // Phone field (only shown when not on PIN phase)
                     if (!_onPin) ...[
-                      const SectionLabel('Phone Number'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SectionLabel(_useEmail ? 'Email Address' : 'Phone Number'),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _useEmail = !_useEmail;
+                                _phoneCtrl.clear();
+                              });
+                            },
+                            child: Text(
+                              'Use ${_useEmail ? 'Phone' : 'Email'}',
+                              style: dFont(size: 13, weight: FontWeight.w700, color: kPrimaryNavy),
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       Container(
                         decoration: BoxDecoration(
@@ -157,27 +177,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: Row(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              child: Text(
-                                '🇳🇬 +234',
-                                style: dFont(size: 15, weight: FontWeight.w600, color: kMediumText),
+                            if (!_useEmail) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                child: Text(
+                                  '🇳🇬 +234',
+                                  style: dFont(size: 15, weight: FontWeight.w600, color: kMediumText),
+                                ),
                               ),
-                            ),
-                            Container(width: 1, height: 24, color: kCardBorder),
+                              Container(width: 1, height: 24, color: kCardBorder),
+                            ] else ...[
+                              const Padding(
+                                padding: EdgeInsets.only(left: 16, right: 8, top: 14, bottom: 14),
+                                child: Icon(Icons.email_outlined, color: kMutedText, size: 20),
+                              ),
+                            ],
                             Expanded(
                               child: TextField(
                                 controller: _phoneCtrl,
                                 focusNode: _phoneFocus,
-                                keyboardType: TextInputType.phone,
-                                maxLength: 10,
+                                keyboardType: _useEmail ? TextInputType.emailAddress : TextInputType.phone,
+                                maxLength: _useEmail ? null : 10,
                                 style: dFont(size: 15, weight: FontWeight.w600),
                                 decoration: InputDecoration(
-                                  hintText: '8012345678',
+                                  hintText: _useEmail ? 'you@email.com' : '8012345678',
                                   hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
                                   border: InputBorder.none,
                                   counterText: '',
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: _useEmail ? 8 : 16, vertical: 14),
                                 ),
                                 onChanged: (_) => setState(() {}),
                               ),
@@ -188,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
                       PrimaryBtn(
                         label: _isLoading ? 'Checking...' : 'Secure Login',
-                        disabled: !phoneValid || _isLoading,
+                        disabled: !identifierValid || _isLoading,
                         onPressed: _goToPin,
                       ),
                       const SizedBox(height: 24),
