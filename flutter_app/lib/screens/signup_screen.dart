@@ -211,10 +211,10 @@ class _SignupScreenState extends State<SignupScreen> {
                               child: TextField(
                                 controller: _phoneCtrl,
                                 keyboardType: TextInputType.phone,
-                                maxLength: 10,
+                                maxLength: 11,
                                 style: dFont(size: 15, weight: FontWeight.w600),
                                 decoration: InputDecoration(
-                                  hintText: '8012345678',
+                                  hintText: '08012345678',
                                   hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
                                   border: InputBorder.none,
                                   counterText: '',

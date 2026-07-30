@@ -197,10 +197,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _phoneCtrl,
                                 focusNode: _phoneFocus,
                                 keyboardType: _useEmail ? TextInputType.emailAddress : TextInputType.phone,
-                                maxLength: _useEmail ? null : 10,
+                                maxLength: _useEmail ? null : 11,
                                 style: dFont(size: 15, weight: FontWeight.w600),
                                 decoration: InputDecoration(
-                                  hintText: _useEmail ? 'you@email.com' : '8012345678',
+                                  hintText: _useEmail ? 'you@email.com' : '08012345678',
                                   hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
                                   border: InputBorder.none,
                                   counterText: '',
