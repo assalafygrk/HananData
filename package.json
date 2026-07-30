@@ -6,5 +6,8 @@
     "dev": "cd flutter_app && flutter run -d web-server --web-port $PORT --web-hostname 0.0.0.0",
     "build": "cd flutter_app && flutter build web",
     "preview": "cd flutter_app && npx serve -l $PORT build/web"
+  },
+  "dependencies": {
+    "mongodb": "^7.5.0"
   }
 }

@@ -1,0 +1,85 @@
+{
+  "info": {
+    "name": "HananData API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer App",
+      "item": [
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "Signup",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "url": {"raw": "http://localhost:5000/api/auth/signup", "host": ["http://localhost:5000"], "path": ["api", "auth", "signup"]},
+                "body": {"mode": "raw", "raw": "{\"name\": \"John Doe\", \"email\": \"john@example.com\", \"phone\": \"08012345678\", \"password\": \"password123\"}"}
+              }
+            },
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "url": {"raw": "http://localhost:5000/api/auth/login", "host": ["http://localhost:5000"], "path": ["api", "auth", "login"]},
+                "body": {"mode": "raw", "raw": "{\"identifier\": \"john@example.com\", \"password\": \"password123\"}"}
+              }
+            }
+          ]
+        },
+        {
+          "name": "Profile",
+          "item": [
+            {
+              "name": "Get Profile",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{user_token}}"}],
+                "url": {"raw": "http://localhost:5000/api/profile", "host": ["http://localhost:5000"], "path": ["api", "profile"]}
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin Panel",
+      "item": [
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "url": {"raw": "http://localhost:5000/api/admin/auth/login", "host": ["http://localhost:5000"], "path": ["api", "admin", "auth", "login"]},
+                "body": {"mode": "raw", "raw": "{\"email\": \"super@hanandata.com\", \"password\": \"password123\"}"}
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard",
+          "item": [
+            {
+              "name": "Stats",
+              "request": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
+                "url": {"raw": "http://localhost:5000/api/admin/dashboard/stats", "host": ["http://localhost:5000"], "path": ["api", "admin", "dashboard", "stats"]}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "user_token", "value": "YOUR_USER_TOKEN_HERE" },
+    { "key": "admin_token", "value": "YOUR_ADMIN_TOKEN_HERE" }
+  ]
+}
