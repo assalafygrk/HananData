@@ -1,12 +1,14 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
-import { mockAnalyticsData } from '../mocks/data';
+import { useState } from 'react';
 import { TrendingUp, DollarSign, Activity, PieChart } from 'lucide-react';
 
 export function Analytics() {
-  const totalRevenue = mockAnalyticsData.reduce((acc, curr) => acc + curr.revenue, 0);
-  const totalCost = mockAnalyticsData.reduce((acc, curr) => acc + curr.cost, 0);
-  const totalProfit = mockAnalyticsData.reduce((acc, curr) => acc + curr.profit, 0);
-  const profitMargin = ((totalProfit / totalRevenue) * 100).toFixed(1);
+  const [timeframe, setTimeframe] = useState('7days');
+  const [data] = useState<any[]>([]);
+
+  const totalRevenue = data.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
+  const totalCost = data.reduce((acc, curr) => acc + (curr.cost || 0), 0);
+  const totalProfit = data.reduce((acc, curr) => acc + (curr.profit || 0), 0);
+  const profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0.0";
 
   const StatCard = ({ title, value, subValue, icon: Icon, colorClass }: any) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -27,7 +29,11 @@ export function Analytics() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Analytics & P&L</h2>
-        <select className="border border-gray-300 rounded-lg py-2 px-4 text-sm focus:ring-2 focus:ring-[#1B3A6B] outline-none bg-white shadow-sm">
+        <select 
+          value={timeframe}
+          onChange={(e) => setTimeframe(e.target.value)}
+          className="border border-gray-300 rounded-lg py-2 px-4 text-sm focus:ring-2 focus:ring-[#1B3A6B] outline-none bg-white shadow-sm"
+        >
           <option value="7days">Last 7 Days</option>
           <option value="30days">Last 30 Days</option>
           <option value="thisMonth">This Month</option>
@@ -69,42 +75,16 @@ export function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue vs Cost Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Revenue vs Cost Breakdown</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockAnalyticsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} tickFormatter={(val) => `₦${val/1000}k`} />
-                <Tooltip 
-                  cursor={{fill: '#F3F4F6'}}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => [`₦${value.toLocaleString()}`, '']}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-                <Bar dataKey="revenue" name="Gross Revenue" fill="#1B3A6B" radius={[4, 4, 0, 0]} barSize={12} />
-                <Bar dataKey="cost" name="API Cost" fill="#F97316" radius={[4, 4, 0, 0]} barSize={12} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="py-12 text-center text-gray-500">
+             Charts will be available once the backend implements analytics routes.
           </div>
         </div>
 
         {/* Profit Trend Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Net Profit Trend</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockAnalyticsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} tickFormatter={(val) => `₦${val}`} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Profit']}
-                />
-                <Line type="monotone" dataKey="profit" name="Net Profit" stroke="#10B981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="py-12 text-center text-gray-500">
+             Charts will be available once the backend implements analytics routes.
           </div>
         </div>
       </div>

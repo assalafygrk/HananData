@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { mockBroadcasts } from '../mocks/data';
 import { Send, Clock, Users, Megaphone } from 'lucide-react';
 
 export function NotificationsBroadcast() {
@@ -8,7 +7,7 @@ export function NotificationsBroadcast() {
   const [segment, setSegment] = useState('all');
   const [schedule, setSchedule] = useState('');
   
-  const [broadcasts, setBroadcasts] = useState(mockBroadcasts);
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();

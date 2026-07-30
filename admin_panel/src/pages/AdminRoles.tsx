@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { mockStaff } from '../mocks/data';
-import { Staff } from '../mocks/types';
 import { UserPlus, Shield, Check, X } from 'lucide-react';
 
 export function AdminRoles() {
-  const [staffList, setStaffList] = useState<Staff[]>(mockStaff);
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   const [newStaff, setNewStaff] = useState({ name: '', email: '', role: 'Support Staff' });

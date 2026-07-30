@@ -1,41 +1,59 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockTransactions } from '../mocks/data';
-import { Transaction } from '../mocks/types';
 import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, RefreshCw, X, ShieldAlert } from 'lucide-react';
+import api from '../api';
 
 export function TransactionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [tx, setTx] = useState<Transaction | null>(null);
+  const [tx, setTx] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const [actionModal, setActionModal] = useState<{isOpen: boolean, type: 'retry' | 'resolve' | 'refund' | null}>({ isOpen: false, type: null });
   const [adminNote, setAdminNote] = useState('');
 
   useEffect(() => {
-    const found = mockTransactions.find(t => t.id === id);
-    if (found) setTx({...found});
+    const fetchTx = async () => {
+      try {
+        const res = await api.get(`/admin/transactions/${id}`);
+        if (res.data.success) {
+          setTx(res.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching tx', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchTx();
   }, [id]);
 
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
   if (!tx) return <div className="p-8 text-center text-gray-500">Transaction not found</div>;
 
-  const handleAction = (e: React.FormEvent) => {
+  const handleAction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminNote) return;
     
-    setTx(prev => {
-      if (!prev) return null;
-      let newStatus = prev.status;
-      if (actionModal.type === 'resolve') newStatus = 'success';
-      if (actionModal.type === 'refund') newStatus = 'failed'; // Assuming refund marks it as failed and reverses money (handled logically elsewhere)
-      if (actionModal.type === 'retry') newStatus = 'pending';
-      
-      return { 
-        ...prev, 
-        status: newStatus,
-        notes: (prev.notes ? prev.notes + ' | ' : '') + `Admin [${actionModal.type}]: ${adminNote}`
-      };
-    });
+    try {
+      const res = await api.post(`/admin/transactions/${id}/action`, {
+        action: actionModal.type,
+        note: adminNote
+      });
+      if (res.data.success) {
+        setTx(res.data.data); // this might not have populated user anymore since action endpoint might not populate.
+        // Let's refetch or just update local
+        setTx((prev: any) => ({
+           ...prev,
+           status: res.data.data.status,
+           adminNote: res.data.data.adminNote
+        }));
+      } else {
+        alert(res.data.message);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to update transaction');
+    }
     
     setActionModal({ isOpen: false, type: null });
     setAdminNote('');
@@ -82,7 +100,7 @@ export function TransactionDetail() {
           
           <div className="text-right sm:text-left">
             <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Reference</p>
-            <p className="font-mono font-medium text-gray-900 text-lg">{tx.reference}</p>
+            <p className="font-mono font-medium text-gray-900 text-lg">{tx.refId}</p>
           </div>
         </div>
 
@@ -95,23 +113,30 @@ export function TransactionDetail() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Date & Time</p>
-              <p className="font-medium text-gray-900">{new Date(tx.date).toLocaleString()}</p>
+              <p className="font-medium text-gray-900">{new Date(tx.createdAt).toLocaleString()}</p>
             </div>
           </div>
           <div className="space-y-4">
-            <div>
-              <p className="text-sm text-gray-500">Customer</p>
-              <button 
-                onClick={() => navigate(`/users/${tx.userId}`)}
-                className="font-medium text-[#1B3A6B] hover:underline block"
-              >
-                {tx.userName}
-              </button>
-            </div>
+            {tx.userId ? (
+              <div>
+                <p className="text-sm text-gray-500">Customer</p>
+                <button 
+                  onClick={() => navigate(`/users/${tx.userId._id}`)}
+                  className="font-medium text-[#1B3A6B] hover:underline block"
+                >
+                  {tx.userId.name || tx.userId.phone}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-gray-500">Customer</p>
+                <p className="font-medium text-gray-900">System / Unknown</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-gray-500">Aggregator Notes</p>
-              <p className="font-medium text-gray-900 text-sm bg-gray-50 p-2 rounded border border-gray-100 min-h-[40px]">
-                {tx.notes || 'No notes available'}
+              <p className="font-medium text-gray-900 text-sm bg-gray-50 p-2 rounded border border-gray-100 min-h-[40px] break-all">
+                {tx.adminNote || tx.providerResponse || 'No notes available'}
               </p>
             </div>
           </div>
@@ -156,7 +181,7 @@ export function TransactionDetail() {
             </div>
             <form onSubmit={handleAction} className="p-6 space-y-4">
               <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-sm text-blue-800 mb-4">
-                You are about to {actionModal.type} transaction <strong>{tx.reference}</strong>.
+                You are about to {actionModal.type} transaction <strong>{tx.refId}</strong>.
               </div>
               
               <div>

@@ -24,8 +24,12 @@ router.post('/users/:id/debit', requireRole(['Super Admin', 'Finance']), usersCt
 
 // Misc (Transactions, Providers, Pricing, Settings)
 router.get('/transactions', miscCtrl.getTransactions);
+router.get('/transactions/:id', miscCtrl.getTransaction);
+router.post('/transactions/:id/action', requireRole(['Super Admin', 'Support']), miscCtrl.actionTransaction);
 router.get('/providers', miscCtrl.getProviders);
+router.put('/providers/:id', requireRole(['Super Admin']), miscCtrl.updateProvider);
 router.get('/pricing', miscCtrl.getPricing);
+router.put('/pricing/:id', requireRole(['Super Admin']), miscCtrl.updatePricing);
 router.get('/settings', miscCtrl.getSettings);
 
 module.exports = router;

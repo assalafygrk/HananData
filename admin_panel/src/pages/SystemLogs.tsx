@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { mockLogs } from '../mocks/data';
-import { SystemLog } from '../mocks/types';
 import { Search, Info, AlertTriangle, XCircle, AlertOctagon, ActivitySquare, Filter, Trash2, Download, Eye, X } from 'lucide-react';
 
 export function SystemLogs() {
-  const [logs, setLogs] = useState<SystemLog[]>([...mockLogs]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<'all' | 'info' | 'warning' | 'error' | 'critical'>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'admin_panel' | 'mobile_app' | 'system'>('all');

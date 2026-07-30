@@ -1,27 +1,47 @@
-import { useState } from 'react';
-import { mockPricing, mockProviders } from '../mocks/data';
-import { PricingConfig } from '../mocks/types';
+import { useState, useEffect } from 'react';
 import { Save, AlertTriangle, Edit2, X } from 'lucide-react';
+import api from '../api';
 
 export function PricingManagement() {
-  const [pricingData, setPricingData] = useState<PricingConfig[]>([...mockPricing]);
+  const [pricingData, setPricingData] = useState<any[]>([]);
+  const [providers, setProviders] = useState<any[]>([]);
   const [filterCategory, setFilterCategory] = useState('data');
+  const [loading, setLoading] = useState(true);
   
-  const [editModal, setEditModal] = useState<{ isOpen: boolean; data: PricingConfig | null }>({
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; data: any | null }>({
     isOpen: false,
     data: null
   });
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [pricingRes, providersRes] = await Promise.all([
+          api.get('/admin/pricing'),
+          api.get('/admin/providers')
+        ]);
+        if (pricingRes.data.success) setPricingData(pricingRes.data.data);
+        if (providersRes.data.success) setProviders(providersRes.data.data);
+      } catch (error) {
+        console.error('Error fetching data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const filteredPricing = pricingData.filter(p => p.category === filterCategory);
 
-  const handleEditClick = (p: PricingConfig) => {
+  const handleEditClick = (p: any) => {
     setEditModal({
       isOpen: true,
-      data: { ...p }
+      data: { ...p, providerId: p.providerId?._id || p.providerId || '' }
     });
   };
 
-  const handleModalChange = (field: keyof PricingConfig, value: string | number) => {
+  const handleModalChange = (field: string, value: string | number) => {
     if (editModal.data) {
       setEditModal({
         ...editModal,
@@ -30,16 +50,21 @@ export function PricingManagement() {
     }
   };
 
-  const handleSaveModal = (e: React.FormEvent) => {
+  const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editModal.data) {
-      setPricingData(prev => prev.map(p => 
-        p.id === editModal.data?.id ? { 
-          ...editModal.data,
-          lastUpdatedBy: 'Super Admin',
-          lastUpdatedAt: new Date().toISOString()
-        } : p
-      ));
+      try {
+        const response = await api.put(`/admin/pricing/${editModal.data._id}`, editModal.data);
+        if (response.data.success) {
+          setPricingData(prev => prev.map(p => 
+            p._id === editModal.data?._id ? response.data.data : p
+          ));
+        } else {
+          alert(response.data.message);
+        }
+      } catch (error) {
+        alert('Failed to save configuration');
+      }
     }
     setEditModal({ isOpen: false, data: null });
   };
@@ -87,13 +112,17 @@ export function PricingManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredPricing.map((p) => {
+              {loading ? (
+                <tr><td colSpan={7} className="py-12 text-center text-sm text-gray-500">Loading...</td></tr>
+              ) : filteredPricing.map((p) => {
                 const vendorPL = calculateProfit(p.vendorPrice, p.apiPrice);
                 const userPL = calculateProfit(p.userPrice, p.apiPrice);
-                const providerName = mockProviders.find(prov => prov.id === p.providerId)?.name || 'Unknown Provider';
+                // p.providerId might be an object or string, so check if it exists in providers array
+                const pId = typeof p.providerId === 'object' ? p.providerId?._id : p.providerId;
+                const providerName = providers.find(prov => prov._id === pId)?.name || 'Unknown Provider';
 
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50">
+                  <tr key={p._id} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full shrink-0 ${
@@ -147,7 +176,7 @@ export function PricingManagement() {
                   </tr>
                 );
               })}
-              {filteredPricing.length === 0 && (
+              {!loading && filteredPricing.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-500">
                     No pricing configurations found for this category.
@@ -193,8 +222,8 @@ export function PricingManagement() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
                       >
                         <option value="">Select Provider...</option>
-                        {mockProviders.map(prov => (
-                          <option key={prov.id} value={prov.id}>{prov.name}</option>
+                        {providers.map(prov => (
+                          <option key={prov._id} value={prov._id}>{prov.name}</option>
                         ))}
                       </select>
                     </div>

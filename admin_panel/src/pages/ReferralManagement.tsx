@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { mockReferrals } from '../mocks/data';
 import { Users, Gift, Save, CheckCircle2 } from 'lucide-react';
 
 export function ReferralManagement() {
   const [bonusAmount, setBonusAmount] = useState('500');
   const [minFunding, setMinFunding] = useState('2000');
+  const [referrals, setReferrals] = useState<any[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
 

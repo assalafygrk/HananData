@@ -1,25 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { mockTransactions } from '../mocks/data';
 import { Search, Filter, Download } from 'lucide-react';
+import api from '../api';
 
 export function TransactionManagement() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialUserId = searchParams.get('user');
 
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTx = async () => {
+      try {
+        setLoading(true);
+        const endpoint = initialUserId ? `/admin/transactions?user=${initialUserId}` : '/admin/transactions';
+        const res = await api.get(endpoint);
+        if (res.data.success) {
+          setTransactions(res.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching transactions', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTx();
+  }, [initialUserId]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   
-  const filteredTx = mockTransactions.filter(tx => {
-    const matchesUser = initialUserId ? tx.userId === initialUserId : true;
-    const matchesSearch = tx.reference.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          tx.userName.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTx = transactions.filter(tx => {
+    const matchesSearch = tx.refId?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (tx.userId?.name && tx.userId.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesType = filterType === 'all' || tx.type === filterType;
     const matchesStatus = filterStatus === 'all' || tx.status === filterStatus;
     
-    return matchesUser && matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus;
   });
 
   return (
@@ -91,23 +111,29 @@ export function TransactionManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredTx.map((tx) => (
+              {loading ? (
+                <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-500">Loading...</td></tr>
+              ) : filteredTx.map((tx) => (
                 <tr 
-                  key={tx.id} 
-                  onClick={() => navigate(`/transactions/${tx.id}`)}
+                  key={tx._id} 
+                  onClick={() => navigate(`/transactions/${tx._id}`)}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <td className="py-4 px-6">
-                    <div className="font-medium text-gray-900">{tx.reference}</div>
-                    <div className="text-xs text-gray-500">{new Date(tx.date).toLocaleString()}</div>
+                    <div className="font-medium text-gray-900">{tx.refId}</div>
+                    <div className="text-xs text-gray-500">{new Date(tx.createdAt).toLocaleString()}</div>
                   </td>
                   <td className="py-4 px-6 text-sm">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); navigate(`/users/${tx.userId}`); }}
-                      className="font-medium text-[#1B3A6B] hover:underline"
-                    >
-                      {tx.userName}
-                    </button>
+                    {tx.userId ? (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); navigate(`/users/${tx.userId._id}`); }}
+                        className="font-medium text-[#1B3A6B] hover:underline"
+                      >
+                        {tx.userId.name || tx.userId.phone || 'Unknown User'}
+                      </button>
+                    ) : (
+                      <span className="text-gray-500">System</span>
+                    )}
                   </td>
                   <td className="py-4 px-6">
                     <span className="capitalize text-sm font-medium text-gray-700 bg-gray-100 px-2.5 py-1 rounded-md inline-block">
@@ -118,7 +144,7 @@ export function TransactionManagement() {
                     )}
                   </td>
                   <td className="py-4 px-6 font-medium text-gray-900">
-                    ₦{tx.amount.toLocaleString()}
+                    ₦{tx.amount?.toLocaleString()}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -134,7 +160,7 @@ export function TransactionManagement() {
             </tbody>
           </table>
           
-          {filteredTx.length === 0 && (
+          {!loading && filteredTx.length === 0 && (
             <div className="py-12 text-center text-gray-500">
               No transactions found matching your criteria.
             </div>

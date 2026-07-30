@@ -1,18 +1,31 @@
-import { useState } from 'react';
-import { mockProviders } from '../mocks/data';
-import { Provider } from '../mocks/types';
+import { useState, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, Server, CheckCircle2 } from 'lucide-react';
+import api from '../api';
 
 export function ApiWallets() {
-  const [providers, setProviders] = useState<Provider[]>(mockProviders);
+  const [providers, setProviders] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const fetchProviders = async () => {
     setIsRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const res = await api.get('/admin/providers');
+      if (res.data.success) {
+        setProviders(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching providers', error);
+    } finally {
       setIsRefreshing(false);
-    }, 1500);
+    }
+  };
+
+  useEffect(() => {
+    fetchProviders();
+  }, []);
+
+  const handleRefresh = () => {
+    fetchProviders();
   };
 
   return (
@@ -34,7 +47,7 @@ export function ApiWallets() {
           const isLowBalance = provider.balance < provider.lowBalanceThreshold;
 
           return (
-            <div key={provider.id} className={`bg-white rounded-xl shadow-sm border p-6 ${
+            <div key={provider._id} className={`bg-white rounded-xl shadow-sm border p-6 ${
               isLowBalance ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'
             }`}>
               <div className="flex justify-between items-start mb-6">

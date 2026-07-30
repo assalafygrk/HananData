@@ -1,22 +1,35 @@
-import { useState } from 'react';
-import { mockProviders, mockGateways } from '../mocks/data';
-import { Provider, PaymentGateway } from '../mocks/types';
+import { useState, useEffect } from 'react';
 import { Save, Server, CreditCard, Plus, Trash2, Edit2, Activity, X } from 'lucide-react';
+import api from '../api';
 
 export function AggregatorSettings() {
-  const [providers, setProviders] = useState<Provider[]>(mockProviders);
-  const [gateways, setGateways] = useState<PaymentGateway[]>(mockGateways);
+  const [providers, setProviders] = useState<any[]>([]);
+  const [gateways, setGateways] = useState<any[]>([]);
   
   const [isSaved, setIsSaved] = useState(false);
   const [modal, setModal] = useState<{isOpen: boolean, type: 'provider' | 'gateway' | null}>({isOpen: false, type: null});
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const res = await api.get('/admin/providers');
+        if (res.data.success) {
+          setProviders(res.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching providers', error);
+      }
+    };
+    fetchProviders();
+  }, []);
 
   const handleSaveConfig = () => {
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
 
-  const deleteProvider = (id: string) => setProviders(providers.filter(p => p.id !== id));
-  const deleteGateway = (id: string) => setGateways(gateways.filter(g => g.id !== id));
+  const deleteProvider = (id: string) => setProviders(providers.filter(p => p._id !== id));
+  const deleteGateway = (id: string) => setGateways(gateways.filter(g => g._id !== id));
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -64,7 +77,7 @@ export function AggregatorSettings() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {providers.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={p._id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-6 font-medium text-gray-900">{p.name}</td>
                   <td className="py-4 px-6 text-sm text-gray-600">{p.type}</td>
                   <td className="py-4 px-6 text-sm font-mono text-gray-500">{p.baseUrl}</td>
@@ -80,7 +93,7 @@ export function AggregatorSettings() {
                       <button className="p-1.5 text-gray-400 hover:text-blue-600 rounded">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteProvider(p.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
+                      <button onClick={() => deleteProvider(p._id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -125,7 +138,7 @@ export function AggregatorSettings() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {gateways.map((g) => (
-                <tr key={g.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={g._id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-6 font-medium text-gray-900">{g.name}</td>
                   <td className="py-4 px-6 text-sm text-gray-600">{g.feePercentage}%</td>
                   <td className="py-4 px-6 text-sm font-mono text-gray-500">{g.webhookUrl}</td>
@@ -141,7 +154,7 @@ export function AggregatorSettings() {
                       <button className="p-1.5 text-gray-400 hover:text-purple-600 rounded">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteGateway(g.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
+                      <button onClick={() => deleteGateway(g._id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -150,6 +163,11 @@ export function AggregatorSettings() {
               ))}
             </tbody>
           </table>
+          {gateways.length === 0 && (
+            <div className="py-8 text-center text-gray-500">
+              No Payment Gateways configured.
+            </div>
+          )}
         </div>
       </div>
 
