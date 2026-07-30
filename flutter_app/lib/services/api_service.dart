@@ -5,7 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static String get baseUrl {
-    if (kIsWeb) return 'http://127.0.0.1:5000/api'; // or dynamically resolve based on window
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host.isNotEmpty && host != 'localhost') {
+        return 'http://$host:5000/api';
+      }
+      return 'http://127.0.0.1:5000/api';
+    }
     if (defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:5000/api';
     return 'http://127.0.0.1:5000/api';
   }
@@ -39,7 +45,7 @@ class ApiService {
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'phoneOrEmail': phoneOrEmail,
+          'identifier': phoneOrEmail,
           'password': password
         })
       );
