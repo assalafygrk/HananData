@@ -1,18 +1,44 @@
 import { Users, CreditCard, TrendingUp, AlertTriangle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { mockTransactions } from '../mocks/data';
-
-const chartData = [
-  { name: 'Mon', volume: 4000 },
-  { name: 'Tue', volume: 3000 },
-  { name: 'Wed', volume: 2000 },
-  { name: 'Thu', volume: 2780 },
-  { name: 'Fri', volume: 1890 },
-  { name: 'Sat', volume: 2390 },
-  { name: 'Sun', volume: 3490 },
-];
+import { useState, useEffect } from 'react';
+import api from '../api';
 
 export function Dashboard() {
+  const [stats, setStats] = useState({ totalUsers: 0, revenueToday: 0, walletFloat: 0 });
+  const [recentTx, setRecentTx] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const [statsRes, txRes] = await Promise.all([
+          api.get('/admin/dashboard/stats'),
+          api.get('/admin/transactions')
+        ]);
+        if (statsRes.data.success) {
+          setStats(statsRes.data.data);
+        }
+        if (txRes.data.success) {
+          setRecentTx(txRes.data.data.slice(0, 10)); // Just recent ones
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  const chartData = [
+    { name: 'Mon', volume: 4000 },
+    { name: 'Tue', volume: 3000 },
+    { name: 'Wed', volume: 2000 },
+    { name: 'Thu', volume: 2780 },
+    { name: 'Fri', volume: 1890 },
+    { name: 'Sat', volume: 2390 },
+    { name: 'Sun', volume: 3490 },
+  ];
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center justify-between">
@@ -44,10 +70,10 @@ export function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Users" value="12,345" icon={Users} trend="+5.2%" />
-        <StatCard title="Transactions Today" value="1,234" icon={CreditCard} trend="+12.5%" />
-        <StatCard title="Revenue Today" value="₦450,000" icon={TrendingUp} trend="+8.1%" />
-        <StatCard title="Wallet Float" value="₦2,500,000" icon={CreditCard} />
+        <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} />
+        <StatCard title="Transactions Today" value={recentTx.length.toString()} icon={CreditCard} />
+        <StatCard title="Revenue Today" value={`₦${stats.revenueToday.toLocaleString()}`} icon={TrendingUp} />
+        <StatCard title="Wallet Float" value={`₦${stats.walletFloat.toLocaleString()}`} icon={CreditCard} />
       </div>
 
       {/* Alerts & Chart */}
@@ -116,16 +142,18 @@ export function Dashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {mockTransactions.map((tx) => (
-                <tr key={tx.id} className="hover:bg-gray-50 transition-colors cursor-pointer">
-                  <td className="py-4 px-6 text-sm font-medium text-gray-900">{tx.reference}</td>
-                  <td className="py-4 px-6 text-sm text-gray-500">{tx.userName}</td>
+              {loading ? (
+                <tr><td colSpan={5} className="py-4 px-6 text-center text-sm text-gray-500">Loading...</td></tr>
+              ) : recentTx.map((tx) => (
+                <tr key={tx._id} className="hover:bg-gray-50 transition-colors cursor-pointer">
+                  <td className="py-4 px-6 text-sm font-medium text-gray-900">{tx.refId}</td>
+                  <td className="py-4 px-6 text-sm text-gray-500">{tx.userId?.substring(0,8) || 'Unknown'}</td>
                   <td className="py-4 px-6">
                     <span className="capitalize text-sm font-medium text-gray-700 bg-gray-100 px-2.5 py-1 rounded-md">
                       {tx.type} {tx.network && `- ${tx.network}`}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-sm font-medium text-gray-900">₦{tx.amount.toLocaleString()}</td>
+                  <td className="py-4 px-6 text-sm font-medium text-gray-900">₦{tx.amount?.toLocaleString()}</td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                       tx.status === 'success' ? 'bg-green-100 text-green-800' :

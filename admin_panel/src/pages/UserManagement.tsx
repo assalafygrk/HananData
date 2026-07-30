@@ -1,18 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockUsers } from '../mocks/data';
 import { Search, Filter } from 'lucide-react';
+import api from '../api';
 
 export function UserManagement() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTier, setFilterTier] = useState<string>('all');
 
-  const filteredUsers = mockUsers.filter(u => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get('/admin/users');
+        if (response.data.success) {
+          setUsers(response.data.data.users);
+        }
+      } catch (error) {
+        console.error('Error fetching users', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const filteredUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          u.phone.includes(searchTerm) || 
-                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTier = filterTier === 'all' || u.kycTier.toString() === filterTier;
+                          (u.phone && u.phone.includes(searchTerm)) || 
+                          (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesTier = filterTier === 'all' || u.kycTier?.toString() === filterTier;
     return matchesSearch && matchesTier;
   });
 
@@ -63,33 +81,35 @@ export function UserManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredUsers.map((user) => (
+              {loading ? (
+                <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-500">Loading users...</td></tr>
+              ) : filteredUsers.map((user) => (
                 <tr 
-                  key={user.id} 
-                  onClick={() => navigate(`/users/${user.id}`)}
+                  key={user._id} 
+                  onClick={() => navigate(`/users/${user._id}`)}
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <td className="py-4 px-6">
                     <div className="font-medium text-gray-900">{user.name}</div>
-                    <div className="text-xs text-gray-500">Joined {new Date(user.joinedAt).toLocaleDateString()}</div>
+                    <div className="text-xs text-gray-500">Joined {new Date(user.createdAt).toLocaleDateString()}</div>
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-600">
-                    <div>{user.phone}</div>
+                    <div>{user.phone || 'N/A'}</div>
                     <div className="text-gray-400">{user.email}</div>
                   </td>
                   <td className="py-4 px-6">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                      Tier {user.kycTier}
+                      Tier {user.kycTier || 0}
                     </span>
                   </td>
                   <td className="py-4 px-6 font-medium text-gray-900">
-                    ₦{user.walletBalance.toLocaleString()}
+                    ₦{user.walletBalance?.toLocaleString() || 0}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                       user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {user.status}
+                      {user.status || 'active'}
                     </span>
                   </td>
                 </tr>
@@ -97,7 +117,7 @@ export function UserManagement() {
             </tbody>
           </table>
           
-          {filteredUsers.length === 0 && (
+          {!loading && filteredUsers.length === 0 && (
             <div className="py-12 text-center text-gray-500">
               No users found matching your criteria.
             </div>

@@ -1,16 +1,35 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
+import api from '../api';
 
 export function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - just navigate
-    navigate('/dashboard');
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await api.post('/admin/auth/login', { email, password });
+      if (response.data.success) {
+        localStorage.setItem('adminToken', response.data.data.token);
+        localStorage.setItem('adminData', JSON.stringify(response.data.data));
+        navigate('/dashboard');
+      } else {
+        setError(response.data.message || 'Login failed');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,6 +50,7 @@ export function AdminLogin() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-100">
+          {error && <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">{error}</div>}
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium text-gray-700">

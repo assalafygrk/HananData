@@ -1,43 +1,67 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockUsers, mockTransactions } from '../mocks/data';
-import { User } from '../mocks/types';
 import { ArrowLeft, UserCircle, Wallet, AlertTriangle, ShieldCheck, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import api from '../api';
 
 export function UserDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
+  const [userTransactions, setUserTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [actionModal, setActionModal] = useState<{isOpen: boolean, type: 'credit' | 'debit' | null}>({ isOpen: false, type: null });
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentNote, setAdjustmentNote] = useState('');
 
-  useEffect(() => {
-    const found = mockUsers.find(u => u.id === id);
-    if (found) setUser({...found});
-  }, [id]);
-
-  if (!user) return <div className="p-8 text-center text-gray-500">User not found</div>;
-
-  const userTransactions = mockTransactions.filter(tx => tx.userId === id);
-
-  const handleStatusToggle = () => {
-    setUser(prev => prev ? { ...prev, status: prev.status === 'active' ? 'suspended' : 'active' } : null);
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const [userRes, txRes] = await Promise.all([
+        api.get(`/admin/users/${id}`),
+        api.get(`/admin/transactions?user=${id}`)
+      ]);
+      if (userRes.data.success) setUser(userRes.data.data);
+      if (txRes.data.success) setUserTransactions(txRes.data.data);
+    } catch (error) {
+      console.error('Error fetching user', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleWalletAdjustment = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (id) fetchUserData();
+  }, [id]);
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (!user) return <div className="p-8 text-center text-gray-500">User not found</div>;
+
+  const handleStatusToggle = () => {
+    // TODO: add status toggle endpoint if needed.
+    setUser((prev: any) => prev ? { ...prev, status: prev.status === 'active' ? 'suspended' : 'active' } : null);
+  };
+
+  const handleWalletAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adjustmentNote) return;
+    if (!adjustmentNote || !adjustmentAmount) return;
     
     let amount = parseInt(adjustmentAmount);
     if (isNaN(amount) || amount <= 0) return;
     
-    if (actionModal.type === 'debit') {
-      amount = -amount;
+    try {
+      const endpoint = actionModal.type === 'credit' ? `/admin/users/${id}/credit` : `/admin/users/${id}/debit`;
+      const response = await api.post(endpoint, { amount, note: adjustmentNote });
+      
+      if (response.data.success) {
+        setUser(response.data.data);
+      } else {
+        alert(response.data.message);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Transaction failed');
     }
-    
-    setUser(prev => prev ? { ...prev, walletBalance: prev.walletBalance + amount } : null);
+
     setActionModal({ isOpen: false, type: null });
     setAdjustmentAmount('');
     setAdjustmentNote('');
@@ -85,7 +109,7 @@ export function UserDetail() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Joined</span>
-                <span className="font-medium text-gray-900">{new Date(user.joinedAt).toLocaleDateString()}</span>
+                <span className="font-medium text-gray-900">{new Date(user.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -137,7 +161,7 @@ export function UserDetail() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900">Transaction History</h3>
-              <button onClick={() => navigate(`/transactions?user=${user.id}`)} className="text-[#1B3A6B] text-sm font-medium hover:underline">
+              <button onClick={() => navigate(`/transactions?user=${user._id}`)} className="text-[#1B3A6B] text-sm font-medium hover:underline">
                 View All
               </button>
             </div>
@@ -145,10 +169,10 @@ export function UserDetail() {
               <table className="w-full text-left border-collapse">
                 <tbody className="divide-y divide-gray-100">
                   {userTransactions.length > 0 ? userTransactions.map(tx => (
-                    <tr key={tx.id} className="hover:bg-gray-50">
+                    <tr key={tx._id} className="hover:bg-gray-50">
                       <td className="py-3 px-6">
                         <div className="font-medium text-sm text-gray-900 capitalize">{tx.type} {tx.network && `(${tx.network})`}</div>
-                        <div className="text-xs text-gray-500">{new Date(tx.date).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500">{new Date(tx.createdAt).toLocaleString()}</div>
                       </td>
                       <td className="py-3 px-6 font-medium text-sm text-gray-900">
                         ₦{tx.amount.toLocaleString()}

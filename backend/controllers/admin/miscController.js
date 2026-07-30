@@ -7,7 +7,9 @@ const { sendResponse } = require('../../utils/helpers');
 // Quick mocks for the rest of admin routes for the sake of completeness
 exports.getTransactions = async (req, res, next) => {
   try {
-    const tx = await Transaction.find().sort({ createdAt: -1 }).limit(50);
+    const { user } = req.query;
+    const query = user ? { userId: user } : {};
+    const tx = await Transaction.find(query).sort({ createdAt: -1 }).limit(50);
     return sendResponse(res, 200, true, tx);
   } catch (error) { next(error); }
 };
