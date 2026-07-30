@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/shared_widgets.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -11,7 +12,7 @@ class OnboardingScreen extends StatelessWidget {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E875D)], // Dark blue to green gradient
+            colors: [kPrimaryNavy, kPrimaryBlue],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -29,7 +30,7 @@ class OnboardingScreen extends StatelessWidget {
                     Container(
                       width: 28, height: 28,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00C896),
+                        color: kAccentGreen,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       alignment: Alignment.center,
@@ -100,7 +101,7 @@ class OnboardingScreen extends StatelessWidget {
                       Navigator.pushNamed(context, '/signup');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF229E6A),
+                      backgroundColor: kAccentGreen,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                       elevation: 0,
                     ),
@@ -141,11 +142,11 @@ class OnboardingScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(isLarge ? 12 : 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: kPrimaryNavy,
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFF00C896), width: 2),
+        border: Border.all(color: kAccentGreen, width: 2),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF00C896).withOpacity(0.3), blurRadius: 10),
+          BoxShadow(color: kAccentGreen.withOpacity(0.3), blurRadius: 10),
         ],
       ),
       child: Icon(icon, color: Colors.white, size: isLarge ? 24 : 16),
