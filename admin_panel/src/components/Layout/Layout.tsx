@@ -1,14 +1,26 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, CreditCard, Tag, Link2, 
   Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const token = localStorage.getItem('adminToken');
+  const [adminData, setAdminData] = useState<any>(null);
+
+  useEffect(() => {
+    const dataStr = localStorage.getItem('adminData');
+    if (dataStr) {
+      try {
+        setAdminData(JSON.parse(dataStr));
+      } catch (e) {}
+    }
+  }, []);
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -26,8 +38,18 @@ export function Layout() {
   ];
 
   const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
     navigate('/login');
   };
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const adminName = adminData?.name || 'Super Admin';
+  const adminEmail = adminData?.email || 'admin@hanandata.com';
+  const initials = adminName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -78,11 +100,11 @@ export function Layout() {
           
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right hidden sm:block">
-              <p className="font-medium text-gray-900">Super Admin</p>
-              <p className="text-gray-500 text-xs">admin@hanandata.com</p>
+              <p className="font-medium text-gray-900">{adminName}</p>
+              <p className="text-gray-500 text-xs">{adminEmail}</p>
             </div>
             <div className="h-9 w-9 rounded-full bg-blue-100 text-[#1B3A6B] flex items-center justify-center font-bold">
-              SA
+              {initials}
             </div>
             <button 
               onClick={handleLogout}
