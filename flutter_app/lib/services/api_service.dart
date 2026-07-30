@@ -52,7 +52,7 @@ class ApiService {
       final data = jsonDecode(res.body);
       if (res.statusCode == 200 && data['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userToken', data['token']);
+        await prefs.setString('userToken', data['data']['token']);
         await prefs.setString('userData', jsonEncode(data['data']));
       }
       return data;
