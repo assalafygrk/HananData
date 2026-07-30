@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_data.dart';
-import '../models/txn_data.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -17,6 +18,22 @@ class _WalletScreenState extends State<WalletScreen> {
   String? _method;   // 'bank' | 'card' | 'ussd'
 
   final _quickAmounts = [1000, 5000, 10000, 20000];
+
+  Map<String, dynamic>? _userData;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadBalance();
+  }
+
+  Future<void> _loadBalance() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      setState(() => _userData = jsonDecode(userStr));
+    }
+  }
 
   @override
   void dispose() {
@@ -70,7 +87,7 @@ class _WalletScreenState extends State<WalletScreen> {
                             style: dFont(size: 11, weight: FontWeight.w600,
                               color: const Color(0xFF7BAED4))),
                           const SizedBox(height: 6),
-                          Text('₦48,750.00',
+                          Text('₦${(_userData?['balance'] ?? 0).toStringAsFixed(2)}',
                             style: GoogleFonts.inter(
                               fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white,
                               letterSpacing: -0.5,
@@ -188,14 +205,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       PrimaryBtn(
                         label: 'Pay ₦${fmtNaira(_amt)}',
                         onPressed: () {
-                          final txn = TxnData(
-                            type: 'Wallet Funding',
-                            recipient: 'HananData Wallet',
-                            amount: _amt, fee: 0, total: _amt,
-                            description: 'Wallet Funding via Card',
-                            refId: genRef(),
-                          );
-                          Navigator.pushNamed(context, '/success', arguments: txn);
+                          // Mock for now, you can hook this to a real payment gateway
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment via card is coming soon')));
                         },
                       ),
                       const SizedBox(height: 16),
@@ -222,8 +233,8 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildBankDetail() {
     final rows = [
-      ['Account Name', 'HananData · Aisha'],
-      ['Account No.', '0123 456 789'],
+      ['Account Name', 'HananData · ${_userData?['name']?.split(' ')[0] ?? ''}'],
+      ['Account No.', _userData?['virtualAccount'] ?? '0123 456 789'],
       ['Bank', 'HananData MFB'],
     ];
     return Container(

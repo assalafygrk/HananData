@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _phoneFocus = FocusNode();
   String _pin = '';
   bool _onPin = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,6 +29,20 @@ class _LoginScreenState extends State<LoginScreen> {
     _phoneFocus.unfocus();
     FocusScope.of(context).unfocus();
     setState(() => _onPin = true);
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+    // Optionally format phone if needed, but backend probably expects whatever user inputs.
+    final res = await ApiService.login(_phoneCtrl.text, _pin);
+    setState(() => _isLoading = false);
+    if (res['success'] == true) {
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Login failed', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      }
+    }
   }
 
   @override
@@ -170,18 +186,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         onChanged: (v) {
                           setState(() => _pin = v);
                           if (v.length == 6) {
-                            final nav = Navigator.of(context);
-                            Future.delayed(const Duration(milliseconds: 120), () {
-                              if (mounted) nav.pushReplacementNamed('/home');
-                            });
+                            _handleLogin();
                           }
                         },
                       ),
                       const SizedBox(height: 16),
                       PrimaryBtn(
-                        label: 'Sign In',
-                        disabled: _pin.length < 6,
-                        onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+                        label: _isLoading ? 'Signing In...' : 'Sign In',
+                        disabled: _pin.length < 6 || _isLoading,
+                        onPressed: _handleLogin,
                       ),
                       const SizedBox(height: 12),
                       Center(

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -16,6 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phoneCtrl = TextEditingController();
   String _pin     = '';
   String _confirm = '';
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,9 +38,31 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     });
     if (v.length == 6 && _step == 2) {
-      Future.delayed(const Duration(milliseconds: 120), () {
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      });
+      _handleSignup();
+    }
+  }
+
+  Future<void> _handleSignup() async {
+    if (_pin != _confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("PINs do not match"), backgroundColor: Colors.red));
+      return;
+    }
+    setState(() => _isLoading = true);
+    final body = {
+      'name': _nameCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+      'phone': _phoneCtrl.text.trim(),
+      'password': _pin, // We use pin as password for simplicity
+    };
+    final res = await ApiService.signup(body);
+    setState(() => _isLoading = false);
+    if (res['success'] == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Account created! Please sign in."), backgroundColor: Colors.green));
+        Navigator.pop(context); // go back to login
+      }
+    } else {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Error'), backgroundColor: Colors.red));
     }
   }
 
@@ -185,13 +209,13 @@ class _SignupScreenState extends State<SignupScreen> {
                       NumPad(value: _activePin, onChanged: _setActivePin),
                       const SizedBox(height: 16),
                       PrimaryBtn(
-                        label: _step == 1 ? 'Continue' : 'Create Account',
-                        disabled: _activePin.length < 6,
+                        label: _step == 1 ? 'Continue' : (_isLoading ? 'Creating...' : 'Create Account'),
+                        disabled: _activePin.length < 6 || _isLoading,
                         onPressed: () {
                           if (_step == 1) {
                             setState(() { _step = 2; _confirm = ''; });
                           } else {
-                            Navigator.pushReplacementNamed(context, '/home');
+                            _handleSignup();
                           }
                         },
                       ),

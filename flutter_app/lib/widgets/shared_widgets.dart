@@ -1158,3 +1158,65 @@ class AppLoadingOverlay extends StatelessWidget {
     );
   }
 }
+
+// Adapter for API transaction data format
+class TxnRowApi extends StatelessWidget {
+  final Map<String, dynamic> txn;
+  const TxnRowApi({super.key, required this.txn});
+
+  @override
+  Widget build(BuildContext context) {
+    final type = txn['type'] ?? 'unknown';
+    final num amount = txn['amount'] ?? 0;
+    final status = txn['status'] ?? 'pending';
+    final isCredit = type == 'funding' || type == 'referral_bonus';
+    
+    IconData icon;
+    Color color;
+    switch(type) {
+      case 'data': icon = Icons.wifi; color = const Color(0xFF3B82F6); break;
+      case 'airtime': icon = Icons.phone_android; color = const Color(0xFF10B981); break;
+      case 'cable': icon = Icons.tv; color = const Color(0xFFF59E0B); break;
+      case 'electricity': icon = Icons.bolt; color = const Color(0xFFEF4444); break;
+      case 'funding': icon = Icons.account_balance_wallet; color = const Color(0xFF8B5CF6); break;
+      default: icon = Icons.receipt_long; color = Colors.grey; break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF0F4FA)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(type.toString().toUpperCase(), style: dFont(size: 13, weight: FontWeight.w700, color: const Color(0xFF1B3A6B))),
+                const SizedBox(height: 2),
+                Text(txn['network'] ?? txn['refId'] ?? '', style: dFont(size: 11, color: const Color(0xFF64748B))),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 13, weight: FontWeight.w700, color: isCredit ? const Color(0xFF00C896) : const Color(0xFF1B3A6B))),
+              const SizedBox(height: 2),
+              Text(status.toString().toUpperCase(), style: dFont(size: 10, weight: FontWeight.w600, color: status == 'success' ? const Color(0xFF00C896) : (status == 'failed' ? Colors.red : Colors.orange))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,11 +1,48 @@
-// lib/screens/home_screen.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../constants/app_data.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Map<String, dynamic>? _userData;
+  List<dynamic> _transactions = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      setState(() => _userData = jsonDecode(userStr));
+    }
+    
+    // Refresh from backend
+    final profileRes = await ApiService.getProfile();
+    if (profileRes['success'] == true && mounted) {
+      setState(() => _userData = profileRes['data']);
+    }
+
+    final txRes = await ApiService.getUserTransactions();
+    if (txRes['success'] == true && mounted) {
+      setState(() => _transactions = txRes['data'] ?? []);
+    }
+    
+    if (mounted) setState(() => _isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                             Text('Good morning,',
                               style: dFont(size: 12, color: const Color(0xFF7BAED4))),
                             const SizedBox(height: 2),
-                            Text('Aisha Bello 👋',
+                            Text('${_userData?['name']?.split(' ')[0] ?? 'User'} 👋',
                               style: GoogleFonts.inter(
                                 fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
                               )),
@@ -101,13 +138,13 @@ class HomeScreen extends StatelessWidget {
                           Text('Wallet Balance',
                             style: dFont(size: 11, weight: FontWeight.w600, color: const Color(0xFF7BAED4))),
                           const SizedBox(height: 4),
-                          Text('₦48,750.00',
+                          Text('₦${(_userData?['balance'] ?? 0).toStringAsFixed(2)}',
                             style: GoogleFonts.inter(
                               fontSize: 30, fontWeight: FontWeight.w800,
                               color: Colors.white, letterSpacing: -0.5,
                             )),
                           const SizedBox(height: 2),
-                          Text('0123 456 789 · HananData MFB',
+                          Text('${_userData?['virtualAccount'] ?? '0123 456 789'} · HananData MFB',
                             style: dFont(size: 11, color: const Color(0xFF7BAED4))),
                           const SizedBox(height: 16),
                           // Action buttons row
@@ -212,10 +249,18 @@ class HomeScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        ...kHistoryItems.take(4).map((t) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: TxnRow(txn: t),
-                        )),
+                        if (_isLoading && _transactions.isEmpty) 
+                          const Center(child: CircularProgressIndicator())
+                        else if (_transactions.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Text('No recent transactions', style: dFont(size: 14, color: Colors.grey)),
+                          )
+                        else
+                          ..._transactions.take(4).map((t) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: TxnRowApi(txn: t), // using a new widget that expects the JSON map directly
+                          )),
                       ],
                     ),
                   ),
