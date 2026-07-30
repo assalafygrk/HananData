@@ -60,7 +60,7 @@ class ApiService {
   static Future<Map<String, dynamic>> getProfile() async {
     try {
       final headers = await _getHeaders();
-      final res = await http.get(Uri.parse('$baseUrl/user/profile'), headers: headers);
+      final res = await http.get(Uri.parse('$baseUrl/profile'), headers: headers);
       final data = jsonDecode(res.body);
       if (data['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
@@ -75,7 +75,41 @@ class ApiService {
   static Future<Map<String, dynamic>> getUserTransactions() async {
     try {
       final headers = await _getHeaders();
-      final res = await http.get(Uri.parse('$baseUrl/user/transactions'), headers: headers);
+      final res = await http.get(Uri.parse('$baseUrl/transactions/history'), headers: headers);
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> purchaseService(String type, Map<String, dynamic> body) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.post(
+        Uri.parse('$baseUrl/services/$type'),
+        headers: headers,
+        body: jsonEncode(body)
+      );
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getNotifications() async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse('$baseUrl/notifications'), headers: headers);
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getReferrals() async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse('$baseUrl/referrals/my-history'), headers: headers);
       return jsonDecode(res.body);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../constants/app_data.dart';
 import '../models/txn_data.dart';
+import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 
 class ConfirmScreen extends StatefulWidget {
@@ -13,11 +14,48 @@ class ConfirmScreen extends StatefulWidget {
 
 class _ConfirmScreenState extends State<ConfirmScreen> {
   String _pin = '';
+  bool _isLoading = false;
 
-  void _confirm(TxnData txn) {
-    final success = Random().nextDouble() > 0.3;
-    final route = success ? '/success' : '/failed';
-    Navigator.pushReplacementNamed(context, route, arguments: txn);
+  Future<void> _confirm(TxnData txn) async {
+    setState(() => _isLoading = true);
+
+    // Map TxnData to backend API payload
+    String apiType = txn.type.toLowerCase();
+    if (apiType.contains('wallet')) {
+      // For wallet funding, mock for now or use fund wallet
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) Navigator.pushReplacementNamed(context, '/success', arguments: txn);
+      return;
+    } else if (apiType.contains('data')) {
+      apiType = 'data';
+    } else if (apiType.contains('airtime')) {
+      apiType = 'airtime';
+    } else if (apiType.contains('cable')) {
+      apiType = 'cable';
+    } else if (apiType.contains('electricity')) {
+      apiType = 'electricity';
+    }
+
+    final payload = {
+      'network': txn.network,
+      'amount': txn.amount,
+      'phone': txn.recipient,
+      'planId': txn.plan,
+      'provider': txn.provider,
+    };
+
+    final res = await ApiService.purchaseService(apiType, payload);
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    if (res['success'] == true) {
+      Navigator.pushReplacementNamed(context, '/success', arguments: txn);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Transaction failed')));
+      // Still navigate to failed screen for UI demo if you want, or just stay here.
+      Navigator.pushReplacementNamed(context, '/failed', arguments: txn);
+    }
   }
 
   @override
@@ -154,11 +192,13 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: PrimaryBtn(
-                label: 'Confirm & Pay',
-                disabled: _pin.length < 4,
-                onPressed: () => _confirm(txn),
-              ),
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : PrimaryBtn(
+                    label: 'Confirm & Pay',
+                    disabled: _pin.length < 4,
+                    onPressed: () => _confirm(txn),
+                  ),
             ),
           ],
         ),

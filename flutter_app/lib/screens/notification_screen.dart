@@ -1,6 +1,7 @@
 // lib/screens/notification_screen.dart
 import 'package:flutter/material.dart';
 import '../constants/app_data.dart';
+import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -10,15 +11,36 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  // Local copy so we can mark as read
-  late List<_NotifItem> _items;
+  late List<_NotifItem> _items = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _items = kNotifications
-        .map((n) => _NotifItem(notif: n, isRead: n.isRead))
-        .toList();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    final res = await ApiService.getNotifications();
+    if (res['success'] == true && mounted) {
+      final List<dynamic> data = res['data'] ?? [];
+      setState(() {
+        _items = data.map((n) {
+          final notif = AppNotification(
+            id: n['_id'] ?? '',
+            title: n['title'] ?? 'Notification',
+            body: n['message'] ?? '',
+            time: 'Just now', // Ideally parse n['createdAt']
+            icon: '🔔',
+            isRead: n['read'] ?? false,
+          );
+          return _NotifItem(notif: notif, isRead: notif.isRead);
+        }).toList();
+        _isLoading = false;
+      });
+    } else {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   int get _unreadCount => _items.where((n) => !n.isRead).length;
@@ -103,7 +125,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             const Divider(height: 1, color: kCardBorder),
             // Notification list
             Expanded(
-              child: _items.isEmpty
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : _items.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

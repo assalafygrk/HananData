@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 
-class MyReferralScreen extends StatelessWidget {
+class MyReferralScreen extends StatefulWidget {
   const MyReferralScreen({super.key});
+
+  @override
+  State<MyReferralScreen> createState() => _MyReferralScreenState();
+}
+
+class _MyReferralScreenState extends State<MyReferralScreen> {
+  List<dynamic> _referrals = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReferrals();
+  }
+
+  Future<void> _loadReferrals() async {
+    final res = await ApiService.getReferrals();
+    if (res['success'] == true && mounted) {
+      setState(() {
+        _referrals = res['data'] ?? [];
+        _isLoading = false;
+      });
+    } else {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +141,11 @@ class MyReferralScreen extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: _StatCard(title: 'Total Referrals', value: '12', icon: Icons.group_rounded, color: kAccentGreen),
+                            child: _StatCard(title: 'Total Referrals', value: '${_referrals.length}', icon: Icons.group_rounded, color: kAccentGreen),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: _StatCard(title: 'Total Earned', value: '₦2,400', icon: Icons.account_balance_wallet_rounded, color: const Color(0xFFF6A623)),
+                            child: _StatCard(title: 'Total Earned', value: '₦${_referrals.where((r) => r['status'] == 'completed').length * 200}', icon: Icons.account_balance_wallet_rounded, color: const Color(0xFFF6A623)),
                           ),
                         ],
                       ),
@@ -133,9 +160,17 @@ class MyReferralScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _ReferralRow(name: 'Ahmad Musa', date: 'Oct 12, 2026', status: 'Completed', reward: '+₦200'),
-                      _ReferralRow(name: 'Fatima Kabir', date: 'Oct 10, 2026', status: 'Completed', reward: '+₦200'),
-                      _ReferralRow(name: 'Ibrahim Ali', date: 'Oct 09, 2026', status: 'Pending', reward: '₦0'),
+                      if (_isLoading)
+                        const CircularProgressIndicator()
+                      else if (_referrals.isEmpty)
+                        Text('No referrals yet.', style: dFont(size: 14, color: kMutedText))
+                      else
+                        ..._referrals.map((r) => _ReferralRow(
+                          name: r['referredUser']?['name'] ?? 'Unknown',
+                          date: 'Recently', // format r['createdAt']
+                          status: r['status'] ?? 'pending',
+                          reward: (r['status'] == 'completed') ? '+₦200' : '₦0',
+                        )),
                     ],
                   ),
                 ),

@@ -1,5 +1,6 @@
-// lib/screens/profile_screen.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -10,8 +11,26 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _darkMode = false;
+  Map<String, dynamic>? _userData;
 
   @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      setState(() => _userData = jsonDecode(userStr));
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
   Widget build(BuildContext context) {
     final accountSettings = [
       _MenuItem(icon: '👤', label: 'Account Details',    sub: 'Name, email, BVN',        onTap: () => _showAccountDetails(context)),
@@ -66,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                             alignment: Alignment.center,
-                            child: Text('AB',
+                            child: Text((_userData?['name']?.isNotEmpty == true) ? _userData!['name'][0].toUpperCase() : 'U',
                               style: dFont(size: 22, weight: FontWeight.w900, color: Colors.white)),
                           ),
                           const SizedBox(width: 16),
@@ -74,10 +93,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Aisha Bello',
+                                Text(_userData?['name'] ?? 'User',
                                   style: dFont(size: 18, weight: FontWeight.w800)),
                                 const SizedBox(height: 2),
-                                Text('+234 801 234 5678',
+                                Text(_userData?['phone'] ?? '+234 --- --- ----',
                                   style: dFont(size: 13, color: kMutedText)),
                                 const SizedBox(height: 6),
                                 Row(
@@ -220,17 +239,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showAccountDetails(BuildContext context) {
     _showSheet(context, title: 'Account Details', icon: '👤', child: Column(
       children: [
-        _infoRow('Full Name', 'Aisha Bello'),
+        _infoRow('Full Name', _userData?['name'] ?? 'N/A'),
         const Divider(height: 1, color: kCardBorder),
-        _infoRow('Phone', '+234 801 234 5678'),
+        _infoRow('Phone', _userData?['phone'] ?? 'N/A'),
         const Divider(height: 1, color: kCardBorder),
-        _infoRow('Email', 'aisha.bello@email.com'),
+        _infoRow('Email', _userData?['email'] ?? 'N/A'),
         const Divider(height: 1, color: kCardBorder),
         _infoRow('BVN', '•••••••••••'),
         const Divider(height: 1, color: kCardBorder),
         _infoRow('Tier', 'Tier 2 · Verified'),
         const Divider(height: 1, color: kCardBorder),
-        _infoRow('Account No.', '0123 456 789'),
+        _infoRow('Account No.', _userData?['virtualAccount'] ?? '0123 456 789'),
       ],
     ));
   }
