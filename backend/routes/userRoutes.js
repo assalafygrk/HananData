@@ -8,6 +8,7 @@ const servicesCtrl = require('../controllers/servicesController');
 const miscCtrl = require('../controllers/miscController');
 
 // Auth
+router.post('/auth/check', authLimiter, authCtrl.checkUser);
 router.post('/auth/signup', authLimiter, authCtrl.signup);
 router.post('/auth/login', authLimiter, authCtrl.login);
 router.post('/auth/forgot-password', authLimiter, authCtrl.forgotPassword);

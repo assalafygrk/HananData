@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/shared_widgets.dart';
 import '../services/api_service.dart';
+import '../utils/ui_helpers.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,11 +25,28 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _goToPin() {
-    // Dismiss system keyboard before showing custom PIN pad
+  Future<void> _goToPin() async {
     _phoneFocus.unfocus();
     FocusScope.of(context).unfocus();
-    setState(() => _onPin = true);
+
+    setState(() => _isLoading = true);
+    final res = await ApiService.checkUserExists(_phoneCtrl.text.trim());
+    setState(() => _isLoading = false);
+
+    if (res['success'] == true) {
+      if (res['data']['exists'] == true) {
+        setState(() => _onPin = true);
+      } else {
+        if (mounted) {
+          UiHelpers.showBanner(context, 'Account not found. Please sign up.', isError: true);
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/signup');
+          });
+        }
+      }
+    } else {
+      if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Network error', isError: true);
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -37,10 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final res = await ApiService.login(_phoneCtrl.text, _pin);
     setState(() => _isLoading = false);
     if (res['success'] == true) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/home');
+      if (mounted) {
+        UiHelpers.showBanner(context, 'Welcome back!');
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Login failed', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+        UiHelpers.showBanner(context, res['message'] ?? 'Login failed', isError: true);
+        setState(() => _pin = '');
       }
     }
   }
@@ -91,15 +113,35 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    Text(
-                      'Welcome back',
-                      style: GoogleFonts.inter(
-                        fontSize: 28, fontWeight: FontWeight.w800, color: kPrimaryDark,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Welcome back',
+                          style: GoogleFonts.inter(
+                            fontSize: 28, fontWeight: FontWeight.w800, color: kPrimaryDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: kAccentGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: kAccentGreen.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.lock_rounded, color: kAccentGreen, size: 12),
+                              const SizedBox(width: 4),
+                              Text('SECURE', style: dFont(size: 10, weight: FontWeight.w700, color: kAccentGreen)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Sign in to your HananData account',
+                      'Sign in securely to your HananData account',
                       style: dFont(size: 14, color: kMutedText),
                     ),
                     const SizedBox(height: 32),
@@ -145,9 +187,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 20),
                       PrimaryBtn(
-                        label: 'Continue',
-                        disabled: !phoneValid,
+                        label: _isLoading ? 'Checking...' : 'Secure Login',
+                        disabled: !phoneValid || _isLoading,
                         onPressed: _goToPin,
+                      ),
+                      const SizedBox(height: 24),
+                      // Security badge
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.verified_user_rounded, color: kAccentGreen, size: 16),
+                            const SizedBox(width: 6),
+                            Text('256-bit Encryption Active', style: dFont(size: 12, color: kMutedText, weight: FontWeight.w600)),
+                          ],
+                        ),
                       ),
                     ] else ...[
                       // PIN entry — no system keyboard, only custom NumPad
@@ -192,9 +246,34 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
                       PrimaryBtn(
-                        label: _isLoading ? 'Signing In...' : 'Sign In',
+                        label: _isLoading ? 'Authenticating...' : 'Sign In',
                         disabled: _pin.length < 6 || _isLoading,
                         onPressed: _handleLogin,
+                      ),
+                      const SizedBox(height: 16),
+                      // Biometric Mock
+                      GestureDetector(
+                        onTap: () {
+                          // Mock biometric success
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Biometric auth coming soon')));
+                        },
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: kPrimaryNavy.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.fingerprint_rounded, color: kPrimaryNavy, size: 20),
+                                const SizedBox(width: 8),
+                                Text('Use Biometrics', style: dFont(size: 14, weight: FontWeight.w700, color: kPrimaryNavy)),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Center(

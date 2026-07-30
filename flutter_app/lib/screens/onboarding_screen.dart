@@ -1,185 +1,154 @@
-// lib/screens/onboarding_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../widgets/shared_widgets.dart';
 
-class _Slide {
-  final String title;
-  final String body;
-  final IconData icon;
-  const _Slide({required this.title, required this.body, required this.icon});
-}
-
-const _slides = [
-  _Slide(
-    title: 'Fast, instant top-ups',
-    body: 'Buy data and airtime for any Nigerian network in under 10 seconds — no queues, no stress.',
-    icon: Icons.signal_cellular_alt_rounded,
-  ),
-  _Slide(
-    title: 'Bills sorted in one tap',
-    body: 'Pay for DStv, GOtv, PHCN electricity and more. Keep the lights on and the TV running.',
-    icon: Icons.bolt_rounded,
-  ),
-  _Slide(
-    title: 'Turn airtime into cash',
-    body: 'Have unused airtime? Convert it to wallet cash instantly at the best available rates.',
-    icon: Icons.swap_horiz_rounded,
-  ),
-];
-
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
-  @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-class _OnboardingScreenState extends State<OnboardingScreen>
-    with SingleTickerProviderStateMixin {
-  int _slide = 0;
-  late AnimationController _fadeCtrl;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
-    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
-    _fadeCtrl.forward();
-  }
-
-  void _goToSlide(int idx) {
-    _fadeCtrl.forward(from: 0);
-    setState(() => _slide = idx);
-  }
-
-  @override
-  void dispose() {
-    _fadeCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final s = _slides[_slide];
     return Scaffold(
-      backgroundColor: kBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0F172A), Color(0xFF1E875D)], // Dark blue to green gradient
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Top Logo
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Icon circle
                     Container(
-                      width: 96, height: 96,
+                      width: 28, height: 28,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8EDF5),
-                        borderRadius: BorderRadius.circular(28),
+                        color: const Color(0xFF00C896),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(s.icon, color: kPrimaryNavy, size: 40),
+                      alignment: Alignment.center,
+                      child: Text('H', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
                     ),
-                    const SizedBox(height: 36),
-                    // Text with fade
-                    FadeTransition(
-                      opacity: _fadeAnim,
-                      child: Column(
-                        children: [
-                          Text(
-                            s.title,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontSize: 26, fontWeight: FontWeight.w800,
-                              color: kPrimaryDark, height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            s.body,
-                            textAlign: TextAlign.center,
-                            style: dFont(size: 15, color: kMutedText, letterSpacing: 0),
-                          ),
-                        ],
-                      ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'HananData',
+                      style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ],
                 ),
-              ),
-            ),
-            // Dots
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_slides.length, (i) {
-                final active = i == _slide;
-                return GestureDetector(
-                  onTap: () => _goToSlide(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: active ? 28 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: active ? kPrimaryNavy : const Color(0xFFB8C4D9),
-                      borderRadius: BorderRadius.circular(4),
+                const Spacer(flex: 2),
+
+                // Illustration Placeholder (Network / Connections)
+                Container(
+                  width: 250, height: 250,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
+                    border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(Icons.map_rounded, size: 120, color: Colors.white.withOpacity(0.2)),
+                      Positioned(top: 50, left: 50, child: _nodeIcon(Icons.phone_iphone_rounded)),
+                      Positioned(bottom: 50, right: 50, child: _nodeIcon(Icons.wifi_rounded)),
+                      Positioned(top: 100, right: 30, child: _nodeIcon(Icons.electric_bolt_rounded)),
+                      Positioned(bottom: 80, left: 40, child: _nodeIcon(Icons.tv_rounded)),
+                      Positioned(child: _nodeIcon(Icons.currency_exchange_rounded, isLarge: true)),
+                    ],
+                  ),
+                ),
+
+                const Spacer(flex: 2),
+
+                // Text Content
+                Text(
+                  'Fast & Reliable VTU',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Instant airtime, data, and bill\npayments across Nigeria.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.8),
+                    height: 1.5,
+                  ),
+                ),
+
+                const Spacer(),
+
+                // Buttons
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/signup');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF229E6A),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Get Started',
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
-                );
-              }),
-            ),
-            const SizedBox(height: 28),
-            // Buttons
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-              child: _slide < 2
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: kCardBorder, width: 2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: Text('Skip', style: dFont(size: 15, weight: FontWeight.w600, color: kMediumText)),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [kPrimaryNavy, kPrimaryBlue],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: TextButton(
-                              onPressed: () => _goToSlide(_slide + 1),
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                              child: Text('Next →', style: dFont(size: 15, weight: FontWeight.w700, color: Colors.white)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : PrimaryBtn(
-                      label: 'Get Started',
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/login');
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white, width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                     ),
+                    child: Text(
+                      'Login',
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _nodeIcon(IconData icon, {bool isLarge = false}) {
+    return Container(
+      padding: EdgeInsets.all(isLarge ? 12 : 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFF00C896), width: 2),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF00C896).withOpacity(0.3), blurRadius: 10),
+        ],
+      ),
+      child: Icon(icon, color: Colors.white, size: isLarge ? 24 : 16),
     );
   }
 }

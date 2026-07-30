@@ -1,9 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:5000/api';
+  static String get baseUrl {
+    if (kIsWeb) return 'http://127.0.0.1:5000/api'; // or dynamically resolve based on window
+    if (defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:5000/api';
+    return 'http://127.0.0.1:5000/api';
+  }
 
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,6 +20,19 @@ class ApiService {
   }
 
   // --- Auth ---
+  static Future<Map<String, dynamic>> checkUserExists(String phoneOrEmail) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/auth/check'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'identifier': phoneOrEmail})
+      );
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> login(String phoneOrEmail, String password) async {
     try {
       final res = await http.post(

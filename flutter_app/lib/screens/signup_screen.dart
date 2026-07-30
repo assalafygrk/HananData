@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/shared_widgets.dart';
 import '../services/api_service.dart';
+import '../utils/ui_helpers.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -44,7 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (_pin != _confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("PINs do not match"), backgroundColor: Colors.red));
+      UiHelpers.showBanner(context, 'PINs do not match', isError: true);
       return;
     }
     setState(() => _isLoading = true);
@@ -58,11 +59,33 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
     if (res['success'] == true) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Account created! Please sign in."), backgroundColor: Colors.green));
+        UiHelpers.showBanner(context, 'Account created! Please sign in.');
         Navigator.pop(context); // go back to login
       }
     } else {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Error'), backgroundColor: Colors.red));
+      if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Error', isError: true);
+    }
+  }
+
+  Future<void> _checkExistingUser() async {
+    setState(() => _isLoading = true);
+    final identifier = _emailCtrl.text.trim().isNotEmpty ? _emailCtrl.text.trim() : _phoneCtrl.text.trim();
+    final res = await ApiService.checkUserExists(identifier);
+    setState(() => _isLoading = false);
+
+    if (res['success'] == true) {
+      if (res['data']['exists'] == true) {
+        if (mounted) {
+          UiHelpers.showBanner(context, 'Account already exists. Please log in.', isError: true);
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) Navigator.pushReplacementNamed(context, '/login');
+          });
+        }
+      } else {
+        setState(() => _step = 1);
+      }
+    } else {
+      if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Network error', isError: true);
     }
   }
 
@@ -117,10 +140,29 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Step 0: Details
                     if (_step == 0) ...[
-                      Text('Your details',
-                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: kPrimaryDark)),
+                      Row(
+                        children: [
+                          Text('Your details',
+                            style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: kPrimaryDark)),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: kPrimaryNavy.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: kPrimaryNavy.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.shield_rounded, color: kPrimaryNavy, size: 12),
+                                const SizedBox(width: 4),
+                                Text('SECURE', style: dFont(size: 10, weight: FontWeight.w700, color: kPrimaryNavy)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 4),
                       Text('Tell us a bit about yourself', style: dFont(size: 14, color: kMutedText)),
                       const SizedBox(height: 24),
@@ -186,9 +228,20 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       const SizedBox(height: 24),
                       PrimaryBtn(
-                        label: 'Continue',
-                        disabled: !_step0Valid,
-                        onPressed: () => setState(() => _step = 1),
+                        label: _isLoading ? 'Checking...' : 'Continue Securely',
+                        disabled: !_step0Valid || _isLoading,
+                        onPressed: _checkExistingUser,
+                      ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.lock_rounded, color: kMutedText, size: 14),
+                            const SizedBox(width: 6),
+                            Text('End-to-End Encrypted', style: dFont(size: 12, color: kMutedText)),
+                          ],
+                        ),
                       ),
                     ],
 
@@ -219,6 +272,15 @@ class _SignupScreenState extends State<SignupScreen> {
                           }
                         },
                       ),
+                      const SizedBox(height: 20),
+                      if (_step == 2)
+                        Center(
+                          child: Text(
+                            'By creating an account, you agree to our Terms and Privacy Policy.',
+                            textAlign: TextAlign.center,
+                            style: dFont(size: 11, color: kMutedText),
+                          ),
+                        ),
                     ],
                     const SizedBox(height: 32),
                   ],

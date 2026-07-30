@@ -21,6 +21,15 @@ exports.signup = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.checkUser = async (req, res, next) => {
+  try {
+    const { identifier } = req.body;
+    if (!identifier) return sendResponse(res, 400, false, 'Identifier required');
+    const userExists = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
+    return sendResponse(res, 200, true, { exists: !!userExists });
+  } catch (error) { next(error); }
+};
+
 exports.login = async (req, res, next) => {
   try {
     const { identifier, password } = req.body; // identifier can be email or phone
