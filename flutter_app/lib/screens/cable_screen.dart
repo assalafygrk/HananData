@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
 
 class CableScreen extends StatefulWidget {
   const CableScreen({super.key});
@@ -10,13 +11,36 @@ class CableScreen extends StatefulWidget {
   State<CableScreen> createState() => _CableScreenState();
 }
 
+
 class _CableScreenState extends State<CableScreen> {
   int _provIdx = 0;
   final _smartcardCtrl = TextEditingController(text: '0123456789');
   String? _selectedId;
+  
+  List<dynamic> _apiPlans = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPlans();
+  }
+  
+  Future<void> _fetchPlans() async {
+    setState(() => _loading = true);
+    final res = await ApiService.getPricing('cable');
+    if (res['success'] == true && mounted) {
+      setState(() {
+        _apiPlans = res['data'];
+        _loading = false;
+      });
+    } else if (mounted) {
+      setState(() => _loading = false);
+    }
+  }
 
   CableProvider get _prov => kCableProviders[_provIdx];
-  List<CablePackage> get _packages => kCablePackages[_prov.id]!;
+  List<dynamic> get _packages => _apiPlans.where((p) => (p['network'] as String).toLowerCase() == _prov.name.toLowerCase()).toList();
 
   @override
   void dispose() {
@@ -25,16 +49,18 @@ class _CableScreenState extends State<CableScreen> {
   }
 
   void _proceed() {
-    final pkg = _packages.firstWhere((p) => p.id == _selectedId);
+    final pkg = _packages.firstWhere((p) => p['_id'] == _selectedId);
+    final price = pkg['userPrice'] ?? 0;
+    final planName = pkg['planName'] ?? 'Cable Plan';
     final txn = TxnData(
       type: 'Cable TV',
       provider: _prov.name,
       recipient: 'Smartcard: ${_smartcardCtrl.text}',
-      amount: pkg.price,
+      amount: price,
       fee: 0,
-      total: pkg.price,
-      description: '${_prov.name} ${pkg.name}',
-      plan: '${pkg.name} · ${pkg.channels}',
+      total: price,
+      description: '${_prov.name} $planName',
+      plan: planName,
       refId: genRef(),
     );
     Navigator.pushNamed(context, '/confirm', arguments: txn);
@@ -108,60 +134,71 @@ class _CableScreenState extends State<CableScreen> {
                     ),
                     const SizedBox(height: 20),
                     // Packages
-                    const SectionLabel('Select Package'),
-                    const SizedBox(height: 8),
-                    ..._packages.map((pkg) {
-                      final on = _selectedId == pkg.id;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedId = pkg.id),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: on ? _prov.color : kCardBorder, width: 2,
+                    if (_loading)
+                      const Center(child: Padding(padding: EdgeInsets.all(20), child: BrandLoader())),
+                    
+                    if (!_loading && _packages.isNotEmpty) ...[
+                      const SectionLabel('Select Package'),
+                      const SizedBox(height: 8),
+                      ..._packages.map((pkg) {
+                        final on = _selectedId == pkg['_id'];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedId = pkg['_id']),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: on ? _prov.color : kCardBorder, width: 2,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  width: 18, height: 18,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: on ? _prov.color : Colors.transparent,
-                                    border: Border.all(
-                                      color: on ? _prov.color : const Color(0xFFB8C4D9), width: 2,
+                              child: Row(
+                                children: [
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 150),
+                                    width: 18, height: 18,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: on ? _prov.color : Colors.transparent,
+                                      border: Border.all(
+                                        color: on ? _prov.color : const Color(0xFFB8C4D9), width: 2,
+                                      ),
+                                    ),
+                                    child: on
+                                      ? const Icon(Icons.check, color: Colors.white, size: 10)
+                                      : null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(pkg['planName'] ?? 'Unknown Package',
+                                          style: dFont(size: 14, weight: FontWeight.w700)),
+                                      ],
                                     ),
                                   ),
-                                  child: on
-                                    ? const Icon(Icons.check, color: Colors.white, size: 10)
-                                    : null,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(pkg.name,
-                                        style: dFont(size: 14, weight: FontWeight.w700)),
-                                      Text(pkg.channels,
-                                        style: dFont(size: 12, color: kMutedText)),
-                                    ],
-                                  ),
-                                ),
-                                Text('₦${fmtNaira(pkg.price)}',
-                                  style: dFont(size: 15, weight: FontWeight.w800, color: kPrimaryNavy)),
-                              ],
+                                  Text('₦${fmtNaira(pkg['userPrice'] ?? 0)}',
+                                    style: dFont(size: 15, weight: FontWeight.w800, color: kPrimaryNavy)),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ],
+
+                    if (!_loading && _packages.isEmpty) ...[
+                      const SizedBox(height: 20),
+                      Center(
+                        child: Text('No packages available for this provider.',
+                            style: dFont(size: 13, color: kMutedText)),
+                      ),
+                    ],
                   ],
                 ),
               ),

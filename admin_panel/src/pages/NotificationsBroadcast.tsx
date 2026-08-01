@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, Clock, Users, Megaphone } from 'lucide-react';
+import api from '../api';
 
 export function NotificationsBroadcast() {
   const [subject, setSubject] = useState('');
@@ -8,25 +9,44 @@ export function NotificationsBroadcast() {
   const [schedule, setSchedule] = useState('');
   
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSend = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchBroadcasts();
+  }, []);
+
+  const fetchBroadcasts = async () => {
+    try {
+      const res = await api.get('/admin/broadcasts');
+      if (res.data.success) {
+        setBroadcasts(res.data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject || !message) return;
 
-    const newBroadcast = {
-      id: `b${Date.now()}`,
-      subject,
-      message,
-      segment,
-      sentAt: schedule || new Date().toISOString(),
-      sentBy: 'Super Admin'
-    };
-    
-    setBroadcasts([newBroadcast, ...broadcasts]);
-    setSubject('');
-    setMessage('');
-    setSegment('all');
-    setSchedule('');
+    try {
+      await api.post('/admin/broadcasts', {
+        subject,
+        message,
+        segment,
+        sentAt: schedule || new Date().toISOString()
+      });
+      await fetchBroadcasts();
+      setSubject('');
+      setMessage('');
+      setSegment('all');
+      setSchedule('');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -120,29 +140,34 @@ export function NotificationsBroadcast() {
               <h3 className="text-lg font-bold text-gray-900">Broadcast History</h3>
             </div>
             <div className="divide-y divide-gray-100">
-              {broadcasts.map((b) => (
-                <div key={b.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-bold text-gray-900">{b.subject}</h4>
-                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                      {new Date(b.sentAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">{b.message}</p>
-                  <div className="flex items-center gap-4 text-xs font-medium">
-                    <span className="flex items-center gap-1 text-[#1B3A6B] bg-blue-50 px-2 py-1 rounded">
-                      <Users className="w-3 h-3" /> Target: {b.segment}
-                    </span>
-                    <span className="text-gray-500">
-                      Sent by: {b.sentBy}
-                    </span>
-                  </div>
+              {loading ? (
+                <div className="p-8 text-center text-gray-500">
+                  Loading broadcasts...
                 </div>
-              ))}
-              {broadcasts.length === 0 && (
+              ) : broadcasts.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   No previous broadcasts.
                 </div>
+              ) : (
+                broadcasts.map((b) => (
+                  <div key={b.id || b._id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-gray-900">{b.subject}</h4>
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                        {new Date(b.sentAt || b.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{b.message}</p>
+                    <div className="flex items-center gap-4 text-xs font-medium">
+                      <span className="flex items-center gap-1 text-[#1B3A6B] bg-blue-50 px-2 py-1 rounded">
+                        <Users className="w-3 h-3" /> Target: {b.segment}
+                      </span>
+                      <span className="text-gray-500">
+                        Sent by: {b.sentBy || 'Super Admin'}
+                      </span>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>

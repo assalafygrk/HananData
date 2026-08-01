@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class AirtimeScreen extends StatefulWidget {
   const AirtimeScreen({super.key});
@@ -12,13 +14,32 @@ class AirtimeScreen extends StatefulWidget {
 
 class _AirtimeScreenState extends State<AirtimeScreen> {
   int _netIdx = 0;
-  final _phoneCtrl = TextEditingController(text: '08012345678');
+  final _phoneCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
   String _quickAmt = '';
 
   final _quickAmounts = [100, 200, 500, 1000, 2000, 5000];
 
   NetworkInfo get _net => kNetworks[_netIdx];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserPhone();
+  }
+
+  Future<void> _loadUserPhone() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      final user = jsonDecode(userStr);
+      if (user['phone'] != null) {
+        setState(() {
+          _phoneCtrl.text = user['phone'];
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {

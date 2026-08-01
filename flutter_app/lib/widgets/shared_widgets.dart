@@ -1,9 +1,8 @@
 // lib/widgets/shared_widgets.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui';
 import '../constants/app_data.dart';
-
-// ─── Design Tokens ────────────────────────────────────────────────────────────
 
 const kPrimaryDark  = Color(0xFF0D1B35);
 const kPrimaryNavy  = Color(0xFF1B3A6B);
@@ -28,6 +27,65 @@ TextStyle dFont({
       color: color,
       letterSpacing: letterSpacing,
     );
+
+class BrandLoader extends StatefulWidget {
+  final double size;
+  const BrandLoader({super.key, this.size = 50.0});
+
+  @override
+  State<BrandLoader> createState() => _BrandLoaderState();
+}
+
+class _BrandLoaderState extends State<BrandLoader> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.8, end: 1.1).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+      child: Center(
+        child: AnimatedBuilder(
+          animation: _anim,
+          builder: (_, child) => Transform.scale(
+            scale: _anim.value,
+            child: child,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: kPrimaryNavy.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  spreadRadius: 10,
+                )
+              ],
+            ),
+            child: Image.asset(
+              'assets/images/logo.png',
+              width: widget.size,
+              height: widget.size,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // ─── BottomNav ────────────────────────────────────────────────────────────────
 
@@ -444,10 +502,9 @@ class DiscoLogoChip extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: logoUrl != null
-                  ? Image.network(
-                      logoUrl!, width: 24, height: 24, fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => _fallbackText(),
-                    )
+                  ? (logoUrl!.startsWith('http') 
+                      ? Image.network(logoUrl!, width: 24, height: 24, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _fallbackText())
+                      : Image.asset(logoUrl!, width: 24, height: 24, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _fallbackText()))
                   : _fallbackText(),
             ),
             const SizedBox(width: 10),
@@ -586,9 +643,13 @@ class _TxnLogo extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: net.logoUrl != null
-            ? Image.network(net.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Text(net.logoLetter,
-                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: net.color)))
+            ? (net.logoUrl!.startsWith('http')
+                ? Image.network(net.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Text(net.logoLetter,
+                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: net.color)))
+                : Image.asset(net.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Text(net.logoLetter,
+                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: net.color))))
             : Text(net.logoLetter,
                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: net.color)),
       );
@@ -611,9 +672,13 @@ class _TxnLogo extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: prov.logoUrl != null
-            ? Image.network(prov.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Text(prov.logoLetter,
-                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: prov.color)))
+            ? (prov.logoUrl!.startsWith('http')
+                ? Image.network(prov.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Text(prov.logoLetter,
+                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: prov.color)))
+                : Image.asset(prov.logoUrl!, width: 28, height: 28, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Text(prov.logoLetter,
+                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: prov.color))))
             : Text(prov.logoLetter,
                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: prov.color)),
       );
@@ -632,9 +697,13 @@ class _TxnLogo extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: lUrl != null
-            ? Image.network(lUrl, width: 28, height: 28, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Text(short[0],
-                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: c)))
+            ? (lUrl.startsWith('http')
+                ? Image.network(lUrl, width: 28, height: 28, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Text(short[0],
+                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: c)))
+                : Image.asset(lUrl, width: 28, height: 28, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Text(short[0],
+                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: c))))
             : Text(short[0],
                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: c)),
       );
@@ -1169,7 +1238,7 @@ class TxnRowApi extends StatelessWidget {
     final type = txn['type'] ?? 'unknown';
     final num amount = txn['amount'] ?? 0;
     final status = txn['status'] ?? 'pending';
-    final isCredit = type == 'funding' || type == 'referral_bonus';
+    final isCredit = type == 'funding' || type == 'referral_bonus' || type == 'admin-credit' || type == 'wallet-funding';
     
     IconData icon;
     Color color;
@@ -1178,7 +1247,10 @@ class TxnRowApi extends StatelessWidget {
       case 'airtime': icon = Icons.phone_android; color = const Color(0xFF10B981); break;
       case 'cable': icon = Icons.tv; color = const Color(0xFFF59E0B); break;
       case 'electricity': icon = Icons.bolt; color = const Color(0xFFEF4444); break;
-      case 'funding': icon = Icons.account_balance_wallet; color = const Color(0xFF8B5CF6); break;
+      case 'funding': 
+      case 'wallet-funding':
+      case 'admin-credit': icon = Icons.account_balance_wallet; color = const Color(0xFF8B5CF6); break;
+      case 'admin-debit': icon = Icons.money_off; color = const Color(0xFFEF4444); break;
       default: icon = Icons.receipt_long; color = Colors.grey; break;
     }
 

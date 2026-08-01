@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_data.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -9,15 +10,40 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
+
 class _HistoryScreenState extends State<HistoryScreen> {
   String _filter = 'All';
+  List<dynamic> _transactions = [];
+  bool _loading = true;
 
   static const _filters = ['All', 'Data', 'Airtime', 'Cable', 'Electricity', 'Wallet'];
 
-  List<HistoryItem> get _filtered {
-    if (_filter == 'All') return kHistoryItems;
-    return kHistoryItems
-        .where((t) => t.type.toLowerCase() == _filter.toLowerCase())
+  @override
+  void initState() {
+    super.initState();
+    _fetchHistory();
+  }
+
+  Future<void> _fetchHistory() async {
+    setState(() => _loading = true);
+    final res = await ApiService.getUserTransactions();
+    if (res['success'] == true && mounted) {
+      setState(() {
+        _transactions = res['data'];
+        _loading = false;
+      });
+    } else if (mounted) {
+      setState(() => _loading = false);
+    }
+  }
+
+  List<dynamic> get _filtered {
+    if (_filter == 'All') return _transactions;
+    if (_filter == 'Wallet') {
+      return _transactions.where((t) => t['type'] == 'funding' || t['type'] == 'referral_bonus' || t['type'] == 'admin-credit' || t['type'] == 'admin-debit' || t['type'] == 'wallet-funding').toList();
+    }
+    return _transactions
+        .where((t) => (t['type'] as String).toLowerCase() == _filter.toLowerCase())
         .toList();
   }
 
@@ -83,7 +109,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const Divider(height: 1, color: kCardBorder),
             // List — each row tappable showing detail sheet
             Expanded(
-              child: items.isEmpty
+              child: _loading 
+                ? const Center(child: BrandLoader())
+                : items.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -99,7 +127,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       padding: const EdgeInsets.all(16),
                       itemCount: items.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (ctx, i) => TxnRow(txn: items[i], tappable: true),
+                      itemBuilder: (ctx, i) => TxnRowApi(txn: items[i]),
                     ),
             ),
             // Bottom nav

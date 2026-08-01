@@ -27,9 +27,26 @@ router.get('/transactions', miscCtrl.getTransactions);
 router.get('/transactions/:id', miscCtrl.getTransaction);
 router.post('/transactions/:id/action', requireRole(['Super Admin', 'Support']), miscCtrl.actionTransaction);
 router.get('/providers', miscCtrl.getProviders);
+router.post('/providers', requireRole(['Super Admin']), miscCtrl.addProvider);
 router.put('/providers/:id', requireRole(['Super Admin']), miscCtrl.updateProvider);
 router.get('/pricing', miscCtrl.getPricing);
+router.post('/pricing', requireRole(['Super Admin']), miscCtrl.createPricing);
 router.put('/pricing/:id', requireRole(['Super Admin']), miscCtrl.updatePricing);
 router.get('/settings', miscCtrl.getSettings);
+router.put('/settings', requireRole(['Super Admin']), miscCtrl.updateSettings);
+
+// Logs
+router.get('/logs', requireRole(['Super Admin']), miscCtrl.getLogs);
+
+// Roles
+router.get('/roles', requireRole(['Super Admin']), miscCtrl.getRoles);
+router.post('/roles', requireRole(['Super Admin']), miscCtrl.addRole);
+
+// Referrals
+router.get('/referrals', requireRole(['Super Admin', 'Marketing']), miscCtrl.getReferrals);
+
+// Broadcasts
+router.get('/broadcasts', requireRole(['Super Admin', 'Marketing']), miscCtrl.getBroadcasts);
+router.post('/broadcasts', requireRole(['Super Admin', 'Marketing']), miscCtrl.sendBroadcast);
 
 module.exports = router;

@@ -4,6 +4,7 @@ const providerSchema = new mongoose.Schema({
   name: { type: String, required: true },
   type: { type: String, enum: ['vtu', 'payment-gateway'], required: true },
   apiKeyEncrypted: { type: String },
+  username: { type: String },
   baseUrl: { type: String },
   webhookUrl: { type: String },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },

@@ -1,12 +1,17 @@
-import { Users, CreditCard, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Users, CreditCard, TrendingUp, AlertTriangle, Wallet } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { LogoLoader } from '../components/LogoLoader';
 
 export function Dashboard() {
-  const [stats, setStats] = useState({ totalUsers: 0, revenueToday: 0, walletFloat: 0 });
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ totalUsers: 0, revenueToday: 0, walletFloat: 0, poolBalance: 0, pendingAlerts: 0, failedAlerts: 0 });
   const [recentTx, setRecentTx] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -19,7 +24,30 @@ export function Dashboard() {
           setStats(statsRes.data.data);
         }
         if (txRes.data.success) {
-          setRecentTx(txRes.data.data.slice(0, 10)); // Just recent ones
+          const allTx = txRes.data.data || [];
+          setRecentTx(allTx.slice(0, 10)); // Just recent ones
+          
+          // Generate 7-day chart data
+          const last7Days = [...Array(7)].map((_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (6 - i));
+            return d.toLocaleDateString('en-US', { weekday: 'short' });
+          });
+
+          const volumeMap: Record<string, number> = {};
+          last7Days.forEach(day => volumeMap[day] = 0);
+
+          allTx.forEach((tx: any) => {
+            if (tx.status === 'success') {
+              const d = new Date(tx.createdAt);
+              const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+              if (volumeMap[dayStr] !== undefined) {
+                volumeMap[dayStr] += tx.amount || 0;
+              }
+            }
+          });
+
+          setChartData(last7Days.map(day => ({ name: day, volume: volumeMap[day] })));
         }
       } catch (error) {
         console.error("Error fetching dashboard data", error);
@@ -29,16 +57,6 @@ export function Dashboard() {
     };
     fetchDashboard();
   }, []);
-
-  const chartData = [
-    { name: 'Mon', volume: 4000 },
-    { name: 'Tue', volume: 3000 },
-    { name: 'Wed', volume: 2000 },
-    { name: 'Thu', volume: 2780 },
-    { name: 'Fri', volume: 1890 },
-    { name: 'Sat', volume: 2390 },
-    { name: 'Sun', volume: 3490 },
-  ];
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center justify-between">
@@ -69,11 +87,12 @@ export function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Users" value={stats.totalUsers.toLocaleString()} icon={Users} />
-        <StatCard title="Transactions Today" value={recentTx.length.toString()} icon={CreditCard} />
-        <StatCard title="Revenue Today" value={`₦${stats.revenueToday.toLocaleString()}`} icon={TrendingUp} />
-        <StatCard title="Wallet Float" value={`₦${stats.walletFloat.toLocaleString()}`} icon={CreditCard} />
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6">
+        <StatCard title="Total Users" value={(stats?.totalUsers || 0).toLocaleString()} icon={Users} />
+        <StatCard title="Transactions Today" value={(recentTx?.length || 0).toString()} icon={CreditCard} />
+        <StatCard title="Revenue Today" value={`₦${(stats?.revenueToday || 0).toLocaleString()}`} icon={TrendingUp} />
+        <StatCard title="Wallet Float" value={`₦${(stats?.walletFloat || 0).toLocaleString()}`} icon={Wallet} />
+        <StatCard title="Total Pool" value={`₦${(stats?.poolBalance || 0).toLocaleString()}`} icon={Wallet} />
       </div>
 
       {/* Alerts & Chart */}
@@ -85,22 +104,28 @@ export function Dashboard() {
             Pending Alerts
           </h3>
           <div className="mt-4 space-y-4">
-            <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100">
+            <div 
+              onClick={() => navigate('/transactions?status=failed')}
+              className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100 cursor-pointer hover:bg-red-100 transition-colors"
+            >
               <div>
                 <p className="text-sm font-medium text-red-800">Failed Transactions</p>
                 <p className="text-xs text-red-600 mt-1">Require manual intervention</p>
               </div>
               <span className="bg-red-100 text-red-800 py-1 px-3 rounded-full text-sm font-bold">
-                12
+                {stats?.failedAlerts || 0}
               </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+            <div 
+              onClick={() => navigate('/transactions?status=pending')}
+              className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-100 cursor-pointer hover:bg-yellow-100 transition-colors"
+            >
               <div>
-                <p className="text-sm font-medium text-yellow-800">Pending KYC</p>
-                <p className="text-xs text-yellow-600 mt-1">Tier 3 upgrades waiting</p>
+                <p className="text-sm font-medium text-yellow-800">Pending Transactions</p>
+                <p className="text-xs text-yellow-600 mt-1">Awaiting confirmation</p>
               </div>
               <span className="bg-yellow-100 text-yellow-800 py-1 px-3 rounded-full text-sm font-bold">
-                5
+                {stats?.pendingAlerts || 0}
               </span>
             </div>
           </div>
@@ -143,11 +168,17 @@ export function Dashboard() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="py-4 px-6 text-center text-sm text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={5} className="py-4 px-6"><LogoLoader /></td></tr>
               ) : recentTx.map((tx) => (
-                <tr key={tx._id} className="hover:bg-gray-50 transition-colors cursor-pointer">
+                <tr 
+                  key={tx._id} 
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/transactions/${tx._id}`)}
+                >
                   <td className="py-4 px-6 text-sm font-medium text-gray-900">{tx.refId}</td>
-                  <td className="py-4 px-6 text-sm text-gray-500">{tx.userId?.substring(0,8) || 'Unknown'}</td>
+                  <td className="py-4 px-6 text-sm text-gray-500">
+                    {tx.userId ? (tx.userId.name || tx.userId.phone || 'Unknown') : 'System'}
+                  </td>
                   <td className="py-4 px-6">
                     <span className="capitalize text-sm font-medium text-gray-700 bg-gray-100 px-2.5 py-1 rounded-md">
                       {tx.type} {tx.network && `- ${tx.network}`}

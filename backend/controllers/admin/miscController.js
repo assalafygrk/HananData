@@ -59,10 +59,27 @@ exports.updateProvider = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.addProvider = async (req, res, next) => {
+  try {
+    const { name, type, apiKeyEncrypted, baseUrl, webhookUrl, username } = req.body;
+    if (!name || !type) return sendResponse(res, 400, false, 'Name and type are required');
+    const newProvider = await Provider.create({ name, type, apiKeyEncrypted, baseUrl, webhookUrl, username });
+    return sendResponse(res, 201, true, newProvider);
+  } catch (error) { next(error); }
+};
+
 exports.getPricing = async (req, res, next) => {
   try {
     const pricing = await PricingConfig.find();
     return sendResponse(res, 200, true, pricing);
+  } catch (error) { next(error); }
+};
+
+exports.createPricing = async (req, res, next) => {
+  try {
+    const newConfig = new PricingConfig(req.body);
+    await newConfig.save();
+    return sendResponse(res, 201, true, newConfig);
   } catch (error) { next(error); }
 };
 
@@ -78,5 +95,79 @@ exports.getSettings = async (req, res, next) => {
   try {
     const settings = await PlatformSettings.findOne();
     return sendResponse(res, 200, true, settings);
+  } catch (error) { next(error); }
+};
+exports.updateSettings = async (req, res, next) => {
+  try {
+    let settings = await PlatformSettings.findOne();
+    if (!settings) {
+      settings = new PlatformSettings(req.body);
+    } else {
+      Object.assign(settings, req.body);
+    }
+    await settings.save();
+    return sendResponse(res, 200, true, settings);
+  } catch (error) { next(error); }
+};
+
+exports.getLogs = async (req, res, next) => {
+  try {
+    const AuditLog = require('../../models/AuditLog');
+    let logs = await AuditLog.find().populate('actorId', 'email name').sort({ timestamp: -1 }).limit(100);
+    logs = logs.map(l => {
+       const doc = l.toJSON();
+       return {
+         id: doc._id,
+         actor: doc.actorId ? (doc.actorId.name || doc.actorId.email) : (doc.actorType === 'system' ? 'System' : 'Unknown Admin'),
+         action: doc.action,
+         level: doc.level || 'info',
+         source: doc.source || 'system',
+         details: doc.details || doc.note || 'No details provided',
+         timestamp: doc.timestamp
+       }
+    });
+    return sendResponse(res, 200, true, logs);
+  } catch (error) { next(error); }
+};
+
+exports.getRoles = async (req, res, next) => {
+  try {
+    const Admin = require('../../models/Admin');
+    const roles = await Admin.find().select('-password');
+    return sendResponse(res, 200, true, roles);
+  } catch (error) { next(error); }
+};
+
+exports.addRole = async (req, res, next) => {
+  try {
+    const Admin = require('../../models/Admin');
+    const newAdmin = new Admin(req.body);
+    await newAdmin.save();
+    return sendResponse(res, 201, true, newAdmin);
+  } catch (error) { next(error); }
+};
+
+exports.getReferrals = async (req, res, next) => {
+  try {
+    const ReferralHistory = require('../../models/ReferralHistory');
+    const referrals = await ReferralHistory.find().populate('referrer referredUser', 'name email').sort({ createdAt: -1 }).limit(100);
+    return sendResponse(res, 200, true, referrals);
+  } catch (error) { next(error); }
+};
+
+exports.getBroadcasts = async (req, res, next) => {
+  try {
+    const Broadcast = require('../../models/Broadcast');
+    const broadcasts = await Broadcast.find().sort({ createdAt: -1 }).limit(50);
+    return sendResponse(res, 200, true, broadcasts);
+  } catch (error) { next(error); }
+};
+
+exports.sendBroadcast = async (req, res, next) => {
+  try {
+    const Broadcast = require('../../models/Broadcast');
+    const broadcast = new Broadcast({ ...req.body, createdBy: req.admin.id });
+    await broadcast.save();
+    return sendResponse(res, 201, true, broadcast);
   } catch (error) { next(error); }
 };

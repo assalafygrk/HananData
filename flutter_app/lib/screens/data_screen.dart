@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class DataScreen extends StatefulWidget {
   const DataScreen({super.key});
@@ -10,12 +13,48 @@ class DataScreen extends StatefulWidget {
   State<DataScreen> createState() => _DataScreenState();
 }
 
+
 class _DataScreenState extends State<DataScreen> {
   int _netIdx = 0;
-  String? _dataTypeId;        // selected data type
-  String _validity = 'monthly';
   String? _selectedPlanId;
-  final _phoneCtrl = TextEditingController(text: '08012345678');
+  String? _selectedDataType;
+  final _phoneCtrl = TextEditingController();
+  
+  List<dynamic> _apiPlans = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserPhone();
+    _fetchPlans();
+  }
+
+  Future<void> _loadUserPhone() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      final user = jsonDecode(userStr);
+      if (user['phone'] != null) {
+        setState(() {
+          _phoneCtrl.text = user['phone'];
+        });
+      }
+    }
+  }
+  
+  Future<void> _fetchPlans() async {
+    setState(() => _loading = true);
+    final res = await ApiService.getPricing('data');
+    if (res['success'] == true && mounted) {
+      setState(() {
+        _apiPlans = res['data'];
+        _loading = false;
+      });
+    } else if (mounted) {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -25,47 +64,42 @@ class _DataScreenState extends State<DataScreen> {
 
   NetworkInfo get _net => kNetworks[_netIdx];
 
-  List<DataType> get _dataTypes => kDataTypes[_net.id] ?? [];
+  List<String> get _availableDataTypes {
+    final netPlans = _apiPlans.where((p) => (p['network'] as String).toLowerCase() == _net.name.toLowerCase());
+    return netPlans.map((p) => (p['type'] as String?) ?? 'SME').toSet().toList();
+  }
 
-  String get _planKey => '${_net.id}-${_dataTypeId ?? ''}';
-
-  Map<String, List<DataPlan>> get _plansByValidity =>
-      kNetworkDataPlans[_planKey] ?? {};
-
-  List<DataPlan> get _plans => _plansByValidity[_validity] ?? [];
-
-  List<String> get _availableValidities => _plansByValidity.keys.toList();
+  List<dynamic> get _plans {
+    if (_selectedDataType == null) return [];
+    return _apiPlans.where((p) {
+      final matchesNet = (p['network'] as String).toLowerCase() == _net.name.toLowerCase();
+      final matchesType = ((p['type'] as String?) ?? 'SME').toLowerCase() == _selectedDataType!.toLowerCase();
+      return matchesNet && matchesType;
+    }).toList();
+  }
 
   void _onNetworkTap(int i) {
     setState(() {
       _netIdx = i;
-      _dataTypeId = null;
       _selectedPlanId = null;
-    });
-  }
-
-  void _onDataTypeTap(String id) {
-    setState(() {
-      _dataTypeId = id;
-      _selectedPlanId = null;
-      // Set default validity to first available
-      final avail = (kNetworkDataPlans['${_net.id}-$id'] ?? {}).keys.toList();
-      _validity = avail.contains('monthly') ? 'monthly' : (avail.isNotEmpty ? avail.first : 'monthly');
+      _selectedDataType = null;
     });
   }
 
   void _proceed() {
-    final plan = _plans.firstWhere((p) => p.id == _selectedPlanId);
+    final plan = _plans.firstWhere((p) => p['_id'] == _selectedPlanId);
+    final price = plan['userPrice'] ?? 0;
+    final planName = plan['planName'] ?? 'Data Plan';
     final txn = TxnData(
       type: 'Data Bundle',
       network: _net.name,
       networkColor: '#${(_net.color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}',
       recipient: '+234${_phoneCtrl.text.substring(1)}',
-      plan: '${plan.size} · ${plan.validity}',
-      amount: plan.price,
+      plan: planName,
+      amount: price,
       fee: 0,
-      total: plan.price,
-      description: '${_net.name} ${plan.size} Data',
+      total: price,
+      description: '${_net.name} $planName',
       refId: genRef(),
     );
     Navigator.pushNamed(context, '/confirm', arguments: txn);
@@ -119,40 +153,54 @@ class _DataScreenState extends State<DataScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // ── 3. Data Type dropdown (only show after network selected) ──
-                    const SectionLabel('Data Type'),
-                    const SizedBox(height: 8),
-                    _DataTypeDropdown(
-                      types: _dataTypes,
-                      selectedId: _dataTypeId,
-                      brandColor: _net.color,
-                      onSelect: _onDataTypeTap,
-                    ),
-
-                    // ── 4. Plan Type tabs (only after data type chosen) ───
-                    if (_dataTypeId != null && _availableValidities.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      const SectionLabel('Plan Type'),
+                    // ── 3. Data Type Dropdown ──────────────────────────────
+                    if (!_loading && _availableDataTypes.isNotEmpty) ...[
+                      const SectionLabel('Data Type'),
                       const SizedBox(height: 8),
-                      PillSegment(
-                        options: _availableValidities,
-                        selected: _validity,
-                        onSelect: (v) => setState(() {
-                          _validity = v;
-                          _selectedPlanId = null;
-                        }),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: kCardBorder, width: 2),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedDataType,
+                            hint: Text('Select Data Type', style: dFont(size: 15, weight: FontWeight.w600, color: kMutedText)),
+                            isExpanded: true,
+                            icon: const Icon(Icons.keyboard_arrow_down, color: kPrimaryDark),
+                            items: _availableDataTypes.map((type) {
+                              return DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type, style: dFont(size: 15, weight: FontWeight.w600, color: kPrimaryDark)),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedDataType = val;
+                                _selectedPlanId = null;
+                              });
+                            },
+                          ),
+                        ),
                       ),
+                      const SizedBox(height: 20),
                     ],
 
-                    // ── 5. Plan cards ─────────────────────────────────────
-                    if (_dataTypeId != null && _plans.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                    // ── 4. Plan cards ─────────────────────────────────────
+                    if (_loading)
+                      const Center(child: Padding(padding: EdgeInsets.all(20), child: BrandLoader())),
+                    
+                    if (!_loading && _selectedDataType != null && _plans.isNotEmpty) ...[
+                      const SectionLabel('Available Plans'),
+                      const SizedBox(height: 8),
                       ..._plans.map((p) {
-                        final on = _selectedPlanId == p.id;
+                        final on = _selectedPlanId == p['_id'];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: GestureDetector(
-                            onTap: () => setState(() => _selectedPlanId = p.id),
+                            onTap: () => setState(() => _selectedPlanId = p['_id']),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
                               padding: const EdgeInsets.all(16),
@@ -184,14 +232,12 @@ class _DataScreenState extends State<DataScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(p.size,
+                                        Text(p['planName'] ?? 'Unknown Plan',
                                             style: dFont(size: 15, weight: FontWeight.w700)),
-                                        Text(p.validity,
-                                            style: dFont(size: 12, color: kMutedText)),
                                       ],
                                     ),
                                   ),
-                                  Text('₦${fmtNaira(p.price)}',
+                                  Text('₦${fmtNaira(p['userPrice'] ?? 0)}',
                                       style: dFont(size: 16, weight: FontWeight.w800, color: kPrimaryNavy)),
                                 ],
                               ),
@@ -201,11 +247,11 @@ class _DataScreenState extends State<DataScreen> {
                       }),
                     ],
 
-                    // Empty state when data type selected but no plans
-                    if (_dataTypeId != null && _plans.isEmpty) ...[
+                    // Empty state
+                    if (!_loading && _plans.isEmpty) ...[
                       const SizedBox(height: 20),
                       Center(
-                        child: Text('No plans available for this selection.',
+                        child: Text('No plans available for this network.',
                             style: dFont(size: 13, color: kMutedText)),
                       ),
                     ],
@@ -246,134 +292,4 @@ class _DataScreenState extends State<DataScreen> {
   }
 }
 
-// ─── Data Type Dropdown ───────────────────────────────────────────────────────
 
-class _DataTypeDropdown extends StatelessWidget {
-  final List<DataType> types;
-  final String? selectedId;
-  final Color brandColor;
-  final ValueChanged<String> onSelect;
-
-  const _DataTypeDropdown({
-    required this.types,
-    required this.selectedId,
-    required this.brandColor,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final selected = types.firstWhere(
-      (t) => t.id == selectedId,
-      orElse: () => const DataType(id: '', name: 'Select data type', description: ''),
-    );
-
-    return GestureDetector(
-      onTap: () => _showPicker(context),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selectedId != null ? brandColor : kCardBorder, width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 34, height: 34,
-              decoration: BoxDecoration(
-                color: selectedId != null ? brandColor.withValues(alpha: 0.12) : kBackground,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.data_usage_rounded,
-                color: selectedId != null ? brandColor : kMutedText, size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    selected.name,
-                    style: dFont(
-                      size: 14,
-                      weight: FontWeight.w600,
-                      color: selectedId != null ? kPrimaryDark : kMutedText,
-                    ),
-                  ),
-                  if (selectedId != null && selected.description.isNotEmpty)
-                    Text(selected.description,
-                        style: dFont(size: 11, color: kMutedText)),
-                ],
-              ),
-            ),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                color: selectedId != null ? brandColor : kMutedText, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        margin: const EdgeInsets.only(top: 60),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: kCardBorder, borderRadius: BorderRadius.circular(2)),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Text('Select Data Type',
-                  style: dFont(size: 18, weight: FontWeight.w800)),
-            ),
-            ...types.map((t) {
-              final on = t.id == selectedId;
-              return ListTile(
-                onTap: () {
-                  Navigator.pop(context);
-                  onSelect(t.id);
-                },
-                leading: Container(
-                  width: 40, height: 40,
-                  decoration: BoxDecoration(
-                    color: on ? brandColor.withValues(alpha: 0.12) : kBackground,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.data_usage_rounded,
-                      color: on ? brandColor : kMutedText, size: 20),
-                ),
-                title: Text(t.name,
-                    style: dFont(size: 14, weight: FontWeight.w700,
-                        color: on ? brandColor : kPrimaryDark)),
-                subtitle: Text(t.description,
-                    style: dFont(size: 12, color: kMutedText)),
-                trailing: on
-                    ? Icon(Icons.check_circle_rounded, color: brandColor, size: 20)
-                    : null,
-              );
-            }),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-}

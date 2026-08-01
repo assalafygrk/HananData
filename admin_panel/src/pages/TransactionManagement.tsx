@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Download } from 'lucide-react';
 import api from '../api';
+import { LogoLoader } from '../components/LogoLoader';
 
 export function TransactionManagement() {
   const navigate = useNavigate();
@@ -112,7 +113,7 @@ export function TransactionManagement() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={5} className="py-12"><LogoLoader /></td></tr>
               ) : filteredTx.map((tx) => (
                 <tr 
                   key={tx._id} 

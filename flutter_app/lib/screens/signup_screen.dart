@@ -16,6 +16,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameCtrl  = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _referralCtrl = TextEditingController();
   String _pin     = '';
   String _confirm = '';
   bool _isLoading = false;
@@ -25,6 +26,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
+    _referralCtrl.dispose();
     super.dispose();
   }
 
@@ -54,6 +56,7 @@ class _SignupScreenState extends State<SignupScreen> {
       'email': _emailCtrl.text.trim(),
       'phone': _phoneCtrl.text.trim(),
       'password': _pin, // We use pin as password for simplicity
+      'referralCode': _referralCtrl.text.trim(),
     };
     final res = await ApiService.signup(body);
     setState(() => _isLoading = false);
@@ -225,6 +228,15 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ],
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Referral Code
+                      const SectionLabel('Referral Code (Optional)'),
+                      const SizedBox(height: 8),
+                      _inputField(
+                        controller: _referralCtrl,
+                        hint: 'e.g. REF123XYZ',
+                        icon: Icons.card_giftcard_rounded,
                       ),
                       const SizedBox(height: 24),
                       PrimaryBtn(

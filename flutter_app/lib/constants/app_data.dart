@@ -36,25 +36,25 @@ class NetworkInfo {
 final List<NetworkInfo> kNetworks = [
   const NetworkInfo(
     id: 'mtn', name: 'MTN', logoLetter: 'M',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/New-mtn-logo.png/200px-New-mtn-logo.png',
+    logoUrl: 'assets/images/providers/MTN.png',
     color: Color(0xFFFFCC00), bg: Color(0xFFFFFBE6),
     text: Color(0xFF7A6000), dot: Color(0xFFE6B800),
   ),
   const NetworkInfo(
     id: 'airtel', name: 'Airtel', logoLetter: 'A',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Airtel_Nigeria_logo.svg/200px-Airtel_Nigeria_logo.svg.png',
+    logoUrl: 'assets/images/providers/Airtel.png',
     color: Color(0xFFE4002B), bg: Color(0xFFFFF0F2),
     text: Color(0xFFB80022), dot: Color(0xFFE4002B),
   ),
   const NetworkInfo(
     id: 'glo', name: 'Glo', logoLetter: 'G',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Globacom_logo.svg/200px-Globacom_logo.svg.png',
+    logoUrl: 'assets/images/providers/Glo.jpeg',
     color: Color(0xFF009A44), bg: Color(0xFFE8F5EE),
     text: Color(0xFF006B2F), dot: Color(0xFF009A44),
   ),
   const NetworkInfo(
     id: '9mobile', name: '9mobile', logoLetter: '9',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a5/9mobile_logo_2015.png/200px-9mobile_logo_2015.png',
+    logoUrl: 'assets/images/providers/9mobile.jpeg',
     color: Color(0xFF006E51), bg: Color(0xFFE6F1EE),
     text: Color(0xFF004D38), dot: Color(0xFF006E51),
   ),
@@ -275,17 +275,17 @@ class CablePackage {
 final List<CableProvider> kCableProviders = [
   const CableProvider(
     id: 'dstv', name: 'DStv', logoLetter: 'D',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/DStv_logo.svg/200px-DStv_logo.svg.png',
+    logoUrl: 'assets/images/providers/Dstv.jpeg',
     color: Color(0xFF003087), bg: Color(0xFFE8F0FB),
   ),
   const CableProvider(
     id: 'gotv', name: 'GOtv', logoLetter: 'G',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/GOtv_Logo.svg/200px-GOtv_Logo.svg.png',
+    logoUrl: 'assets/images/providers/Gotv.png',
     color: Color(0xFF0070BA), bg: Color(0xFFE8F4FB),
   ),
   const CableProvider(
     id: 'startimes', name: 'StarTimes', logoLetter: 'S',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/StarTimes_logo.svg/200px-StarTimes_logo.svg.png',
+    logoUrl: 'assets/images/providers/Startime.jpeg',
     color: Color(0xFFCC1020), bg: Color(0xFFFDEBEC),
   ),
 ];
@@ -354,11 +354,16 @@ Color discoColor(String discoShort) {
 
 String? discoLogoUrl(String discoShort) {
   const map = {
-    'IKEDC':  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Ikeja_Electric_Logo.png/320px-Ikeja_Electric_Logo.png',
-    'EKEDC':  'https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Eko_Electricity_Distribution_Company_Logo.png/320px-Eko_Electricity_Distribution_Company_Logo.png',
-    'AEDC':   'https://upload.wikimedia.org/wikipedia/en/thumb/2/23/Abuja_Electricity_Distribution_Company_logo.png/320px-Abuja_Electricity_Distribution_Company_logo.png',
-    'PHED':   'https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Port_Harcourt_Electricity_Distribution_Company_logo.png/320px-Port_Harcourt_Electricity_Distribution_Company_logo.png',
-    'IBEDC':  'https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Ibadan_Electricity_Distribution_Company_logo.jpg/320px-Ibadan_Electricity_Distribution_Company_logo.jpg',
+    'IKEDC':  'assets/images/providers/IKED.png',
+    'EKEDC':  'assets/images/providers/EKEDC.png',
+    'PHED':   'assets/images/providers/PHED.png',
+    'IBEDC':  'assets/images/providers/IBEDC.jpeg',
+    'BEDC':   'assets/images/providers/BEDC.jpeg',
+    'EEDC':   'assets/images/providers/EEDC.png',
+    'JED':    'assets/images/providers/JED.jpeg',
+    'KAEDCO': 'assets/images/providers/KAEDCO.jpeg',
+    'KEDCO':  'assets/images/providers/KEDCO.jpeg',
+    'YEDC':   'assets/images/providers/YEDC.jpeg',
   };
   return map[discoShort];
 }

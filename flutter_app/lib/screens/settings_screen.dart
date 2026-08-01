@@ -1,5 +1,6 @@
 // lib/screens/settings_screen.dart
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -18,6 +19,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _promoNotifs    = true;
   String _language     = 'English';
   String _currency     = 'NGN (₦)';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _darkMode    = prefs.getBool('setting_darkMode') ?? false;
+      _biometrics  = prefs.getBool('setting_biometrics') ?? false;
+      _txnPin      = prefs.getBool('setting_txnPin') ?? true;
+      _pushNotifs  = prefs.getBool('setting_pushNotifs') ?? true;
+      _smsNotifs   = prefs.getBool('setting_smsNotifs') ?? true;
+      _emailNotifs = prefs.getBool('setting_emailNotifs') ?? false;
+      _promoNotifs = prefs.getBool('setting_promoNotifs') ?? true;
+      _language    = prefs.getString('setting_language') ?? 'English';
+      _currency    = prefs.getString('setting_currency') ?? 'NGN (₦)';
+    });
+  }
+
+  Future<void> _saveBool(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
+  Future<void> _saveString(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Dark Mode',
                         sub: 'Switch to dark theme',
                         value: _darkMode,
-                        onChanged: (v) => setState(() => _darkMode = v),
+                        onChanged: (v) { setState(() => _darkMode = v); _saveBool('setting_darkMode', v); },
                       ),
                       const _Divider(),
                       _TapTile(
@@ -54,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Select Language',
                           options: ['English', 'Hausa', 'Yoruba', 'Igbo'],
                           current: _language,
-                          onSelect: (v) => setState(() => _language = v),
+                          onSelect: (v) { setState(() => _language = v); _saveString('setting_language', v); },
                         ),
                       ),
                       const _Divider(),
@@ -67,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Select Currency',
                           options: ['NGN (₦)', 'USD (\$)', 'GBP (£)', 'EUR (€)'],
                           current: _currency,
-                          onSelect: (v) => setState(() => _currency = v),
+                          onSelect: (v) { setState(() => _currency = v); _saveString('setting_currency', v); },
                         ),
                       ),
                     ]),
@@ -81,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Biometric Login',
                         sub: 'Use fingerprint or face ID',
                         value: _biometrics,
-                        onChanged: (v) => setState(() => _biometrics = v),
+                        onChanged: (v) { setState(() => _biometrics = v); _saveBool('setting_biometrics', v); },
                       ),
                       const _Divider(),
                       _ToggleTile(
@@ -90,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Require PIN for Payments',
                         sub: 'Always verify with PIN',
                         value: _txnPin,
-                        onChanged: (v) => setState(() => _txnPin = v),
+                        onChanged: (v) { setState(() => _txnPin = v); _saveBool('setting_txnPin', v); },
                       ),
                       const _Divider(),
                       _TapTile(
@@ -121,7 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Push Notifications',
                         sub: 'App alerts on device',
                         value: _pushNotifs,
-                        onChanged: (v) => setState(() => _pushNotifs = v),
+                        onChanged: (v) { setState(() => _pushNotifs = v); _saveBool('setting_pushNotifs', v); },
                       ),
                       const _Divider(),
                       _ToggleTile(
@@ -130,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'SMS Alerts',
                         sub: 'Text message notifications',
                         value: _smsNotifs,
-                        onChanged: (v) => setState(() => _smsNotifs = v),
+                        onChanged: (v) { setState(() => _smsNotifs = v); _saveBool('setting_smsNotifs', v); },
                       ),
                       const _Divider(),
                       _ToggleTile(
@@ -139,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Email Notifications',
                         sub: 'Receive updates by email',
                         value: _emailNotifs,
-                        onChanged: (v) => setState(() => _emailNotifs = v),
+                        onChanged: (v) { setState(() => _emailNotifs = v); _saveBool('setting_emailNotifs', v); },
                       ),
                       const _Divider(),
                       _ToggleTile(
@@ -148,7 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Promotional Offers',
                         sub: 'Deals and special offers',
                         value: _promoNotifs,
-                        onChanged: (v) => setState(() => _promoNotifs = v),
+                        onChanged: (v) { setState(() => _promoNotifs = v); _saveBool('setting_promoNotifs', v); },
                       ),
                     ]),
 

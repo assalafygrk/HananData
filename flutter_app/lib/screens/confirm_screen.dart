@@ -5,6 +5,8 @@ import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ConfirmScreen extends StatefulWidget {
   const ConfirmScreen({super.key});
@@ -12,9 +14,25 @@ class ConfirmScreen extends StatefulWidget {
   State<ConfirmScreen> createState() => _ConfirmScreenState();
 }
 
+
 class _ConfirmScreenState extends State<ConfirmScreen> {
   String _pin = '';
   bool _isLoading = false;
+  Map<String, dynamic>? _userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBalance();
+  }
+
+  Future<void> _loadBalance() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      setState(() => _userData = jsonDecode(userStr));
+    }
+  }
 
   Future<void> _confirm(TxnData txn) async {
     setState(() => _isLoading = true);
@@ -73,7 +91,8 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       if (txn.fee > 0)         _DetailRow(label: 'Fee',       value: '₦${fmtNaira(txn.fee)}'),
     ];
 
-    final balanceAfter = (48750 - txn.total).clamp(0, 999999);
+    final currentBalance = _userData?['balance'] ?? 0.0;
+    final balanceAfter = (currentBalance - txn.total).clamp(0, 999999);
 
     return Scaffold(
       backgroundColor: kBackground,
@@ -193,7 +212,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: _isLoading 
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: BrandLoader())
                 : PrimaryBtn(
                     label: 'Confirm & Pay',
                     disabled: _pin.length < 4,

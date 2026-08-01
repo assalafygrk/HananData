@@ -1,12 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Gift, Save, CheckCircle2 } from 'lucide-react';
+import api from '../api';
 
 export function ReferralManagement() {
   const [bonusAmount, setBonusAmount] = useState('500');
   const [minFunding, setMinFunding] = useState('2000');
-  const [referrals] = useState<any[]>([]);
+  const [referrals, setReferrals] = useState<any[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReferrals = async () => {
+      try {
+        const res = await api.get('/admin/referrals');
+        if (res.data.success) {
+          setReferrals(res.data.data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReferrals();
+  }, []);
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,38 +129,43 @@ export function ReferralManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {referrals.map((ref: any) => (
-                    <tr key={ref.id} className="hover:bg-gray-50">
-                      <td className="py-4 px-6 text-sm text-gray-500">
-                        {new Date(ref.date).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="font-medium text-[#1B3A6B] hover:underline cursor-pointer">
-                          {ref.referrerName}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-600">
-                        {ref.referredUserName}
-                      </td>
-                      <td className="py-4 px-6">
-                        {ref.status === 'paid' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle2 className="w-3 h-3" /> Paid (₦{ref.bonusEarned})
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Pending Funding
-                          </span>
-                        )}
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-gray-500">Loading referrals...</td>
                     </tr>
-                  ))}
-                  {referrals.length === 0 && (
+                  ) : referrals.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="py-8 text-center text-gray-500">
                         No referral activity found.
                       </td>
                     </tr>
+                  ) : (
+                    referrals.map((ref: any) => (
+                      <tr key={ref.id || ref._id} className="hover:bg-gray-50">
+                        <td className="py-4 px-6 text-sm text-gray-500">
+                          {new Date(ref.date || ref.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="font-medium text-[#1B3A6B] hover:underline cursor-pointer">
+                            {ref.referrer?.name || ref.referrerName || 'Unknown'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-600">
+                          {ref.referredUser?.name || ref.referredUserName || 'Unknown'}
+                        </td>
+                        <td className="py-4 px-6">
+                          {ref.status === 'paid' || ref.status === 'successful' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle2 className="w-3 h-3" /> Paid (₦{ref.bonusEarned || ref.amount})
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Pending Funding
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

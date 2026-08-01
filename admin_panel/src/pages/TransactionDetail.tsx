@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, RefreshCw, X, ShieldAlert } from 'lucide-react';
 import api from '../api';
+import { LogoLoader } from '../components/LogoLoader';
 
 export function TransactionDetail() {
   const { id } = useParams();
@@ -28,7 +29,7 @@ export function TransactionDetail() {
     if (id) fetchTx();
   }, [id]);
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (loading) return <div className="p-8 flex justify-center"><LogoLoader /></div>;
   if (!tx) return <div className="p-8 text-center text-gray-500">Transaction not found</div>;
 
   const handleAction = async (e: React.FormEvent) => {

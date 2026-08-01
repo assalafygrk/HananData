@@ -27,6 +27,7 @@ router.post('/services/data', servicesCtrl.purchaseService('data'));
 router.post('/services/cable', servicesCtrl.purchaseService('cable'));
 router.post('/services/electricity', servicesCtrl.purchaseService('electricity'));
 router.post('/services/airtime-to-cash', servicesCtrl.airtimeToCash);
+router.get('/services/pricing', servicesCtrl.getPricing);
 
 // Misc
 router.get('/transactions/history', miscCtrl.getTransactions);

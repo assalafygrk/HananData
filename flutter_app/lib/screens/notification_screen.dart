@@ -126,7 +126,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             // Notification list
             Expanded(
               child: _isLoading 
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: BrandLoader())
                 : _items.isEmpty
                   ? Center(
                       child: Column(

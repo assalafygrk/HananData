@@ -8,6 +8,15 @@ export function AggregatorSettings() {
   
   const [isSaved, setIsSaved] = useState(false);
   const [modal, setModal] = useState<{isOpen: boolean, type: 'provider' | 'gateway' | null}>({isOpen: false, type: null});
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    username: '',
+    apiKeyEncrypted: '',
+    baseUrl: '',
+    webhookUrl: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -26,6 +35,30 @@ export function AggregatorSettings() {
   const handleSaveConfig = () => {
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name) return alert('Name is required');
+    try {
+      setIsSubmitting(true);
+      const res = await api.post('/admin/providers', {
+        ...formData,
+        type: modal.type === 'provider' ? 'vtu' : 'payment-gateway'
+      });
+      if (res.data.success) {
+        if (modal.type === 'provider') setProviders([...providers, res.data.data]);
+        else setGateways([...gateways, res.data.data]);
+        setModal({ isOpen: false, type: null });
+        setFormData({ name: '', username: '', apiKeyEncrypted: '', baseUrl: '', webhookUrl: '' });
+      } else {
+        alert(res.data.message);
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to add configuration');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const deleteProvider = (id: string) => setProviders(providers.filter(p => p._id !== id));
@@ -171,31 +204,72 @@ export function AggregatorSettings() {
         </div>
       </div>
 
-      {/* Generic Add Modal (UI only) */}
+      {/* Add Modal */}
       {modal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden my-8">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900 capitalize">Add {modal.type}</h3>
               <button onClick={() => setModal({ isOpen: false, type: null })} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-500">This is a mock UI. In a real scenario, you would fill out the API keys and endpoints here.</p>
+            <form onSubmit={handleAdd} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input type="text" className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  value={formData.name}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">API Key / Secret</label>
-                <input type="password" className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Base URL</label>
+                <input 
+                  type="url" 
+                  value={formData.baseUrl}
+                  onChange={e => setFormData({...formData, baseUrl: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                  placeholder="https://api.provider.com"
+                />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input 
+                  type="password" 
+                  value={formData.apiKeyEncrypted}
+                  onChange={e => setFormData({...formData, apiKeyEncrypted: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Username (Optional)</label>
+                <input 
+                  type="text" 
+                  value={formData.username}
+                  onChange={e => setFormData({...formData, username: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Webhook URL (Optional)</label>
+                <input 
+                  type="url" 
+                  value={formData.webhookUrl}
+                  onChange={e => setFormData({...formData, webhookUrl: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                />
+              </div>
+              
               <div className="pt-4 flex justify-end gap-3">
-                <button onClick={() => setModal({ isOpen: false, type: null })} className="px-4 py-2 text-sm text-gray-700 border rounded-lg">Cancel</button>
-                <button onClick={() => setModal({ isOpen: false, type: null })} className="px-4 py-2 text-sm text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E]">Add Configuration</button>
+                <button type="button" onClick={() => setModal({ isOpen: false, type: null })} className="px-4 py-2 text-sm text-gray-700 border rounded-lg">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E] disabled:opacity-50">
+                  {isSubmitting ? 'Adding...' : 'Add Configuration'}
+                </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

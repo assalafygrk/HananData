@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Edit2, X } from 'lucide-react';
 import api from '../api';
+import { LogoLoader } from '../components/LogoLoader';
 
 export function PricingManagement() {
   const [pricingData, setPricingData] = useState<any[]>([]);
@@ -41,6 +42,22 @@ export function PricingManagement() {
     });
   };
 
+  const handleAddClick = () => {
+    setEditModal({
+      isOpen: true,
+      data: {
+        category: filterCategory,
+        network: 'MTN',
+        planName: '',
+        planId: '',
+        apiCost: 0,
+        vendorPrice: 0,
+        userPrice: 0,
+        providerId: providers.length > 0 ? providers[0]._id : ''
+      }
+    });
+  };
+
   const handleModalChange = (field: string, value: string | number) => {
     if (editModal.data) {
       setEditModal({
@@ -54,13 +71,22 @@ export function PricingManagement() {
     e.preventDefault();
     if (editModal.data) {
       try {
-        const response = await api.put(`/admin/pricing/${editModal.data._id}`, editModal.data);
-        if (response.data.success) {
-          setPricingData(prev => prev.map(p => 
-            p._id === editModal.data?._id ? response.data.data : p
-          ));
+        if (editModal.data._id) {
+          const response = await api.put(`/admin/pricing/${editModal.data._id}`, editModal.data);
+          if (response.data.success) {
+            setPricingData(prev => prev.map(p => 
+              p._id === editModal.data?._id ? response.data.data : p
+            ));
+          } else {
+            alert(response.data.message);
+          }
         } else {
-          alert(response.data.message);
+          const response = await api.post(`/admin/pricing`, editModal.data);
+          if (response.data.success) {
+            setPricingData([...pricingData, response.data.data]);
+          } else {
+            alert(response.data.message);
+          }
         }
       } catch (error) {
         alert('Failed to save configuration');
@@ -79,11 +105,17 @@ export function PricingManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Pricing & Routing</h2>
+        <button 
+          onClick={handleAddClick}
+          className="bg-[#1B3A6B] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2A5A9E] transition-colors flex items-center gap-2"
+        >
+          <Edit2 className="w-4 h-4" /> Add Configuration
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex gap-2 overflow-x-auto">
-          {['airtime', 'data', 'cable', 'electricity'].map(cat => (
+          {['airtime', 'data', 'cable', 'electricity', 'airtime-to-cash', 'bulk-sms', 'exam-pins'].map(cat => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
@@ -113,7 +145,7 @@ export function PricingManagement() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={7} className="py-12 text-center text-sm text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={7} className="py-12"><LogoLoader /></td></tr>
               ) : filteredPricing.map((p) => {
                 const vendorPL = calculateProfit(p.vendorPrice, p.apiPrice);
                 const userPL = calculateProfit(p.userPrice, p.apiPrice);
@@ -195,7 +227,7 @@ export function PricingManagement() {
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-[#1B3A6B]" />
-                Edit Configuration - {editModal.data.network} {editModal.data.planName}
+                {editModal.data._id ? `Edit Configuration - ${editModal.data.network} ${editModal.data.planName}` : 'Add New Configuration'}
               </h3>
               <button 
                 onClick={() => setEditModal({ isOpen: false, data: null })}
@@ -213,6 +245,33 @@ export function PricingManagement() {
                   <div className="space-y-4">
                     <h4 className="font-semibold text-gray-900 border-b pb-2">Provider & Routing</h4>
                     
+                    {!editModal.data._id && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Network/Name</label>
+                          <input 
+                            type="text"
+                            required
+                            value={editModal.data.network}
+                            onChange={(e) => handleModalChange('network', e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            placeholder="e.g. MTN or DStv"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
+                          <input 
+                            type="text"
+                            required
+                            value={editModal.data.planName}
+                            onChange={(e) => handleModalChange('planName', e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            placeholder="e.g. 1GB 30 Days"
+                          />
+                        </div>
+                      </>
+                    )}
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Target Provider</label>
                       <select 

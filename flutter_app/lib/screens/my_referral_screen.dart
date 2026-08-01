@@ -161,7 +161,7 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                       ),
                       const SizedBox(height: 16),
                       if (_isLoading)
-                        const CircularProgressIndicator()
+                        const BrandLoader()
                       else if (_referrals.isEmpty)
                         Text('No referrals yet.', style: dFont(size: 14, color: kMutedText))
                       else

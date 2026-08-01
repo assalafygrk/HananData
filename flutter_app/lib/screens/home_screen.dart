@@ -250,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 12),
                         if (_isLoading && _transactions.isEmpty) 
-                          const Center(child: CircularProgressIndicator())
+                          const Center(child: BrandLoader())
                         else if (_transactions.isEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 20),

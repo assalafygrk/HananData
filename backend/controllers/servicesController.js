@@ -1,5 +1,6 @@
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
+const PricingConfig = require('../models/PricingConfig');
 const { sendResponse } = require('../utils/helpers');
 
 // Placeholder VTU integration
@@ -44,5 +45,14 @@ exports.purchaseService = (type) => async (req, res, next) => {
 exports.airtimeToCash = async (req, res, next) => {
   try {
     return sendResponse(res, 200, true, { message: 'Airtime to cash initiated' });
+  } catch (error) { next(error); }
+};
+
+exports.getPricing = async (req, res, next) => {
+  try {
+    const { category } = req.query;
+    const filter = category ? { category } : {};
+    const pricing = await PricingConfig.find(filter);
+    return sendResponse(res, 200, true, pricing);
   } catch (error) { next(error); }
 };

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Settings2, ShieldAlert, CreditCard, UserX } from 'lucide-react';
+import api from '../api';
+import { LogoLoader } from '../components/LogoLoader';
 
 export function AdminSettings() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -11,12 +13,49 @@ export function AdminSettings() {
   const [tier3Limit, setTier3Limit] = useState('500000');
   
   const [isSaved, setIsSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/admin/settings');
+        if (res.data.success && res.data.data) {
+          const s = res.data.data;
+          setMaintenanceMode(s.maintenanceMode || false);
+          setDisableRegistration(s.disableRegistration || false);
+          setMinFunding(s.minFunding?.toString() || '100');
+          setTier1Limit(s.tier1Limit?.toString() || '10000');
+          setTier2Limit(s.tier2Limit?.toString() || '50000');
+          setTier3Limit(s.tier3Limit?.toString() || '500000');
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    try {
+      await api.put('/admin/settings', {
+        maintenanceMode,
+        disableRegistration,
+        minFunding: Number(minFunding),
+        tier1Limit: Number(tier1Limit),
+        tier2Limit: Number(tier2Limit),
+        tier3Limit: Number(tier3Limit),
+      });
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
+
+  if (loading) return <LogoLoader />;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">

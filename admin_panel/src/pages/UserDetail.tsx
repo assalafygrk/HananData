@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserCircle, Wallet, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, Wallet, ArrowDownCircle, ArrowUpCircle, ShieldAlert, Eye, EyeOff, Loader2 } from 'lucide-react';
 import api from '../api';
+import { LogoLoader } from '../components/LogoLoader';
 
 export function UserDetail() {
   const { id } = useParams();
@@ -13,6 +14,9 @@ export function UserDetail() {
   const [actionModal, setActionModal] = useState<{isOpen: boolean, type: 'credit' | 'debit' | null}>({ isOpen: false, type: null });
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentNote, setAdjustmentNote] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchUserData = async () => {
     try {
@@ -34,7 +38,7 @@ export function UserDetail() {
     if (id) fetchUserData();
   }, [id]);
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+  if (loading) return <div className="p-8 flex justify-center"><LogoLoader /></div>;
   if (!user) return <div className="p-8 text-center text-gray-500">User not found</div>;
 
   const handleStatusToggle = () => {
@@ -44,27 +48,31 @@ export function UserDetail() {
 
   const handleWalletAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adjustmentNote || !adjustmentAmount) return;
+    if (!adjustmentNote || !adjustmentAmount || isSubmitting) return;
     
     let amount = parseInt(adjustmentAmount);
     if (isNaN(amount) || amount <= 0) return;
     
     try {
+      setIsSubmitting(true);
       const endpoint = actionModal.type === 'credit' ? `/admin/users/${id}/credit` : `/admin/users/${id}/debit`;
-      const response = await api.post(endpoint, { amount, note: adjustmentNote });
+      const response = await api.post(endpoint, { amount, note: adjustmentNote, adminPassword });
       
       if (response.data.success) {
         setUser(response.data.data);
       } else {
-        alert(response.data.message);
+        alert(response.data.message || 'Failed to adjust wallet');
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Transaction failed');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error adjusting wallet');
+    } finally {
+      setIsSubmitting(false);
+      setActionModal({ isOpen: false, type: null });
+      setAdjustmentAmount('');
+      setAdjustmentNote('');
+      setAdminPassword('');
+      fetchUserData();
     }
-
-    setActionModal({ isOpen: false, type: null });
-    setAdjustmentAmount('');
-    setAdjustmentNote('');
   };
 
   return (
@@ -236,6 +244,29 @@ export function UserDetail() {
                   placeholder={`Explain why you are ${actionModal.type}ing the wallet...`}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-500" />
+                  Admin Password (Required)
+                </label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    required
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-red-50 pr-10"
+                    placeholder="Enter your admin password to confirm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
               <div className="pt-4 flex gap-3 justify-end">
                 <button 
                   type="button" 
@@ -246,12 +277,16 @@ export function UserDetail() {
                 </button>
                 <button 
                   type="submit"
-                  disabled={!adjustmentNote || !adjustmentAmount}
-                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                  disabled={!adjustmentNote || !adjustmentAmount || !adminPassword || isSubmitting}
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center min-w-[120px] ${
                     actionModal.type === 'credit' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
                   }`}
                 >
-                  Confirm {actionModal.type}
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    `Confirm ${actionModal.type}`
+                  )}
                 </button>
               </div>
             </form>

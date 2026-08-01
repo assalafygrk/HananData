@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const ReferralHistory = require('../models/ReferralHistory');
+const ReferralConfig = require('../models/ReferralConfig');
 const { generateToken, sendResponse } = require('../utils/helpers');
 const bcrypt = require('bcryptjs');
 
@@ -10,7 +12,7 @@ const sanitizeIdentifier = (id) => {
 
 exports.signup = async (req, res, next) => {
   try {
-    let { name, email, phone, password } = req.body;
+    let { name, email, phone, password, referralCode } = req.body;
     email = sanitizeIdentifier(email);
     phone = sanitizeIdentifier(phone);
 
@@ -20,10 +22,26 @@ exports.signup = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     
-    // Generate a simple referral code
-    const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Generate a simple referral code for the new user
+    const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    const user = await User.create({ name, email, phone, passwordHash, referralCode });
+    const user = await User.create({ name, email, phone, passwordHash, referralCode: newReferralCode });
+
+    // Handle referral tracking
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      if (referrer) {
+        let config = await ReferralConfig.findOne();
+        const bonusAmount = config ? config.bonusAmount : 500;
+        await ReferralHistory.create({
+          referrerId: referrer._id,
+          referredUserId: user._id,
+          bonusPaid: bonusAmount,
+          status: 'pending' // Paid after first funding
+        });
+      }
+    }
+
     const token = generateToken(user._id);
 
     return sendResponse(res, 201, true, { _id: user._id, name: user.name, email: user.email, phone: user.phone, token });

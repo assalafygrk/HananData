@@ -1,19 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Info, AlertTriangle, XCircle, AlertOctagon, ActivitySquare, Filter, Trash2, Download, Eye, X } from 'lucide-react';
+import api from '../api';
 
 export function SystemLogs() {
   const [logs, setLogs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<'all' | 'info' | 'warning' | 'error' | 'critical'>('all');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'admin_panel' | 'mobile_app' | 'system'>('all');
+  const [loading, setLoading] = useState(true);
   
   const [selectedLog, setSelectedLog] = useState<any | null>(null);
 
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await api.get('/admin/logs');
+        if (res.data.success) {
+          setLogs(res.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch logs", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
+
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 
-      log.actor.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.details.toLowerCase().includes(searchTerm.toLowerCase());
+      (log.actor?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || 
+      (log.action?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (log.details?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     const matchesLevel = levelFilter === 'all' || log.level === levelFilter;
     const matchesSource = sourceFilter === 'all' || log.source === sourceFilter;
@@ -135,59 +153,66 @@ export function SystemLogs() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {new Date(log.timestamp).toLocaleDateString()}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(log.timestamp).toLocaleTimeString()}
-                    </div>
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${getLevelBadge(log.level)}`}>
-                      {getLevelIcon(log.level)}
-                      {log.level}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${getSourceBadge(log.source)}`}>
-                      {log.source.replace('_', ' ').toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="font-medium text-gray-900">{log.actor}</span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="font-medium text-gray-900 truncate max-w-[200px]">{log.action}</div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => setSelectedLog(log)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteLog(log.id)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
-                        title="Delete Log"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                    Loading logs...
                   </td>
                 </tr>
-              ))}
-              {filteredLogs.length === 0 && (
+              ) : filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-gray-500">
                     No logs found matching your criteria.
                   </td>
                 </tr>
+              ) : (
+                filteredLogs.map((log) => (
+                  <tr key={log.id || log._id} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {new Date(log.createdAt || log.timestamp).toLocaleDateString()}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(log.createdAt || log.timestamp).toLocaleTimeString()}
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${getLevelBadge(log.level)}`}>
+                        {getLevelIcon(log.level)}
+                        {log.level}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-medium ${getSourceBadge(log.source)}`}>
+                        {log.source ? log.source.replace('_', ' ').toUpperCase() : 'UNKNOWN'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="font-medium text-gray-900">{log.actor}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="font-medium text-gray-900 truncate max-w-[200px]">{log.action}</div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => setSelectedLog(log)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteLog(log.id || log._id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="Delete Log"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -215,7 +240,7 @@ export function SystemLogs() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Timestamp</p>
-                  <p className="text-sm text-gray-900 mt-1">{new Date(selectedLog.timestamp).toLocaleString()}</p>
+                  <p className="text-sm text-gray-900 mt-1">{new Date(selectedLog.createdAt || selectedLog.timestamp).toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Actor</p>
@@ -224,7 +249,7 @@ export function SystemLogs() {
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase">Source</p>
                   <span className={`inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium ${getSourceBadge(selectedLog.source)}`}>
-                    {selectedLog.source.replace('_', ' ').toUpperCase()}
+                    {(selectedLog.source || '').replace('_', ' ').toUpperCase()}
                   </span>
                 </div>
                 <div>
@@ -249,7 +274,7 @@ export function SystemLogs() {
             <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button 
                 onClick={() => {
-                  handleDeleteLog(selectedLog.id);
+                  handleDeleteLog(selectedLog.id || selectedLog._id);
                   setSelectedLog(null);
                 }}
                 className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"

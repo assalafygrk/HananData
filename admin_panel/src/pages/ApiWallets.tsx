@@ -44,7 +44,9 @@ export function ApiWallets() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {providers.map((provider) => {
-          const isLowBalance = provider.balance < provider.lowBalanceThreshold;
+          const balance = provider.liveBalance ?? provider.balance ?? 0;
+          const threshold = provider.lowBalanceThreshold ?? 5000;
+          const isLowBalance = balance < threshold;
 
           return (
             <div key={provider._id} className={`bg-white rounded-xl shadow-sm border p-6 ${
@@ -73,11 +75,11 @@ export function ApiWallets() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>Current Balance</span>
-                  <span>Threshold: ₦{provider.lowBalanceThreshold.toLocaleString()}</span>
+                  <span>Threshold: ₦{threshold.toLocaleString()}</span>
                 </div>
                 <div className="flex items-end gap-3">
                   <span className={`text-3xl font-bold ${isLowBalance ? 'text-red-600' : 'text-gray-900'}`}>
-                    ₦{provider.balance.toLocaleString()}
+                    ₦{balance.toLocaleString()}
                   </span>
                 </div>
               </div>

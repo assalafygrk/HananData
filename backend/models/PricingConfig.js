@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const pricingConfigSchema = new mongoose.Schema({
   network: { type: String, required: true },
-  category: { type: String, enum: ['airtime', 'data', 'cable', 'electricity'], required: true },
+  category: { type: String, enum: ['airtime', 'data', 'cable', 'electricity', 'airtime-to-cash', 'bulk-sms', 'exam-pins'], required: true },
   planId: { type: String },
   planName: { type: String },
   apiCost: { type: Number, required: true },

@@ -139,4 +139,13 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
+  static Future<Map<String, dynamic>> getPricing(String category) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse('$baseUrl/services/pricing?category=$category'), headers: headers);
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
 }
