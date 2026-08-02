@@ -6,6 +6,7 @@ class TxnData {
   final String? networkColor;
   final String? recipient;
   final String? plan;
+  final String? planId;
   final String? provider;
   final String? meterNumber;
   final String? refId;
@@ -21,6 +22,7 @@ class TxnData {
     this.networkColor,
     this.recipient,
     this.plan,
+    this.planId,
     this.provider,
     this.meterNumber,
     this.refId,
@@ -37,6 +39,7 @@ class TxnData {
     String? networkColor,
     String? recipient,
     String? plan,
+    String? planId,
     String? provider,
     String? meterNumber,
     String? refId,
@@ -52,6 +55,7 @@ class TxnData {
       networkColor: networkColor ?? this.networkColor,
       recipient: recipient ?? this.recipient,
       plan: plan ?? this.plan,
+      planId: planId ?? this.planId,
       provider: provider ?? this.provider,
       meterNumber: meterNumber ?? this.meterNumber,
       refId: refId ?? this.refId,

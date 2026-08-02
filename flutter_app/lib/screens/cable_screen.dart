@@ -4,6 +4,7 @@ import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
 import '../services/api_service.dart';
+import '../utils/phone_utils.dart';
 
 class CableScreen extends StatefulWidget {
   const CableScreen({super.key});
@@ -14,7 +15,7 @@ class CableScreen extends StatefulWidget {
 
 class _CableScreenState extends State<CableScreen> {
   int _provIdx = 0;
-  final _smartcardCtrl = TextEditingController(text: '0123456789');
+  final _smartcardCtrl = TextEditingController();
   String? _selectedId;
   
   List<dynamic> _apiPlans = [];
@@ -23,7 +24,18 @@ class _CableScreenState extends State<CableScreen> {
   @override
   void initState() {
     super.initState();
+    _smartcardCtrl.addListener(_onSmartcardChanged);
     _fetchPlans();
+  }
+
+  void _onSmartcardChanged() {
+    final detected = PhoneUtils.detectCableProviderIndex(_smartcardCtrl.text);
+    if (detected != null && detected != _provIdx) {
+      setState(() {
+        _provIdx = detected;
+        _selectedId = null;
+      });
+    }
   }
   
   Future<void> _fetchPlans() async {
@@ -44,6 +56,7 @@ class _CableScreenState extends State<CableScreen> {
 
   @override
   void dispose() {
+    _smartcardCtrl.removeListener(_onSmartcardChanged);
     _smartcardCtrl.dispose();
     super.dispose();
   }
@@ -61,6 +74,7 @@ class _CableScreenState extends State<CableScreen> {
       total: price,
       description: '${_prov.name} $planName',
       plan: planName,
+      planId: pkg['planId'],
       refId: genRef(),
     );
     Navigator.pushNamed(context, '/confirm', arguments: txn);

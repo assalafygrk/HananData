@@ -111,6 +111,7 @@ class _DataScreenState extends State<DataScreen> {
       networkColor: '#${(_net.color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}',
       recipient: normalized,
       plan: planName,
+      planId: plan['planId'],
       amount: price,
       fee: 0,
       total: price,

@@ -33,4 +33,55 @@ class PhoneUtils {
     if (mobile9Prefixes.contains(prefix)) return 3; // 9mobile
     return null;
   }
+
+  /// Cable TV provider detection matching kCableProviders (0: DStv, 1: GOtv, 2: StarTimes)
+  static int? detectCableProviderIndex(String smartcard) {
+    final clean = smartcard.replaceAll(RegExp(r'\D'), '');
+    if (clean.length < 2) return null;
+
+    // StarTimes decoder numbers are 11 digits starting with 01, 02, 06, 07, 0, 2
+    if (clean.length == 11 && (clean.startsWith('01') || clean.startsWith('02') || clean.startsWith('06') || clean.startsWith('07'))) {
+      return 2; // StarTimes
+    }
+    // GOtv IUC numbers are 10 digits starting with 20, 70, 10, 2
+    if (clean.length == 10 && (clean.startsWith('20') || clean.startsWith('70') || clean.startsWith('2'))) {
+      return 1; // GOtv
+    }
+    // DStv smartcard numbers are 10 or 11 digits starting with 10, 4, 1, 7
+    if ((clean.length == 10 || clean.length == 11) && (clean.startsWith('10') || clean.startsWith('4') || clean.startsWith('1'))) {
+      return 0; // DStv
+    }
+    return null;
+  }
+
+  /// Electricity Meter detection matching kDiscos indices (0 to 10)
+  static int? detectElectricityDiscoIndex(String meter) {
+    final clean = meter.replaceAll(RegExp(r'\D'), '');
+    if (clean.length < 3) return null;
+
+    // Ikeja Electric (IKEDC) -> 0
+    if (clean.startsWith('0101') || clean.startsWith('0102') || clean.startsWith('015') || clean.startsWith('016') || clean.startsWith('017') || clean.startsWith('018') || clean.startsWith('019')) return 0;
+    // Eko Electric (EKEDC) -> 1
+    if (clean.startsWith('012') || clean.startsWith('013') || clean.startsWith('014') || clean.startsWith('041') || clean.startsWith('042')) return 1;
+    // Abuja Electric (AEDC) -> 2
+    if (clean.startsWith('14') || clean.startsWith('44') || clean.startsWith('54') || clean.startsWith('010') || clean.startsWith('011')) return 2;
+    // Kano Electric (KEDCO) -> 3
+    if (clean.startsWith('37') || clean.startsWith('22') || clean.startsWith('32')) return 3;
+    // Ibadan Electric (IBEDC) -> 4
+    if (clean.startsWith('62') || clean.startsWith('65') || clean.startsWith('66')) return 4;
+    // Enugu Electric (EEDC) -> 5
+    if (clean.startsWith('07') || clean.startsWith('70') || clean.startsWith('08')) return 5;
+    // Jos Electric (JED) -> 6
+    if (clean.startsWith('90') || clean.startsWith('91') || clean.startsWith('92')) return 6;
+    // Kaduna Electric (KAEDCO) -> 7
+    if (clean.startsWith('80') || clean.startsWith('81') || clean.startsWith('82')) return 7;
+    // Port Harcourt Electric (PHED) -> 8
+    if (clean.startsWith('30') || clean.startsWith('95') || clean.startsWith('96')) return 8;
+    // Yola Electric (YEDC) -> 9
+    if (clean.startsWith('40') || clean.startsWith('41')) return 9;
+    // Benin Electric (BEDC) -> 10
+    if (clean.startsWith('45') || clean.startsWith('46')) return 10;
+
+    return null;
+  }
 }

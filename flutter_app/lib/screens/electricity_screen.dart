@@ -4,6 +4,8 @@ import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
 
+import '../utils/phone_utils.dart';
+
 class ElectricityScreen extends StatefulWidget {
   const ElectricityScreen({super.key});
   @override
@@ -13,7 +15,7 @@ class ElectricityScreen extends StatefulWidget {
 class _ElectricityScreenState extends State<ElectricityScreen> {
   int _discoIdx = 0;
   String _meterType = 'prepaid';
-  final _meterCtrl  = TextEditingController(text: '12345678901');
+  final _meterCtrl  = TextEditingController();
   final _amountCtrl = TextEditingController();
   String _quickAmt  = '';
 
@@ -26,12 +28,23 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   @override
   void initState() {
     super.initState();
+    _meterCtrl.addListener(_onMeterChanged);
     _discoShorts = kDiscos.map(discoShortName).toList();
     _discoColors = _discoShorts.map(discoColor).toList();
   }
 
+  void _onMeterChanged() {
+    final detected = PhoneUtils.detectElectricityDiscoIndex(_meterCtrl.text);
+    if (detected != null && detected != _discoIdx) {
+      setState(() {
+        _discoIdx = detected;
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _meterCtrl.removeListener(_onMeterChanged);
     _meterCtrl.dispose();
     _amountCtrl.dispose();
     super.dispose();

@@ -66,7 +66,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       'network': txn.network,
       'amount': txn.amount,
       'phone': txn.recipient,
-      'planId': txn.plan,
+      'planId': txn.planId ?? txn.plan,
       'provider': txn.provider,
       'pin': _pin,
     };

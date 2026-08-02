@@ -118,7 +118,7 @@ exports.purchaseService = (type) => async (req, res, next) => {
       }
       apiResponse = await apiClient.purchaseCable({ service: serviceProvider, bills_code: planId, smartNumber: phone });
     } else if (type === 'electricity') {
-      const meterType = (planId || 'PRE').toUpperCase(); 
+      const meterType = (planId || 'PRE').toUpperCase().includes('POST') ? 'POST' : 'PRE';
       const verifyRes = await apiClient.verifyElectricity({ service: serviceProvider, meterNumber: phone, meterType });
       if (verifyRes.error || !verifyRes.accessToken) {
         transaction.status = 'failed';
