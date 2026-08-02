@@ -138,70 +138,86 @@ export function PricingManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Network / Plan</th>
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Plan ID</th>
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Provider Setup</th>
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase">API Cost (₦)</th>
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase">Vendor (₦)</th>
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase">User (₦)</th>
-                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase text-right">Action</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Network / Plan</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Type</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Plan ID</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Provider</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">API Cost (₦)</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Vendor (₦)</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">User (₦)</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr><td colSpan={7} className="py-12"><LogoLoader /></td></tr>
               ) : filteredPricing.map((p) => {
-                const vendorPL = calculateProfit(p.vendorPrice, p.apiPrice);
-                const userPL = calculateProfit(p.userPrice, p.apiPrice);
+                const vendorPL = calculateProfit(p.vendorPrice, p.apiCost);
+                const userPL = calculateProfit(p.userPrice, p.apiCost);
                 // p.providerId might be an object or string, so check if it exists in providers array
                 const pId = typeof p.providerId === 'object' ? p.providerId?._id : p.providerId;
                 const providerName = providers.find(prov => prov._id === pId)?.name || 'Unknown Provider';
 
                 return (
                   <tr key={p._id} className="hover:bg-gray-50">
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full shrink-0 ${
                           p.network === 'MTN' ? 'bg-[#FFCC00]' :
-                          p.network === 'Airtel' ? 'bg-[#E4002B]' :
-                          p.network === 'Glo' ? 'bg-[#009A44]' : 'bg-gray-800'
+                          p.network === 'Airtel' || p.network === 'AIRTEL' ? 'bg-[#E4002B]' :
+                          p.network === 'Glo' || p.network === 'GLO' ? 'bg-[#009A44]' : 'bg-gray-800'
                         }`} />
                         <div>
                           <div className="font-bold text-gray-900 whitespace-nowrap">{p.network}</div>
                           <div className="text-sm text-gray-600 whitespace-nowrap">{p.planName}</div>
+                          {p.duration && <div className="text-xs text-gray-400">{p.duration}</div>}
                         </div>
                       </div>
                     </td>
-                    
-                    <td className="py-4 px-6">
+
+                    <td className="py-4 px-4">
+                      {p.planType && (
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
+                          p.planType === 'SME2' ? 'bg-blue-100 text-blue-700' :
+                          p.planType === 'CORPORATE GIFTING' ? 'bg-purple-100 text-purple-700' :
+                          p.planType === 'GIFTING' ? 'bg-green-100 text-green-700' :
+                          p.planType === 'DIRECT' ? 'bg-orange-100 text-orange-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {p.planType}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="py-4 px-4">
                       <span className="text-sm font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded">
                         {p.planId || 'N/A'}
                       </span>
                     </td>
 
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4">
                       <span className="font-medium text-gray-900 text-sm">{providerName}</span>
                     </td>
                     
-                    <td className="py-4 px-6">
-                      <span className="font-medium text-gray-900">{p.apiPrice}</span>
+                    <td className="py-4 px-4">
+                      <span className="font-medium text-gray-900">{p.apiCost}</span>
                     </td>
 
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4">
                       <div className="flex flex-col">
                         <span className="font-medium text-gray-900">{p.vendorPrice}</span>
                         <span className="text-xs text-green-600 font-medium whitespace-nowrap">+{vendorPL.profit} ({vendorPL.margin}%)</span>
                       </div>
                     </td>
 
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-4">
                       <div className="flex flex-col">
                         <span className="font-medium text-gray-900">{p.userPrice}</span>
                         <span className="text-xs text-green-600 font-medium whitespace-nowrap">+{userPL.profit} ({userPL.margin}%)</span>
                       </div>
                     </td>
 
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-4 text-right">
                       <button 
                         onClick={() => handleEditClick(p)}
                         className="inline-flex items-center gap-2 bg-blue-50 text-[#1B3A6B] px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
@@ -277,6 +293,18 @@ export function PricingManagement() {
                     )}
 
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Plan Type / Category</label>
+                      <input 
+                        type="text"
+                        value={editModal.data.planType || ''}
+                        onChange={(e) => handleModalChange('planType', e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                        placeholder="e.g. SME2, CORPORATE GIFTING, GIFTING"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">The type/category of this plan as set by the provider.</p>
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Target Provider</label>
                       <select 
                         required
@@ -315,8 +343,8 @@ export function PricingManagement() {
                         type="number"
                         required
                         min="0"
-                        value={editModal.data.apiPrice}
-                        onChange={(e) => handleModalChange('apiPrice', Number(e.target.value))}
+                        value={editModal.data.apiCost}
+                        onChange={(e) => handleModalChange('apiCost', Number(e.target.value))}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
                       />
                     </div>

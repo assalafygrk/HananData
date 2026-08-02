@@ -6,6 +6,7 @@ import '../widgets/shared_widgets.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../utils/phone_utils.dart';
 
 class DataScreen extends StatefulWidget {
   const DataScreen({super.key});
@@ -26,8 +27,20 @@ class _DataScreenState extends State<DataScreen> {
   @override
   void initState() {
     super.initState();
+    _phoneCtrl.addListener(_onPhoneChanged);
     _loadUserPhone();
     _fetchPlans();
+  }
+
+  void _onPhoneChanged() {
+    final detected = PhoneUtils.detectNetworkIndex(_phoneCtrl.text);
+    if (detected != null && detected != _netIdx) {
+      setState(() {
+        _netIdx = detected;
+        _selectedPlanId = null;
+        _selectedDataType = null;
+      });
+    }
   }
 
   Future<void> _loadUserPhone() async {
@@ -37,7 +50,7 @@ class _DataScreenState extends State<DataScreen> {
       final user = jsonDecode(userStr);
       if (user['phone'] != null) {
         setState(() {
-          _phoneCtrl.text = user['phone'];
+          _phoneCtrl.text = PhoneUtils.normalizePhone(user['phone']);
         });
       }
     }
@@ -58,6 +71,7 @@ class _DataScreenState extends State<DataScreen> {
 
   @override
   void dispose() {
+    _phoneCtrl.removeListener(_onPhoneChanged);
     _phoneCtrl.dispose();
     super.dispose();
   }
@@ -90,11 +104,12 @@ class _DataScreenState extends State<DataScreen> {
     final plan = _plans.firstWhere((p) => p['_id'] == _selectedPlanId);
     final price = plan['userPrice'] ?? 0;
     final planName = plan['planName'] ?? 'Data Plan';
+    final normalized = PhoneUtils.normalizePhone(_phoneCtrl.text);
     final txn = TxnData(
       type: 'Data Bundle',
       network: _net.name,
       networkColor: '#${(_net.color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}',
-      recipient: '+234${_phoneCtrl.text.substring(1)}',
+      recipient: normalized,
       plan: planName,
       amount: price,
       fee: 0,
@@ -107,10 +122,11 @@ class _DataScreenState extends State<DataScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final canProceed = _selectedPlanId != null;
+    final normalized = PhoneUtils.normalizePhone(_phoneCtrl.text);
+    final canProceed = _selectedPlanId != null && normalized.length == 11;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

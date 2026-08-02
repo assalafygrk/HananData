@@ -8,6 +8,7 @@ const transactionSchema = new mongoose.Schema({
   fee: { type: Number, default: 0 },
   status: { type: String, enum: ['success', 'failed', 'pending'], default: 'pending' },
   refId: { type: String, required: true, unique: true },
+  failureReason: { type: String },
   providerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Provider' },
   resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
   resolvedNote: { type: String }

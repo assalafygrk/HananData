@@ -23,7 +23,7 @@ class _ExamPinScreenState extends State<ExamPinScreen> {
     final bool isValid = _selectedExam != null && _quantity > 0;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

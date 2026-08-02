@@ -6,6 +6,8 @@ const authCtrl = require('../controllers/authController');
 const profileCtrl = require('../controllers/profileController');
 const servicesCtrl = require('../controllers/servicesController');
 const miscCtrl = require('../controllers/miscController');
+const chatCtrl = require('../controllers/chatController');
+const { securityGuardrail } = require('../middleware/guardrail');
 
 // Auth
 router.post('/auth/check', authLimiter, authCtrl.checkUser);
@@ -18,6 +20,7 @@ router.post('/auth/verify-otp', authLimiter, authCtrl.verifyOtp);
 router.use(authenticateUser);
 router.get('/profile', profileCtrl.getProfile);
 router.put('/profile', profileCtrl.updateProfile);
+router.post('/profile/pin', profileCtrl.setTransactionPin);
 router.get('/wallet/balance', profileCtrl.getWalletBalance);
 router.post('/wallet/fund', profileCtrl.fundWallet);
 
@@ -35,5 +38,10 @@ router.post('/kyc/submit', miscCtrl.submitKYC);
 router.get('/referrals/my-history', miscCtrl.getReferrals);
 router.get('/notifications', miscCtrl.getNotifications);
 router.post('/notifications/:id/read', miscCtrl.markNotificationRead);
+
+// Chat
+const rateLimit = require('express-rate-limit');
+const chatLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 10, message: 'Too many messages sent. Please wait.' });
+router.post('/chat/message', chatLimiter, securityGuardrail, chatCtrl.sendMessage);
 
 module.exports = router;

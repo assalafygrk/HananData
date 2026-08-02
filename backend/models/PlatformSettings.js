@@ -7,7 +7,10 @@ const platformSettingsSchema = new mongoose.Schema({
   tier1Limit: { type: Number, default: 10000 },
   tier2Limit: { type: Number, default: 50000 },
   tier3Limit: { type: Number, default: 500000 },
-  poolBalance: { type: Number, default: 500000 }
+  poolBalance: { type: Number, default: 500000 },
+  supportPhone: { type: String, default: '0800-HANAN-DATA (toll free)' },
+  supportEmail: { type: String, default: 'support@hanandata.ng' },
+  whatsapp: { type: String, default: '+2349160048633' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('PlatformSettings', platformSettingsSchema);

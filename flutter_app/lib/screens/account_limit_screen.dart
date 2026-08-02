@@ -1,14 +1,44 @@
 // lib/screens/account_limit_screen.dart
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import '../widgets/shared_widgets.dart';
 
-class AccountLimitScreen extends StatelessWidget {
+class AccountLimitScreen extends StatefulWidget {
   const AccountLimitScreen({super.key});
 
   @override
+  State<AccountLimitScreen> createState() => _AccountLimitScreenState();
+}
+
+class _AccountLimitScreenState extends State<AccountLimitScreen> {
+  Map<String, dynamic>? _userData;
+  int _tier = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      setState(() {
+        _userData = jsonDecode(userStr);
+        _tier = _userData?['kycTier'] ?? 0;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String tierLabel = _tier == 0 ? 'Basic' : _tier == 1 ? 'Verified' : 'Advanced';
+    String nextStep = _tier == 0 ? 'Link BVN to reach Tier 1' : _tier == 1 ? 'Verify ID to reach Tier 2' : 'Max tier reached';
+
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -45,34 +75,52 @@ class AccountLimitScreen extends StatelessWidget {
                                   color: kAccentGreen,
                                   borderRadius: BorderRadius.circular(99),
                                 ),
-                                child: Text('TIER 2',
+                                child: Text('TIER $_tier',
                                     style: dFont(size: 11, weight: FontWeight.w700, color: Colors.white)),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text('Verified Account',
+                          Text(tierLabel,
                               style: dFont(size: 22, weight: FontWeight.w800, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text('BVN linked · ID verified',
-                              style: dFont(size: 12, color: Colors.white.withValues(alpha: 0.7))),
                           const SizedBox(height: 16),
-                          // Progress to Tier 3
-                          Text('Progress to Tier 3',
+                          Text('Progress to Tier ${_tier + 1}',
                               style: dFont(size: 11, color: Colors.white.withValues(alpha: 0.7))),
                           const SizedBox(height: 6),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(99),
                             child: LinearProgressIndicator(
-                              value: 0.6,
+                              value: _tier == 0 ? 0.3 : _tier == 1 ? 0.6 : 1.0,
                               minHeight: 6,
                               backgroundColor: Colors.white.withValues(alpha: 0.2),
                               valueColor: const AlwaysStoppedAnimation<Color>(kAccentGreen),
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text('1 step remaining: NIN verification',
+                          Text(nextStep,
                               style: dFont(size: 11, color: Colors.white.withValues(alpha: 0.7))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Upgrade Instructions
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F6FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFD9E8FF)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('How to upgrade?', style: dFont(size: 14, weight: FontWeight.w700, color: kPrimaryNavy)),
+                          const SizedBox(height: 8),
+                          Text('• Tier 1: Link your Bank Verification Number (BVN).', style: dFont(size: 12, color: kMediumText)),
+                          const SizedBox(height: 4),
+                          Text('• Tier 2: Upload a valid Government ID (NIN/Passport).', style: dFont(size: 12, color: kMediumText)),
+                          const SizedBox(height: 4),
+                          Text('Go to Settings > Verification to submit your documents.', style: dFont(size: 12, weight: FontWeight.w600, color: kPrimaryBlue)),
                         ],
                       ),
                     ),

@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 
@@ -13,14 +16,22 @@ class MyReferralScreen extends StatefulWidget {
 class _MyReferralScreenState extends State<MyReferralScreen> {
   List<dynamic> _referrals = [];
   bool _isLoading = true;
+  String _referralCode = 'Loading...';
 
   @override
   void initState() {
     super.initState();
-    _loadReferrals();
+    _loadData();
   }
 
-  Future<void> _loadReferrals() async {
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('userData');
+    if (userStr != null) {
+      final data = jsonDecode(userStr);
+      if (mounted) setState(() => _referralCode = data['referralCode'] ?? 'HANAN-UNKNOWN');
+    }
+
     final res = await ApiService.getReferrals();
     if (res['success'] == true && mounted) {
       setState(() {
@@ -35,7 +46,7 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -81,7 +92,7 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                           children: [
                             Text('Your Referral Code', style: dFont(size: 13, color: kMutedText)),
                             const SizedBox(height: 8),
-                            Text('HANAN-A2B3C4',
+                            Text(_referralCode,
                               style: dFont(size: 28, weight: FontWeight.w900, color: const Color(0xFF7B2FBE), letterSpacing: 2)),
                             const SizedBox(height: 16),
                             Row(
@@ -89,7 +100,7 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    Clipboard.setData(const ClipboardData(text: 'HANAN-A2B3C4'));
+                                    Clipboard.setData(ClipboardData(text: _referralCode));
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text('Code copied!', style: dFont(size: 14)), backgroundColor: const Color(0xFF7B2FBE)),
                                     );
@@ -112,7 +123,7 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                                 const SizedBox(width: 12),
                                 GestureDetector(
                                   onTap: () {
-                                    // Share action
+                                    Share.share('Sign up on HananData using my referral code $_referralCode and we both get ₦200!');
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

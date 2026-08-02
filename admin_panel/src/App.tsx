@@ -15,6 +15,7 @@ import { Analytics } from './pages/Analytics'
 import { ReferralManagement } from './pages/ReferralManagement'
 import { ApiWallets } from './pages/ApiWallets'
 import { SystemLogs } from './pages/SystemLogs'
+import { LiveSupport } from './pages/LiveSupport'
 import { Layout } from './components/Layout/Layout'
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/roles" element={<AdminRoles />} />
         <Route path="/system-logs" element={<SystemLogs />} />
         <Route path="/settings" element={<AdminSettings />} />
+        <Route path="/live-support" element={<LiveSupport />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

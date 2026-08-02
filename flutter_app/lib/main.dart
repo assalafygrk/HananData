@@ -27,7 +27,11 @@ import 'screens/my_referral_screen.dart';
 import 'screens/exam_pin_screen.dart';
 import 'screens/bulk_sms_screen.dart';
 import 'screens/notification_detail_screen.dart';
+import 'screens/help_support_screen.dart';
 import 'services/notification_service.dart';
+import 'theme/app_theme.dart';
+
+final themeProvider = ThemeProvider();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,69 +53,70 @@ class HananDataApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HananData',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1B3A6B),
-          brightness: Brightness.light,
-        ),
-        textTheme: GoogleFonts.interTextTheme(),
-        useMaterial3: true,
-        // Remove default splash & highlight
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-      ),
-      // ─── Named Routes ──────────────────────────────────────────────────────
-      initialRoute: '/splash',
-      routes: {
-        '/splash':         (_) => const SplashScreen(),
-        '/onboarding':     (_) => const OnboardingScreen(),
-        '/login':          (_) => const LoginScreen(),
-        '/signup':         (_) => const SignupScreen(),
-        '/home':           (_) => const HomeScreen(),
-        '/data':           (_) => const DataScreen(),
-        '/airtime':        (_) => const AirtimeScreen(),
-        '/cable':          (_) => const CableScreen(),
-        '/electricity':    (_) => const ElectricityScreen(),
-        '/airtimecash':    (_) => const AirtimeCashScreen(),
-        '/confirm':        (_) => const ConfirmScreen(),
-        '/success':        (_) => const SuccessScreen(),
-        '/failed':         (_) => const FailedScreen(),
-        '/history':        (_) => const HistoryScreen(),
-        '/wallet':         (_) => const WalletScreen(),
-        '/profile':        (_) => const ProfileScreen(),
-        '/notifications':  (_) => const NotificationScreen(),
-        '/settings':       (_) => const SettingsScreen(),
-        '/account-limit':  (_) => const AccountLimitScreen(),
-        '/legal':          (_) => const LegalScreen(),
-        '/my-referral':    (_) => const MyReferralScreen(),
-        '/exam-pin':       (_) => const ExamPinScreen(),
-        '/bulk-sms':       (_) => const BulkSmsScreen(),
-        '/notification-detail': (_) => const NotificationDetailScreen(),
-      },
-      // ─── Custom page transitions ───────────────────────────────────────────
-      onGenerateRoute: (settings) {
-        final builder = _routeBuilders[settings.name];
-        if (builder == null) return null;
-        return PageRouteBuilder(
-          settings: settings,
-          pageBuilder: (ctx, animation, _) => builder(ctx),
-          transitionsBuilder: (ctx, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            );
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(1.0, 0.0),
-                end: Offset.zero,
-              ).animate(curved),
-              child: child,
+    return ListenableBuilder(
+      listenable: themeProvider,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'HananData',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeProvider.themeMode,
+          theme: AppTheme.lightTheme.copyWith(
+            textTheme: GoogleFonts.interTextTheme(),
+          ),
+          darkTheme: AppTheme.darkTheme.copyWith(
+            textTheme: GoogleFonts.interTextTheme(ThemeData(brightness: Brightness.dark).textTheme),
+          ),
+          initialRoute: '/splash',
+          routes: {
+            '/splash':         (_) => const SplashScreen(),
+            '/onboarding':     (_) => const OnboardingScreen(),
+            '/login':          (_) => const LoginScreen(),
+            '/signup':         (_) => const SignupScreen(),
+            '/home':           (_) => const HomeScreen(),
+            '/data':           (_) => const DataScreen(),
+            '/airtime':        (_) => const AirtimeScreen(),
+            '/cable':          (_) => const CableScreen(),
+            '/electricity':    (_) => const ElectricityScreen(),
+            '/airtimecash':    (_) => const AirtimeCashScreen(),
+            '/confirm':        (_) => const ConfirmScreen(),
+            '/success':        (_) => const SuccessScreen(),
+            '/failed':         (_) => const FailedScreen(),
+            '/history':        (_) => const HistoryScreen(),
+            '/wallet':         (_) => const WalletScreen(),
+            '/profile':        (_) => const ProfileScreen(),
+            '/notifications':  (_) => const NotificationScreen(),
+            '/settings':       (_) => const SettingsScreen(),
+            '/account-limit':  (_) => const AccountLimitScreen(),
+            '/legal':          (_) => const LegalScreen(),
+            '/my-referral':    (_) => const MyReferralScreen(),
+            '/exam-pin':       (_) => const ExamPinScreen(),
+            '/bulk-sms':       (_) => const BulkSmsScreen(),
+            '/notification-detail': (_) => const NotificationDetailScreen(),
+            '/help-support':   (_) => const HelpSupportScreen(),
+          },
+          // ─── Custom page transitions ───────────────────────────────────────────
+          onGenerateRoute: (settings) {
+            final builder = _routeBuilders[settings.name];
+            if (builder == null) return null;
+            return PageRouteBuilder(
+              settings: settings,
+              pageBuilder: (ctx, animation, _) => builder(ctx),
+              transitionsBuilder: (ctx, animation, secondaryAnimation, child) {
+                final curved = CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                );
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(curved),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 280),
             );
           },
-          transitionDuration: const Duration(milliseconds: 280),
         );
       },
     );

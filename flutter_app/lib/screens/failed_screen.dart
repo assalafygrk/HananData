@@ -61,7 +61,7 @@ class _FailedScreenState extends State<FailedScreen>
     ];
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -136,8 +136,8 @@ class _FailedScreenState extends State<FailedScreen>
                         children: [
                           Text('What went wrong',
                             style: dFont(size: 13, weight: FontWeight.w700, color: kErrorRed)),
-                          const SizedBox(height: 6),
                           Text(
+                            txn.failureReason ??
                             'The service provider is temporarily unavailable. Please try again in a few minutes. '
                             'If the problem persists, contact our support team.',
                             style: dFont(size: 13, color: const Color(0xFF9B1C1C)),

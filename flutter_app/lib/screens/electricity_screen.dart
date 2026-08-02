@@ -54,8 +54,8 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
           : 'Postpaid · ${_meterCtrl.text}',
       meterNumber: _meterCtrl.text,
       amount: amt,
-      fee: 100,
-      total: amt + 100,
+      fee: 50,
+      total: amt + 50,
       description: disco.split(' (')[0],
       plan: '${_meterType[0].toUpperCase()}${_meterType.substring(1)} · Meter ${_meterCtrl.text}',
       refId: genRef(),
@@ -66,7 +66,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -246,7 +246,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                         border: Border.all(color: kAccentGreen),
                       ),
                       child: Text(
-                        'Service fee: ₦100 · Token delivered instantly to meter',
+                        'Service fee: ₦50 · Token delivered instantly to meter',
                         style: dFont(size: 12, weight: FontWeight.w500, color: kAccentGreen2),
                       ),
                     ),

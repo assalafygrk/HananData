@@ -9,6 +9,7 @@ class TxnData {
   final String? provider;
   final String? meterNumber;
   final String? refId;
+  final String? failureReason;
   final int amount;
   final int fee;
   final int total;
@@ -23,6 +24,7 @@ class TxnData {
     this.provider,
     this.meterNumber,
     this.refId,
+    this.failureReason,
     required this.amount,
     required this.fee,
     required this.total,
@@ -38,6 +40,7 @@ class TxnData {
     String? provider,
     String? meterNumber,
     String? refId,
+    String? failureReason,
     int? amount,
     int? fee,
     int? total,
@@ -52,6 +55,7 @@ class TxnData {
       provider: provider ?? this.provider,
       meterNumber: meterNumber ?? this.meterNumber,
       refId: refId ?? this.refId,
+      failureReason: failureReason ?? this.failureReason,
       amount: amount ?? this.amount,
       fee: fee ?? this.fee,
       total: total ?? this.total,

@@ -58,7 +58,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
     final showSummary = _num >= 100;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

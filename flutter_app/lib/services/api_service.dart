@@ -106,6 +106,24 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> setTransactionPin(String pin, {String? oldPin}) async {
+    try {
+      final headers = await _getHeaders();
+      final body = <String, dynamic>{'pin': pin};
+      if (oldPin != null && oldPin.isNotEmpty) {
+        body['oldPin'] = oldPin;
+      }
+      final res = await http.post(
+        Uri.parse('$baseUrl/profile/pin'),
+        headers: headers,
+        body: jsonEncode(body)
+      );
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> getUserTransactions() async {
     try {
       final headers = await _getHeaders();
@@ -162,6 +180,19 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.post(Uri.parse('$baseUrl/notifications/$id/read'), headers: headers);
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+  static Future<Map<String, dynamic>> sendChatMessage(String message) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.post(
+        Uri.parse('$baseUrl/chat/message'),
+        headers: headers,
+        body: jsonEncode({'message': message})
+      );
       return jsonDecode(res.body);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};

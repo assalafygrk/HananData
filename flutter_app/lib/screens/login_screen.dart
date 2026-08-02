@@ -75,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
         : _phoneCtrl.text.length >= 10;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       // Prevent bottom resize when keyboard shows — we manage it manually
       resizeToAvoidBottomInset: true,
       body: SafeArea(

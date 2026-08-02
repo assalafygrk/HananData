@@ -10,7 +10,7 @@ class NotificationDetailScreen extends StatelessWidget {
     final notif = ModalRoute.of(context)!.settings.arguments as AppNotification;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

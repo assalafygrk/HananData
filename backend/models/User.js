@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   kycTier: { type: Number, enum: [0, 1, 2], default: 0 },
   kycStatus: { type: String, enum: ['unverified', 'pending', 'verified', 'rejected'], default: 'unverified' },
   status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+  transactionPinHash: { type: String },
   referralCode: { type: String, unique: true },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   pushNotifs: { type: Boolean, default: true },

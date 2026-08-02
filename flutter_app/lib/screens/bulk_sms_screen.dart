@@ -48,7 +48,7 @@ class _BulkSmsScreenState extends State<BulkSmsScreen> {
     final bool isValid = _senderIdCtrl.text.isNotEmpty && _recipientCount > 0 && _pageCount > 0;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

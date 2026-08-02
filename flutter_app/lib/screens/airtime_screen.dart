@@ -5,6 +5,7 @@ import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../utils/phone_utils.dart';
 
 class AirtimeScreen extends StatefulWidget {
   const AirtimeScreen({super.key});
@@ -25,7 +26,17 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
   @override
   void initState() {
     super.initState();
+    _phoneCtrl.addListener(_onPhoneChanged);
     _loadUserPhone();
+  }
+
+  void _onPhoneChanged() {
+    final detected = PhoneUtils.detectNetworkIndex(_phoneCtrl.text);
+    if (detected != null && detected != _netIdx) {
+      setState(() {
+        _netIdx = detected;
+      });
+    }
   }
 
   Future<void> _loadUserPhone() async {
@@ -35,7 +46,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
       final user = jsonDecode(userStr);
       if (user['phone'] != null) {
         setState(() {
-          _phoneCtrl.text = user['phone'];
+          _phoneCtrl.text = PhoneUtils.normalizePhone(user['phone']);
         });
       }
     }
@@ -43,6 +54,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
 
   @override
   void dispose() {
+    _phoneCtrl.removeListener(_onPhoneChanged);
     _phoneCtrl.dispose();
     _amountCtrl.dispose();
     super.dispose();
@@ -50,15 +62,19 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
 
   void _proceed() {
     final amt = int.tryParse(_amountCtrl.text) ?? 0;
+    final discount = (amt * 0.01).round();
+    final total = amt - discount;
+    final normalized = PhoneUtils.normalizePhone(_phoneCtrl.text);
+    
     final txn = TxnData(
       type: 'Airtime',
       network: _net.name,
       networkColor: '#${(_net.color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}',
-      recipient: '+234${_phoneCtrl.text.substring(1)}',
+      recipient: normalized,
       amount: amt,
-      fee: 0,
-      total: amt,
-      description: '${_net.name} ₦${fmtNaira(amt)} Airtime',
+      fee: -discount, // Show discount as negative fee
+      total: total,
+      description: '${_net.name} ₦${fmtNaira(amt)} Airtime (1% Discount)',
       refId: genRef(),
     );
     Navigator.pushNamed(context, '/confirm', arguments: txn);
@@ -66,13 +82,14 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
 
   bool get _canProceed {
     final amt = int.tryParse(_amountCtrl.text) ?? 0;
-    return amt >= 50 && _phoneCtrl.text.length >= 10;
+    final normalized = PhoneUtils.normalizePhone(_phoneCtrl.text);
+    return amt >= 50 && normalized.length == 11;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

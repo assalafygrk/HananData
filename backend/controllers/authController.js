@@ -7,7 +7,15 @@ const bcrypt = require('bcryptjs');
 const sanitizeIdentifier = (id) => {
   if (!id) return '';
   const trimmed = id.trim();
-  return trimmed.includes('@') ? trimmed.toLowerCase() : trimmed.replace(/[^\d+]/g, '');
+  if (trimmed.includes('@')) return trimmed.toLowerCase();
+
+  let digits = trimmed.replace(/\D/g, '');
+  if (digits.startsWith('234') && digits.length === 13) {
+    digits = '0' + digits.substring(3);
+  } else if (digits.length === 10 && !digits.startsWith('0')) {
+    digits = '0' + digits;
+  }
+  return digits;
 };
 
 exports.signup = async (req, res, next) => {

@@ -51,7 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final items = _filtered;
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [

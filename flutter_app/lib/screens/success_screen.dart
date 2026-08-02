@@ -60,12 +60,12 @@ class _SuccessScreenState extends State<SuccessScreen>
       if (txn.recipient != null) _ReceiptRow(label: 'Recipient', value: txn.recipient!),
       _ReceiptRow(label: 'Amount',  value: '₦${fmtNaira(txn.total)}'),
       _ReceiptRow(label: 'Ref ID',  value: refId),
-      const _ReceiptRow(label: 'Date',    value: 'Jul 18, 2026 · 9:41 AM'),
+      _ReceiptRow(label: 'Date',    value: '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} · ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}'),
       const _ReceiptRow(label: 'Status',  value: '✓ Successful', isStatus: true),
     ];
 
     return Scaffold(
-      backgroundColor: kBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
