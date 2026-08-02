@@ -90,30 +90,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 32),
                     // Logo mark
-                    Container(
-                      width: 56, height: 56,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF00C896), Color(0xFF00A87D)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: kAccentGreen.withValues(alpha: 0.3),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'H',
-                        style: GoogleFonts.inter(
-                          fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white,
-                        ),
-                      ),
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 64, height: 64,
                     ),
                     const SizedBox(height: 28),
                     Row(

@@ -45,30 +45,10 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 80, height: 80,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00C896), Color(0xFF00A87D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: kAccentGreen.withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'H',
-                  style: GoogleFonts.inter(
-                    fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white,
-                  ),
-                ),
+              Image.asset(
+                'assets/images/logo.png',
+                width: 100,
+                height: 100,
               ),
               const SizedBox(height: 24),
               Text(

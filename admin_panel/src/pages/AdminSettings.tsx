@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, Settings2, ShieldAlert, CreditCard, UserX } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../api';
 import { LogoLoader } from '../components/LogoLoader';
 
@@ -30,6 +31,7 @@ export function AdminSettings() {
         }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
+        toast.error('Failed to fetch settings');
       } finally {
         setLoading(false);
       }
@@ -49,9 +51,11 @@ export function AdminSettings() {
         tier3Limit: Number(tier3Limit),
       });
       setIsSaved(true);
+      toast.success('Settings saved successfully');
       setTimeout(() => setIsSaved(false), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save settings:', error);
+      toast.error(error.response?.data?.message || 'Failed to save settings');
     }
   };
 

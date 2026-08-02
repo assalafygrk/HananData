@@ -96,6 +96,16 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.put(Uri.parse('$baseUrl/profile'), headers: headers, body: jsonEncode(data));
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> getUserTransactions() async {
     try {
       final headers = await _getHeaders();

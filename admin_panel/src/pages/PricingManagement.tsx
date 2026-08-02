@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, Edit2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../api';
 import { LogoLoader } from '../components/LogoLoader';
 
@@ -26,6 +27,7 @@ export function PricingManagement() {
         if (providersRes.data.success) setProviders(providersRes.data.data);
       } catch (error) {
         console.error('Error fetching data', error);
+        toast.error('Failed to load pricing data');
       } finally {
         setLoading(false);
       }
@@ -77,19 +79,21 @@ export function PricingManagement() {
             setPricingData(prev => prev.map(p => 
               p._id === editModal.data?._id ? response.data.data : p
             ));
+            toast.success('Configuration updated');
           } else {
-            alert(response.data.message);
+            toast.error(response.data.message || 'Failed to update');
           }
         } else {
           const response = await api.post(`/admin/pricing`, editModal.data);
           if (response.data.success) {
             setPricingData([...pricingData, response.data.data]);
+            toast.success('Configuration created');
           } else {
-            alert(response.data.message);
+            toast.error(response.data.message || 'Failed to create');
           }
         }
-      } catch (error) {
-        alert('Failed to save configuration');
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || 'Failed to save configuration');
       }
     }
     setEditModal({ isOpen: false, data: null });

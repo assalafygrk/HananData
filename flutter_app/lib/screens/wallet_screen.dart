@@ -87,7 +87,7 @@ class _WalletScreenState extends State<WalletScreen> {
                             style: dFont(size: 11, weight: FontWeight.w600,
                               color: const Color(0xFF7BAED4))),
                           const SizedBox(height: 6),
-                          Text('₦${(_userData?['balance'] ?? 0).toStringAsFixed(2)}',
+                          Text('₦${(_userData?['walletBalance'] ?? 0).toStringAsFixed(2)}',
                             style: GoogleFonts.inter(
                               fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white,
                               letterSpacing: -0.5,

@@ -1,17 +1,30 @@
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, CreditCard, Tag, Link2, 
-  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare
+  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare, Search
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { QuickSearchModal } from './QuickSearchModal';
 
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   const token = localStorage.getItem('adminToken');
   const [adminData, setAdminData] = useState<any>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const dataStr = localStorage.getItem('adminData');
@@ -96,7 +109,26 @@ export function Layout() {
             <Menu className="w-6 h-6" />
           </button>
           
-          <div className="flex-1" />
+          <div className="flex-1 px-4 lg:px-8 flex justify-center lg:justify-start">
+             <button 
+                onClick={() => setSearchOpen(true)}
+                className="hidden sm:flex items-center w-full max-w-sm bg-gray-100/80 text-gray-500 hover:bg-gray-200/80 px-4 py-2 rounded-xl text-sm transition-colors border border-gray-200"
+             >
+                <Search className="w-4 h-4 mr-2 text-gray-400" />
+                <span>Quick search...</span>
+                <div className="ml-auto flex items-center gap-1 opacity-70">
+                  <kbd className="font-sans text-[10px] font-semibold bg-white border border-gray-300 rounded px-1.5 py-0.5">Ctrl</kbd>
+                  <span className="text-xs">+</span>
+                  <kbd className="font-sans text-[10px] font-semibold bg-white border border-gray-300 rounded px-1.5 py-0.5">K</kbd>
+                </div>
+             </button>
+             <button 
+                onClick={() => setSearchOpen(true)}
+                className="sm:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+             >
+                <Search className="w-5 h-5" />
+             </button>
+          </div>
           
           <div className="flex items-center space-x-4">
             <div className="text-sm text-right hidden sm:block">
@@ -121,6 +153,8 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+
+      <QuickSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

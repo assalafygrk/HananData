@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import { AdminLogin } from './pages/AdminLogin'
 import { Dashboard } from './pages/Dashboard'
 import { UserManagement } from './pages/UserManagement'
@@ -18,8 +19,10 @@ import { Layout } from './components/Layout/Layout'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<AdminLogin />} />
+    <>
+      <Toaster position="top-right" />
+      <Routes>
+        <Route path="/login" element={<AdminLogin />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -38,7 +41,8 @@ function App() {
         <Route path="/settings" element={<AdminSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+      </Routes>
+    </>
   )
 }
 

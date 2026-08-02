@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -44,6 +45,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveBool(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+
+    if (key == 'setting_pushNotifs') {
+      await ApiService.updateProfile({'pushNotifs': value});
+    } else if (key == 'setting_smsNotifs') {
+      await ApiService.updateProfile({'smsNotifs': value});
+    } else if (key == 'setting_emailNotifs') {
+      await ApiService.updateProfile({'emailNotifs': value});
+    }
   }
 
   Future<void> _saveString(String key, String value) async {

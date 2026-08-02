@@ -63,10 +63,34 @@ exports.login = async (req, res, next) => {
     const { password } = req.body;
     const user = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
     
+    const AuditLog = require('../models/AuditLog');
+
     if (user && (await bcrypt.compare(password, user.passwordHash))) {
       const token = generateToken(user._id);
+      
+      await AuditLog.create({
+        actorId: user._id,
+        actorType: 'system',
+        actorModel: 'User',
+        action: 'USER_LOGIN_SUCCESS',
+        level: 'info',
+        source: 'mobile_app',
+        details: `User ${identifier} logged in successfully`
+      });
+
       return sendResponse(res, 200, true, { _id: user._id, name: user.name, email: user.email, phone: user.phone, token });
     }
+    
+    await AuditLog.create({
+      actorId: user ? user._id : undefined,
+      actorType: 'system',
+      actorModel: 'User',
+      action: 'USER_LOGIN_FAILED',
+      level: 'warning',
+      source: 'mobile_app',
+      details: `Failed login attempt for identifier: ${identifier}`
+    });
+
     return sendResponse(res, 401, false, 'Invalid credentials');
   } catch (error) { next(error); }
 };

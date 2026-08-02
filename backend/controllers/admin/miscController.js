@@ -5,6 +5,34 @@ const PlatformSettings = require('../../models/PlatformSettings');
 const { sendResponse } = require('../../utils/helpers');
 
 // Quick mocks for the rest of admin routes for the sake of completeness
+exports.globalSearch = async (req, res, next) => {
+  try {
+    const q = req.query.q || '';
+    if (!q || q.length < 2) return sendResponse(res, 200, true, []);
+
+    const regex = new RegExp(q, 'i');
+    const User = require('../../models/User');
+    
+    const [users, txs, providers] = await Promise.all([
+      User.find({
+        $or: [{ name: regex }, { email: regex }, { phone: regex }]
+      }).limit(5).lean(),
+      Transaction.find({
+        $or: [{ refId: regex }, { type: regex }]
+      }).limit(5).lean(),
+      Provider.find({
+        $or: [{ name: regex }, { type: regex }]
+      }).limit(5).lean()
+    ]);
+
+    const results = [];
+    users.forEach(u => results.push({ type: 'user', id: u._id, title: u.name, subtitle: u.email }));
+    txs.forEach(t => results.push({ type: 'transaction', id: t._id, title: `Transaction ${t.refId}`, subtitle: `${t.type} - ₦${t.amount}` }));
+    providers.forEach(p => results.push({ type: 'provider', id: p._id, title: p.name, subtitle: `Provider (${p.type})` }));
+
+    return sendResponse(res, 200, true, results);
+  } catch (error) { next(error); }
+};
 exports.getTransactions = async (req, res, next) => {
   try {
     const { user } = req.query;
@@ -166,7 +194,7 @@ exports.getBroadcasts = async (req, res, next) => {
 exports.sendBroadcast = async (req, res, next) => {
   try {
     const Broadcast = require('../../models/Broadcast');
-    const broadcast = new Broadcast({ ...req.body, createdBy: req.admin.id });
+    const broadcast = new Broadcast({ ...req.body, createdBy: req.admin.id, status: 'sent', sentAt: new Date() });
     await broadcast.save();
     return sendResponse(res, 201, true, broadcast);
   } catch (error) { next(error); }

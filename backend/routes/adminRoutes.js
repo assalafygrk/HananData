@@ -35,6 +35,8 @@ router.put('/pricing/:id', requireRole(['Super Admin']), miscCtrl.updatePricing)
 router.get('/settings', miscCtrl.getSettings);
 router.put('/settings', requireRole(['Super Admin']), miscCtrl.updateSettings);
 
+router.get('/search', requireRole(['Super Admin']), miscCtrl.globalSearch);
+
 // Logs
 router.get('/logs', requireRole(['Super Admin']), miscCtrl.getLogs);
 

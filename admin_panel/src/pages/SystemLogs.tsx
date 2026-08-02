@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Info, AlertTriangle, XCircle, AlertOctagon, ActivitySquare, Filter, Trash2, Download, Eye, X } from 'lucide-react';
+import { io } from 'socket.io-client';
 import api from '../api';
 
 export function SystemLogs() {
@@ -25,6 +26,15 @@ export function SystemLogs() {
       }
     };
     fetchLogs();
+
+    const socket = io('http://localhost:5000');
+    socket.on('new-log', (newLog) => {
+      setLogs((prevLogs) => [newLog, ...prevLogs]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const filteredLogs = logs.filter(log => {

@@ -144,6 +144,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     const SizedBox(height: 24),
 
                     if (_step == 0) ...[
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 56, height: 56,
+                      ),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Text('Your details',

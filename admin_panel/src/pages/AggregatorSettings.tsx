@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, Server, CreditCard, Plus, Trash2, Edit2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../api';
 
 export function AggregatorSettings() {
@@ -39,7 +40,7 @@ export function AggregatorSettings() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name) return alert('Name is required');
+    if (!formData.name) return toast.error('Name is required');
     try {
       setIsSubmitting(true);
       const res = await api.post('/admin/providers', {
@@ -51,11 +52,12 @@ export function AggregatorSettings() {
         else setGateways([...gateways, res.data.data]);
         setModal({ isOpen: false, type: null });
         setFormData({ name: '', username: '', apiKeyEncrypted: '', baseUrl: '', webhookUrl: '' });
+        toast.success('Configuration added successfully');
       } else {
-        alert(res.data.message);
+        toast.error(res.data.message);
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to add configuration');
+      toast.error(error.response?.data?.message || 'Failed to add configuration');
     } finally {
       setIsSubmitting(false);
     }

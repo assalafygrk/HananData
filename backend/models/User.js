@@ -10,7 +10,10 @@ const userSchema = new mongoose.Schema({
   kycStatus: { type: String, enum: ['unverified', 'pending', 'verified', 'rejected'], default: 'unverified' },
   status: { type: String, enum: ['active', 'suspended'], default: 'active' },
   referralCode: { type: String, unique: true },
-  referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  pushNotifs: { type: Boolean, default: true },
+  emailNotifs: { type: Boolean, default: false },
+  smsNotifs: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

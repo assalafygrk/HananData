@@ -1,6 +1,7 @@
 // lib/widgets/shared_widgets.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
 import '../constants/app_data.dart';
 
@@ -401,6 +402,17 @@ class NetworkLogoChip extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _fallbackText() {
+    return Text(
+      letter,
+      style: GoogleFonts.inter(
+        fontSize: 18,
+        fontWeight: FontWeight.w900,
+        color: selected ? Colors.white : brandColor,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -429,14 +441,11 @@ class NetworkLogoChip extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: Text(
-                letter,
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: selected ? Colors.white : brandColor,
-                ),
-              ),
+              child: logoUrl != null
+                  ? (logoUrl!.startsWith('http')
+                      ? Image.network(logoUrl!, width: 28, height: 28, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _fallbackText())
+                      : Image.asset(logoUrl!, width: 28, height: 28, fit: BoxFit.contain, errorBuilder: (_, __, ___) => _fallbackText()))
+                  : _fallbackText(),
             ),
             const SizedBox(height: 6),
             Text(
@@ -898,7 +907,22 @@ class TxnDetailSheet extends StatelessWidget {
                     width: double.infinity,
                     height: 50,
                     child: OutlinedButton.icon(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        final sb = StringBuffer();
+                        sb.writeln('🧾 HananData Transaction Receipt');
+                        sb.writeln('-----------------------------------');
+                        sb.writeln('Amount: ${txn.amount > 0 ? "+" : "−"}₦${fmtNaira(txn.amount.abs())}');
+                        sb.writeln('Status: ${txn.status.toUpperCase()}');
+                        sb.writeln('Type: ${txn.type.toUpperCase()}');
+                        if (txn.network != null) sb.writeln('Network: ${txn.network}');
+                        if (txn.provider != null) sb.writeln('Provider: ${txn.provider}');
+                        if (txn.plan != null) sb.writeln('Plan: ${txn.plan}');
+                        sb.writeln('Date: ${txn.date}');
+                        sb.writeln('Reference: ${txn.refId}');
+                        sb.writeln('-----------------------------------');
+                        sb.writeln('Thank you for using HananData!');
+                        Share.share(sb.toString(), subject: 'Transaction Receipt - ${txn.refId}');
+                      },
                       icon: const Icon(Icons.share_rounded, size: 18),
                       label: const Text('Share Receipt'),
                       style: OutlinedButton.styleFrom(
@@ -1233,11 +1257,81 @@ class TxnRowApi extends StatelessWidget {
   final Map<String, dynamic> txn;
   const TxnRowApi({super.key, required this.txn});
 
+  void _showReceipt(BuildContext context, String type, num amount, String status, String ref, bool isCredit, String dateStr) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4))),
+              const SizedBox(height: 24),
+              Icon(status == 'success' ? Icons.check_circle : (status == 'failed' ? Icons.cancel : Icons.pending), 
+                   color: status == 'success' ? kAccentGreen : (status == 'failed' ? Colors.red : Colors.orange), size: 56),
+              const SizedBox(height: 16),
+              Text('Transaction Receipt', style: dFont(size: 20, weight: FontWeight.w700, color: kPrimaryDark)),
+              const SizedBox(height: 24),
+              _receiptRow('Type', type.toUpperCase()),
+              _receiptRow('Amount', '₦$amount'),
+              _receiptRow('Reference', ref),
+              _receiptRow('Status', status.toUpperCase()),
+              _receiptRow('Date', dateStr),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final text = 'HananData Receipt\n\nType: ${type.toUpperCase()}\nAmount: ₦$amount\nRef: $ref\nStatus: ${status.toUpperCase()}\nDate: $dateStr\n\nThank you for choosing HananData!';
+                    Share.share(text);
+                  },
+                  icon: const Icon(Icons.share, color: Colors.white),
+                  label: Text('Share Receipt', style: dFont(size: 15, weight: FontWeight.w600, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimaryNavy,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _receiptRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: dFont(size: 14, color: kMutedText)),
+          Text(value, style: dFont(size: 14, weight: FontWeight.w600, color: kPrimaryDark)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final type = txn['type'] ?? 'unknown';
     final num amount = txn['amount'] ?? 0;
     final status = txn['status'] ?? 'pending';
+    final ref = txn['network'] ?? txn['refId'] ?? 'N/A';
+    final date = txn['createdAt'] != null ? DateTime.tryParse(txn['createdAt']) : null;
+    final dateStr = date != null ? '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}' : 'Just now';
+    
     final isCredit = type == 'funding' || type == 'referral_bonus' || type == 'admin-credit' || type == 'wallet-funding';
     
     IconData icon;
@@ -1254,40 +1348,44 @@ class TxnRowApi extends StatelessWidget {
       default: icon = Icons.receipt_long; color = Colors.grey; break;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF0F4FA)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: () => _showReceipt(context, type, amount, status, ref, isCredit, dateStr),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFF0F4FA)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(type.toString().toUpperCase(), style: dFont(size: 13, weight: FontWeight.w700, color: const Color(0xFF1B3A6B))),
+                  const SizedBox(height: 2),
+                  Text(ref, style: dFont(size: 11, color: const Color(0xFF64748B))),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(type.toString().toUpperCase(), style: dFont(size: 13, weight: FontWeight.w700, color: const Color(0xFF1B3A6B))),
+                Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 13, weight: FontWeight.w700, color: isCredit ? const Color(0xFF00C896) : const Color(0xFF1B3A6B))),
                 const SizedBox(height: 2),
-                Text(txn['network'] ?? txn['refId'] ?? '', style: dFont(size: 11, color: const Color(0xFF64748B))),
+                Text(status.toString().toUpperCase(), style: dFont(size: 10, weight: FontWeight.w600, color: status == 'success' ? const Color(0xFF00C896) : (status == 'failed' ? Colors.red : Colors.orange))),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 13, weight: FontWeight.w700, color: isCredit ? const Color(0xFF00C896) : const Color(0xFF1B3A6B))),
-              const SizedBox(height: 2),
-              Text(status.toString().toUpperCase(), style: dFont(size: 10, weight: FontWeight.w600, color: status == 'success' ? const Color(0xFF00C896) : (status == 'failed' ? Colors.red : Colors.orange))),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

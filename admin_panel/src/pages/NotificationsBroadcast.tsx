@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Send, Clock, Users, Megaphone } from 'lucide-react';
+import { Send, Clock, Users, Megaphone, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../api';
 
 export function NotificationsBroadcast() {
@@ -10,6 +11,7 @@ export function NotificationsBroadcast() {
   
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     fetchBroadcasts();
@@ -32,6 +34,7 @@ export function NotificationsBroadcast() {
     e.preventDefault();
     if (!subject || !message) return;
 
+    setIsSending(true);
     try {
       await api.post('/admin/broadcasts', {
         subject,
@@ -44,8 +47,12 @@ export function NotificationsBroadcast() {
       setMessage('');
       setSegment('all');
       setSchedule('');
-    } catch (err) {
+      toast.success('Broadcast sent successfully!');
+    } catch (err: any) {
       console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to send broadcast');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -122,11 +129,20 @@ export function NotificationsBroadcast() {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  disabled={!subject || !message}
+                  disabled={!subject || !message || isSending}
                   className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#1B3A6B] text-white rounded-lg font-medium hover:bg-[#2A5A9E] transition-colors disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4" />
-                  {schedule ? 'Schedule Broadcast' : 'Send Now'}
+                  {isSending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      {schedule ? 'Schedule Broadcast' : 'Send Now'}
+                    </>
+                  )}
                 </button>
               </div>
             </form>

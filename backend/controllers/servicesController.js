@@ -1,6 +1,7 @@
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
 const PricingConfig = require('../models/PricingConfig');
+const AuditLog = require('../models/AuditLog');
 const { sendResponse } = require('../utils/helpers');
 
 // Placeholder VTU integration
@@ -36,6 +37,26 @@ exports.purchaseService = (type) => async (req, res, next) => {
     if (status === 'success') {
       user.walletBalance -= amount;
       await user.save();
+      
+      await AuditLog.create({
+        actorId: user._id,
+        actorType: 'system',
+        actorModel: 'User',
+        action: 'PURCHASE_SERVICE_SUCCESS',
+        level: 'info',
+        source: 'mobile_app',
+        details: `Purchased ${type} successfully for ${amount}`
+      });
+    } else {
+      await AuditLog.create({
+        actorId: user._id,
+        actorType: 'system',
+        actorModel: 'User',
+        action: 'PURCHASE_SERVICE_FAILED',
+        level: 'error',
+        source: 'mobile_app',
+        details: `Failed to purchase ${type} for ${amount}`
+      });
     }
 
     return sendResponse(res, 200, true, transaction);
@@ -44,6 +65,16 @@ exports.purchaseService = (type) => async (req, res, next) => {
 
 exports.airtimeToCash = async (req, res, next) => {
   try {
+    const user = await User.findById(req.user._id);
+    await AuditLog.create({
+      actorId: user._id,
+      actorType: 'system',
+      actorModel: 'User',
+      action: 'AIRTIME_TO_CASH_INITIATED',
+      level: 'info',
+      source: 'mobile_app',
+      details: 'Airtime to cash initiated'
+    });
     return sendResponse(res, 200, true, { message: 'Airtime to cash initiated' });
   } catch (error) { next(error); }
 };

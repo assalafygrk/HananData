@@ -26,11 +26,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final List<dynamic> data = res['data'] ?? [];
       setState(() {
         _items = data.map((n) {
+          String timeStr = 'Just now';
+          if (n['sentAt'] != null || n['createdAt'] != null) {
+            final date = DateTime.tryParse(n['sentAt'] ?? n['createdAt']);
+            if (date != null) {
+              timeStr = '${date.day}/${date.month}/${date.year}';
+            }
+          }
           final notif = AppNotification(
             id: n['_id'] ?? '',
-            title: n['title'] ?? 'Notification',
+            title: n['title'] ?? 'Platform Update',
             body: n['message'] ?? '',
-            time: 'Just now', // Ideally parse n['createdAt']
+            time: timeStr,
             icon: '🔔',
             isRead: n['read'] ?? false,
           );
