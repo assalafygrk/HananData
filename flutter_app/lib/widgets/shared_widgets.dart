@@ -21,12 +21,14 @@ TextStyle dFont({
   FontWeight weight = FontWeight.w400,
   Color color = kPrimaryDark,
   double? letterSpacing,
+  double? height,
 }) =>
     GoogleFonts.inter(
       fontSize: size,
       fontWeight: weight,
       color: color,
       letterSpacing: letterSpacing,
+      height: height,
     );
 
 class BrandLoader extends StatefulWidget {
@@ -1257,7 +1259,54 @@ class TxnRowApi extends StatelessWidget {
   final Map<String, dynamic> txn;
   const TxnRowApi({super.key, required this.txn});
 
-  void _showReceipt(BuildContext context, String type, num amount, String status, String ref, bool isCredit, String dateStr) {
+  void _showReceipt(BuildContext context, Map<String, dynamic> txn, bool isCredit, String dateStr) {
+    final type = (txn['type'] ?? 'unknown').toString();
+    final num amount = txn['amount'] ?? 0;
+    final status = (txn['status'] ?? 'pending').toString();
+    final network = txn['network'] as String?;
+    final ref = txn['refId']?.toString() ?? 'N/A';
+    
+    String planText = network ?? type.toUpperCase();
+    if (type.toLowerCase() == 'data' && network != null) {
+      planText = '$network Data'; 
+    }
+
+    final avatarLetter = (network != null && network.isNotEmpty) 
+        ? network[0].toUpperCase() 
+        : type.isNotEmpty ? type[0].toUpperCase() : 'T';
+
+    String? imageUrl;
+    if (network != null) {
+      final netLower = network.toLowerCase();
+      if (netLower.contains('mtn')) imageUrl = 'assets/images/providers/MTN.png';
+      else if (netLower.contains('airtel')) imageUrl = 'assets/images/providers/Airtel.png';
+      else if (netLower.contains('glo')) imageUrl = 'assets/images/providers/Glo.jpeg';
+      else if (netLower.contains('9mobile') || netLower.contains('etisalat')) imageUrl = 'assets/images/providers/9mobile.jpeg';
+      else if (netLower.contains('dstv')) imageUrl = 'assets/images/providers/Dstv.jpeg';
+      else if (netLower.contains('gotv')) imageUrl = 'assets/images/providers/Gotv.png';
+      else if (netLower.contains('startime')) imageUrl = 'assets/images/providers/Startime.jpeg';
+      else {
+        final discoStr = network.toUpperCase();
+        const discoMap = {
+          'IKEDC':  'assets/images/providers/IKED.png',
+          'EKEDC':  'assets/images/providers/EKEDC.png',
+          'PHED':   'assets/images/providers/PHED.png',
+          'IBEDC':  'assets/images/providers/IBEDC.jpeg',
+          'BEDC':   'assets/images/providers/BEDC.jpeg',
+          'EEDC':   'assets/images/providers/EEDC.png',
+          'JED':    'assets/images/providers/JED.jpeg',
+          'KAEDCO': 'assets/images/providers/KAEDCO.jpeg',
+          'KEDCO':  'assets/images/providers/KEDCO.jpeg',
+          'YEDC':   'assets/images/providers/YEDC.jpeg',
+        };
+        imageUrl = discoMap[discoStr];
+      }
+    }
+
+    final statusIcon = status == 'success' ? Icons.check_circle : (status == 'failed' ? Icons.cancel : Icons.pending);
+    final statusColor = status == 'success' ? kAccentGreen : (status == 'failed' ? Colors.red : Colors.orange);
+    final statusText = status == 'success' ? 'Transaction Successful' : (status == 'failed' ? 'Transaction Failed' : 'Transaction Pending');
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1268,36 +1317,111 @@ class TxnRowApi extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4))),
               const SizedBox(height: 24),
-              Icon(status == 'success' ? Icons.check_circle : (status == 'failed' ? Icons.cancel : Icons.pending), 
-                   color: status == 'success' ? kAccentGreen : (status == 'failed' ? Colors.red : Colors.orange), size: 56),
-              const SizedBox(height: 16),
-              Text('Transaction Receipt', style: dFont(size: 20, weight: FontWeight.w700, color: kPrimaryDark)),
+              
+              Row(
+                children: [
+                  if (imageUrl != null)
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.grey[100],
+                      backgroundImage: AssetImage(imageUrl),
+                    )
+                  else
+                    CircleAvatar(
+                      backgroundColor: const Color(0xFFFFF7E6),
+                      radius: 20,
+                      child: Text(avatarLetter, style: dFont(color: const Color(0xFFF59E0B), weight: FontWeight.w700)),
+                    ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(planText, style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryDark)),
+                        Text(dateStr, style: dFont(size: 13, color: kMutedText)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
-              _receiptRow('Type', type.toUpperCase()),
-              _receiptRow('Amount', '₦$amount'),
-              _receiptRow('Reference', ref),
-              _receiptRow('Status', status.toUpperCase()),
-              _receiptRow('Date', dateStr),
-              const SizedBox(height: 32),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF29519E),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Text('Amount Paid', style: dFont(size: 13, color: Colors.white70)),
+                    const SizedBox(height: 8),
+                    Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 32, weight: FontWeight.w800, color: Colors.white)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: statusColor),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(statusIcon, color: statusColor, size: 16),
+                    const SizedBox(width: 8),
+                    Text(statusText, style: dFont(size: 13, weight: FontWeight.w600, color: statusColor)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Column(
+                  children: [
+                    _receiptRow('Type', type.toUpperCase()),
+                    Divider(color: Colors.grey[200], height: 1),
+                    if (network != null) ...[
+                      _receiptRow('Network', network),
+                      Divider(color: Colors.grey[200], height: 1),
+                    ],
+                    _receiptRow('Date', dateStr),
+                    Divider(color: Colors.grey[200], height: 1),
+                    _receiptRow('Reference', ref),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton.icon(
+                child: OutlinedButton.icon(
                   onPressed: () {
                     final text = 'HananData Receipt\n\nType: ${type.toUpperCase()}\nAmount: ₦$amount\nRef: $ref\nStatus: ${status.toUpperCase()}\nDate: $dateStr\n\nThank you for choosing HananData!';
                     Share.share(text);
                   },
-                  icon: const Icon(Icons.share, color: Colors.white),
-                  label: Text('Share Receipt', style: dFont(size: 15, weight: FontWeight.w600, color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kPrimaryNavy,
+                  icon: const Icon(Icons.share, color: kPrimaryDark),
+                  label: Text('Share Receipt', style: dFont(size: 15, weight: FontWeight.w700, color: kPrimaryDark)),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey[300]!),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
@@ -1312,7 +1436,7 @@ class TxnRowApi extends StatelessWidget {
 
   Widget _receiptRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1349,7 +1473,7 @@ class TxnRowApi extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () => _showReceipt(context, type, amount, status, ref, isCredit, dateStr),
+      onTap: () => _showReceipt(context, txn, isCredit, dateStr),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(12),

@@ -30,9 +30,35 @@ exports.getReferrals = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const Notification = require('../models/Notification');
+
 exports.getNotifications = async (req, res, next) => {
   try {
     const broadcasts = await Broadcast.find({ status: 'sent' }).sort({ sentAt: -1 }).limit(20);
-    return sendResponse(res, 200, true, broadcasts);
+    const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(20);
+    
+    // Merge and sort both
+    const combined = [...broadcasts, ...notifications].sort((a, b) => {
+      const dateA = new Date(a.sentAt || a.createdAt);
+      const dateB = new Date(b.sentAt || b.createdAt);
+      return dateB - dateA;
+    }).slice(0, 30); // limit total to 30
+
+    return sendResponse(res, 200, true, combined);
+  } catch (error) { next(error); }
+};
+
+exports.markNotificationRead = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findOneAndUpdate(
+      { _id: id, userId: req.user._id },
+      { read: true },
+      { new: true }
+    );
+    if (!notification) {
+      return sendResponse(res, 404, false, null, 'Notification not found');
+    }
+    return sendResponse(res, 200, true, notification);
   } catch (error) { next(error); }
 };

@@ -2,6 +2,7 @@ const Transaction = require('../models/Transaction');
 const User = require('../models/User');
 const PricingConfig = require('../models/PricingConfig');
 const AuditLog = require('../models/AuditLog');
+const Notification = require('../models/Notification');
 const { sendResponse } = require('../utils/helpers');
 
 // Placeholder VTU integration
@@ -47,6 +48,14 @@ exports.purchaseService = (type) => async (req, res, next) => {
         source: 'mobile_app',
         details: `Purchased ${type} successfully for ${amount}`
       });
+
+      await Notification.create({
+        userId: user._id,
+        title: 'Transaction Successful',
+        message: `Your purchase of ${network || ''} ${type} for ₦${amount} was successful.`,
+        type: 'transaction',
+        relatedId: transaction.refId
+      });
     } else {
       await AuditLog.create({
         actorId: user._id,
@@ -56,6 +65,14 @@ exports.purchaseService = (type) => async (req, res, next) => {
         level: 'error',
         source: 'mobile_app',
         details: `Failed to purchase ${type} for ${amount}`
+      });
+
+      await Notification.create({
+        userId: user._id,
+        title: 'Transaction Failed',
+        message: `Your purchase of ${network || ''} ${type} for ₦${amount} failed.`,
+        type: 'transaction',
+        relatedId: transaction.refId
       });
     }
 

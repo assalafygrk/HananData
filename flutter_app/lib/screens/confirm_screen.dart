@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/notification_service.dart';
 
 class ConfirmScreen extends StatefulWidget {
   const ConfirmScreen({super.key});
@@ -68,10 +69,19 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
     if (!mounted) return;
 
     if (res['success'] == true) {
+      NotificationService().showNotification(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: 'Transaction Successful',
+        body: 'Your purchase of ${txn.network ?? ''} ${txn.type} for ₦${txn.amount} was successful.',
+      );
       Navigator.pushReplacementNamed(context, '/success', arguments: txn);
     } else {
+      NotificationService().showNotification(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: 'Transaction Failed',
+        body: 'Your purchase of ${txn.network ?? ''} ${txn.type} for ₦${txn.amount} failed.',
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Transaction failed')));
-      // Still navigate to failed screen for UI demo if you want, or just stay here.
       Navigator.pushReplacementNamed(context, '/failed', arguments: txn);
     }
   }

@@ -34,5 +34,6 @@ router.get('/transactions/history', miscCtrl.getTransactions);
 router.post('/kyc/submit', miscCtrl.submitKYC);
 router.get('/referrals/my-history', miscCtrl.getReferrals);
 router.get('/notifications', miscCtrl.getNotifications);
+router.post('/notifications/:id/read', miscCtrl.markNotificationRead);
 
 module.exports = router;

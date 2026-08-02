@@ -158,4 +158,13 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
+  static Future<Map<String, dynamic>> markNotificationRead(String id) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.post(Uri.parse('$baseUrl/notifications/$id/read'), headers: headers);
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
 }

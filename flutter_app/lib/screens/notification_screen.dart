@@ -33,13 +33,28 @@ class _NotificationScreenState extends State<NotificationScreen> {
               timeStr = '${date.day}/${date.month}/${date.year}';
             }
           }
+          
+          String route = '/notification-detail';
+          String icon = '🔔';
+          if (n['type'] == 'transaction') {
+            route = '/history';
+            icon = '💸';
+          } else if (n['type'] == 'security') {
+            route = '/settings';
+            icon = '🔒';
+          } else if (n['type'] == 'gift') {
+            route = '/wallet';
+            icon = '🎁';
+          }
+
           final notif = AppNotification(
             id: n['_id'] ?? '',
             title: n['title'] ?? 'Platform Update',
             body: n['message'] ?? '',
             time: timeStr,
-            icon: '🔔',
+            icon: icon,
             isRead: n['read'] ?? false,
+            route: route,
           );
           return _NotifItem(notif: notif, isRead: notif.isRead);
         }).toList();
@@ -55,21 +70,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void _markAll() {
     setState(() {
       for (final item in _items) {
-        item.isRead = true;
+        if (!item.isRead) {
+          item.isRead = true;
+          ApiService.markNotificationRead(item.notif.id);
+        }
       }
     });
   }
 
   void _tap(_NotifItem item) {
-    setState(() => item.isRead = true);
+    if (!item.isRead) {
+      setState(() => item.isRead = true);
+      ApiService.markNotificationRead(item.notif.id);
+    }
+    
     final route = item.notif.route;
     if (route != null && route.isNotEmpty) {
-      Navigator.pop(context);
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (mounted) return;
-        // Navigate is done after pop
-      });
-      Navigator.pushNamed(context, route);
+      Navigator.popAndPushNamed(
+        context, 
+        route, 
+        arguments: route == '/notification-detail' ? item.notif : null,
+      );
     }
   }
 

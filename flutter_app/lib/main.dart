@@ -26,8 +26,12 @@ import 'screens/legal_screen.dart';
 import 'screens/my_referral_screen.dart';
 import 'screens/exam_pin_screen.dart';
 import 'screens/bulk_sms_screen.dart';
-void main() {
+import 'screens/notification_detail_screen.dart';
+import 'services/notification_service.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
   // Portrait only — Android-first phone layout
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -85,6 +89,7 @@ class HananDataApp extends StatelessWidget {
         '/my-referral':    (_) => const MyReferralScreen(),
         '/exam-pin':       (_) => const ExamPinScreen(),
         '/bulk-sms':       (_) => const BulkSmsScreen(),
+        '/notification-detail': (_) => const NotificationDetailScreen(),
       },
       // ─── Custom page transitions ───────────────────────────────────────────
       onGenerateRoute: (settings) {
