@@ -9,8 +9,8 @@ const miscCtrl = require('../controllers/admin/miscController');
 
 // Auth
 router.post('/auth/login', authLimiter, authCtrl.login);
-
 router.use(authenticateAdmin);
+router.post('/auth/verify-password', requireRole(['Super Admin']), miscCtrl.verifyPassword);
 
 // Dashboard
 router.get('/dashboard/stats', dashboardCtrl.getStats);
@@ -29,6 +29,7 @@ router.post('/transactions/:id/action', requireRole(['Super Admin', 'Support']),
 router.get('/providers', miscCtrl.getProviders);
 router.post('/providers', requireRole(['Super Admin']), miscCtrl.addProvider);
 router.put('/providers/:id', requireRole(['Super Admin']), miscCtrl.updateProvider);
+router.delete('/providers/:id', requireRole(['Super Admin']), miscCtrl.deleteProvider);
 router.get('/pricing', miscCtrl.getPricing);
 router.post('/pricing', requireRole(['Super Admin']), miscCtrl.createPricing);
 router.put('/pricing/:id', requireRole(['Super Admin']), miscCtrl.updatePricing);

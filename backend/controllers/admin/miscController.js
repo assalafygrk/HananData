@@ -3,6 +3,23 @@ const Provider = require('../../models/Provider');
 const PricingConfig = require('../../models/PricingConfig');
 const PlatformSettings = require('../../models/PlatformSettings');
 const { sendResponse } = require('../../utils/helpers');
+const Admin = require('../../models/Admin');
+const bcrypt = require('bcryptjs');
+
+exports.verifyPassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) return sendResponse(res, 400, false, 'Password is required');
+    
+    const admin = await Admin.findById(req.admin._id);
+    if (!admin) return sendResponse(res, 404, false, 'Admin not found');
+    
+    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    if (!isMatch) return sendResponse(res, 401, false, 'Incorrect password');
+    
+    return sendResponse(res, 200, true, { message: 'Password verified' });
+  } catch (error) { next(error); }
+};
 
 // Quick mocks for the rest of admin routes for the sake of completeness
 exports.globalSearch = async (req, res, next) => {
@@ -81,9 +98,47 @@ exports.getProviders = async (req, res, next) => {
 
 exports.updateProvider = async (req, res, next) => {
   try {
-    const provider = await Provider.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { password, ...updateData } = req.body;
+    if (!password) {
+      return sendResponse(res, 400, false, 'Admin password is required to update provider');
+    }
+
+    const admin = await Admin.findById(req.admin._id);
+    if (!admin) return sendResponse(res, 404, false, 'Admin profile not found');
+
+    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    if (!isMatch) {
+      return sendResponse(res, 401, false, 'Incorrect admin password');
+    }
+
+    const provider = await Provider.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!provider) return sendResponse(res, 404, false, 'Provider not found');
     return sendResponse(res, 200, true, provider);
+  } catch (error) { next(error); }
+};
+
+exports.deleteProvider = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return sendResponse(res, 400, false, 'Admin password is required to delete provider');
+    }
+
+    const admin = await Admin.findById(req.admin._id);
+    if (!admin) return sendResponse(res, 404, false, 'Admin profile not found');
+
+    const isMatch = await bcrypt.compare(password, admin.passwordHash);
+    if (!isMatch) {
+      return sendResponse(res, 401, false, 'Incorrect admin password');
+    }
+
+    const provider = await Provider.findByIdAndDelete(req.params.id);
+    if (!provider) return sendResponse(res, 404, false, 'Provider not found');
+    
+    // Cascade delete any pricing configurations tied to this provider
+    await PricingConfig.deleteMany({ providerId: req.params.id });
+
+    return sendResponse(res, 200, true, { message: 'Provider and associated configurations deleted successfully' });
   } catch (error) { next(error); }
 };
 

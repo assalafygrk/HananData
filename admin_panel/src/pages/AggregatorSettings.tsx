@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Server, CreditCard, Plus, Trash2, Edit2, X } from 'lucide-react';
+import { Save, Server, CreditCard, Plus, Trash2, Edit2, X, Eye, EyeOff, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
 
@@ -8,28 +8,74 @@ export function AggregatorSettings() {
   const [gateways, setGateways] = useState<any[]>([]);
   
   const [isSaved, setIsSaved] = useState(false);
-  const [modal, setModal] = useState<{isOpen: boolean, type: 'provider' | 'gateway' | null}>({isOpen: false, type: null});
+  
+  // Manage Add/Edit modal
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    type: 'provider' | 'gateway' | null;
+    isEdit: boolean;
+    editId: string | null;
+  }>({
+    isOpen: false,
+    type: null,
+    isEdit: false,
+    editId: null
+  });
   
   const [formData, setFormData] = useState({
     name: '',
     username: '',
     apiKeyEncrypted: '',
     baseUrl: '',
-    webhookUrl: ''
+    webhookUrl: '',
+    password: '' // Required for editing
   });
+  
+  const [showFormPassword, setShowFormPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const res = await api.get('/admin/providers');
-        if (res.data.success) {
-          setProviders(res.data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching providers', error);
+  // Manage Delete password confirm modal
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    itemId: string | null;
+    itemType: 'provider' | 'gateway' | null;
+    password: string;
+  }>({
+    isOpen: false,
+    itemId: null,
+    itemType: null,
+    password: ''
+  });
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+
+  // Manage Edit Auth Modal
+  const [authEditModal, setAuthEditModal] = useState<{
+    isOpen: boolean;
+    item: any;
+    itemType: 'provider' | 'gateway' | null;
+    password: string;
+  }>({
+    isOpen: false,
+    item: null,
+    itemType: null,
+    password: ''
+  });
+  const [showAuthEditPassword, setShowAuthEditPassword] = useState(false);
+
+  const fetchProviders = async () => {
+    try {
+      const res = await api.get(`/admin/providers?_t=${new Date().getTime()}`);
+      if (res.data.success) {
+        const all = res.data.data;
+        setProviders(all.filter((p: any) => p.type === 'vtu'));
+        setGateways(all.filter((p: any) => p.type === 'payment-gateway'));
       }
-    };
+    } catch (error) {
+      console.error('Error fetching providers', error);
+    }
+  };
+
+  useEffect(() => {
     fetchProviders();
   }, []);
 
@@ -38,33 +84,128 @@ export function AggregatorSettings() {
     setTimeout(() => setIsSaved(false), 3000);
   };
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleEditClick = (item: any, type: 'provider' | 'gateway') => {
+    setAuthEditModal({
+      isOpen: true,
+      item,
+      itemType: type,
+      password: ''
+    });
+    setShowAuthEditPassword(false);
+  };
+
+  const handleVerifyEditPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name) return toast.error('Name is required');
+    if (!authEditModal.password) return toast.error('Password is required to edit');
+
     try {
       setIsSubmitting(true);
-      const res = await api.post('/admin/providers', {
-        ...formData,
-        type: modal.type === 'provider' ? 'vtu' : 'payment-gateway'
-      });
+      const res = await api.post('/admin/auth/verify-password', { password: authEditModal.password });
       if (res.data.success) {
-        if (modal.type === 'provider') setProviders([...providers, res.data.data]);
-        else setGateways([...gateways, res.data.data]);
-        setModal({ isOpen: false, type: null });
-        setFormData({ name: '', username: '', apiKeyEncrypted: '', baseUrl: '', webhookUrl: '' });
-        toast.success('Configuration added successfully');
+        // Password verified, open edit modal
+        setFormData({
+          name: authEditModal.item.name || '',
+          username: authEditModal.item.username || '',
+          apiKeyEncrypted: authEditModal.item.apiKeyEncrypted || '',
+          baseUrl: authEditModal.item.baseUrl || '',
+          webhookUrl: authEditModal.item.webhookUrl || '',
+          password: authEditModal.password // Store it for the final PUT request
+        });
+        setModal({
+          isOpen: true,
+          type: authEditModal.itemType,
+          isEdit: true,
+          editId: authEditModal.item._id
+        });
+        setAuthEditModal({ isOpen: false, item: null, itemType: null, password: '' });
       } else {
         toast.error(res.data.message);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to add configuration');
+      toast.error(error.response?.data?.message || 'Incorrect password');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const deleteProvider = (id: string) => setProviders(providers.filter(p => p._id !== id));
-  const deleteGateway = (id: string) => setGateways(gateways.filter(g => g._id !== id));
+  const handleAddOrEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name) return toast.error('Name is required');
+    
+    try {
+      setIsSubmitting(true);
+      if (modal.isEdit) {
+        // Edit flow (password was already verified and stored in formData)
+        const res = await api.put(`/admin/providers/${modal.editId}`, {
+          ...formData,
+          type: modal.type === 'provider' ? 'vtu' : 'payment-gateway'
+        });
+        if (res.data.success) {
+          toast.success('Configuration updated successfully');
+          fetchProviders();
+          closeModal();
+        } else {
+          toast.error(res.data.message);
+        }
+      } else {
+        // Add flow
+        const res = await api.post('/admin/providers', {
+          ...formData,
+          type: modal.type === 'provider' ? 'vtu' : 'payment-gateway'
+        });
+        if (res.data.success) {
+          toast.success('Configuration added successfully');
+          fetchProviders();
+          closeModal();
+        } else {
+          toast.error(res.data.message);
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save configuration');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setModal({ isOpen: false, type: null, isEdit: false, editId: null });
+    setFormData({ name: '', username: '', apiKeyEncrypted: '', baseUrl: '', webhookUrl: '', password: '' });
+    setShowFormPassword(false);
+  };
+
+  const initiateDelete = (id: string, type: 'provider' | 'gateway') => {
+    setDeleteModal({
+      isOpen: true,
+      itemId: id,
+      itemType: type,
+      password: ''
+    });
+    setShowDeletePassword(false);
+  };
+
+  const handleConfirmDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteModal.password) return toast.error('Password is required to delete');
+    
+    try {
+      setIsSubmitting(true);
+      const res = await api.delete(`/admin/providers/${deleteModal.itemId}`, {
+        data: { password: deleteModal.password }
+      });
+      if (res.data.success) {
+        toast.success('Configuration deleted successfully');
+        fetchProviders();
+        setDeleteModal({ isOpen: false, itemId: null, itemType: null, password: '' });
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete configuration');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -92,7 +233,7 @@ export function AggregatorSettings() {
             </div>
           </div>
           <button 
-            onClick={() => setModal({ isOpen: true, type: 'provider' })}
+            onClick={() => setModal({ isOpen: true, type: 'provider', isEdit: false, editId: null })}
             className="flex items-center gap-2 text-sm font-medium text-[#1B3A6B] hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200"
           >
             <Plus className="w-4 h-4" /> Add Provider
@@ -125,10 +266,10 @@ export function AggregatorSettings() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-blue-600 rounded">
+                      <button onClick={() => handleEditClick(p, 'provider')} className="p-1.5 text-gray-400 hover:text-blue-600 rounded">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteProvider(p._id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
+                      <button onClick={() => initiateDelete(p._id, 'provider')} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -153,7 +294,7 @@ export function AggregatorSettings() {
             </div>
           </div>
           <button 
-            onClick={() => setModal({ isOpen: true, type: 'gateway' })}
+            onClick={() => setModal({ isOpen: true, type: 'gateway', isEdit: false, editId: null })}
             className="flex items-center gap-2 text-sm font-medium text-purple-700 hover:bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-200"
           >
             <Plus className="w-4 h-4" /> Add Gateway
@@ -186,10 +327,10 @@ export function AggregatorSettings() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-purple-600 rounded">
+                      <button onClick={() => handleEditClick(g, 'gateway')} className="p-1.5 text-gray-400 hover:text-purple-600 rounded">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => deleteGateway(g._id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
+                      <button onClick={() => initiateDelete(g._id, 'gateway')} className="p-1.5 text-gray-400 hover:text-red-600 rounded">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -206,17 +347,19 @@ export function AggregatorSettings() {
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add / Edit Modal */}
       {modal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden my-8">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900 capitalize">Add {modal.type}</h3>
-              <button onClick={() => setModal({ isOpen: false, type: null })} className="text-gray-400 hover:text-gray-600">
+              <h3 className="text-lg font-bold text-gray-900 capitalize">
+                {modal.isEdit ? 'Edit' : 'Add'} {modal.type}
+              </h3>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleAdd} className="p-6 space-y-4">
+            <form onSubmit={handleAddOrEdit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                 <input 
@@ -264,11 +407,136 @@ export function AggregatorSettings() {
                   className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
                 />
               </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={closeModal} className="px-4 py-2 text-sm text-gray-700 border rounded-lg">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E] disabled:opacity-50">
+                  {isSubmitting ? 'Saving...' : (modal.isEdit ? 'Save Changes' : 'Add Configuration')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Edit Password Modal */}
+      {authEditModal.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-gray-400" />
+                Authorize Action
+              </h3>
+              <button 
+                onClick={() => setAuthEditModal({ isOpen: false, item: null, itemType: null, password: '' })} 
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleVerifyEditPassword} className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Please enter your admin password to edit this {authEditModal.itemType === 'provider' ? 'VTU provider' : 'payment gateway'}.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Admin Password</label>
+                <div className="relative">
+                  <input 
+                    type={showAuthEditPassword ? "text" : "password"} 
+                    required
+                    value={authEditModal.password}
+                    onChange={e => setAuthEditModal({...authEditModal, password: e.target.value})}
+                    className="w-full pl-4 pr-10 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                    placeholder="Enter admin password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthEditPassword(!showAuthEditPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    {showAuthEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
               
               <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={() => setModal({ isOpen: false, type: null })} className="px-4 py-2 text-sm text-gray-700 border rounded-lg">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E] disabled:opacity-50">
-                  {isSubmitting ? 'Adding...' : 'Add Configuration'}
+                <button 
+                  type="button" 
+                  onClick={() => setAuthEditModal({ isOpen: false, item: null, itemType: null, password: '' })} 
+                  className="px-4 py-2 text-sm text-gray-700 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="px-4 py-2 text-sm text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E] disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Verifying...' : 'Verify & Continue'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Password Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-red-50">
+              <h3 className="text-lg font-bold text-red-700">
+                Confirm Provider Deletion
+              </h3>
+              <button 
+                onClick={() => setDeleteModal({ isOpen: false, itemId: null, itemType: null, password: '' })} 
+                className="text-red-400 hover:text-red-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleConfirmDelete} className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete this {deleteModal.itemType === 'provider' ? 'VTU provider' : 'payment gateway'}? 
+                This action is irreversible. Please enter your administrator password to confirm.
+              </p>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Admin Password *</label>
+                <div className="relative">
+                  <input 
+                    type={showDeletePassword ? "text" : "password"} 
+                    required
+                    value={deleteModal.password}
+                    onChange={e => setDeleteModal({...deleteModal, password: e.target.value})}
+                    className="w-full pl-4 pr-10 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600" 
+                    placeholder="Enter admin password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowDeletePassword(!showDeletePassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    {showDeletePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setDeleteModal({ isOpen: false, itemId: null, itemType: null, password: '' })} 
+                  className="px-4 py-2 text-sm text-gray-700 border rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Deleting...' : 'Delete Configuration'}
                 </button>
               </div>
             </form>
