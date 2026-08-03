@@ -9,7 +9,7 @@ export function PricingManagement() {
   const [providers, setProviders] = useState<any[]>([]);
   const [filterCategory, setFilterCategory] = useState('data');
   const [loading, setLoading] = useState(true);
-  
+
   const [editModal, setEditModal] = useState<{ isOpen: boolean; data: any | null }>({
     isOpen: false,
     data: null
@@ -45,26 +45,56 @@ export function PricingManagement() {
   };
 
   const handleAddClick = () => {
+    let defaultNetwork = '';
+    let defaultPlanType = '';
+    if (filterCategory === 'data' || filterCategory === 'airtime') defaultNetwork = 'MTN';
+    if (filterCategory === 'cable') defaultNetwork = 'DSTV';
+    if (filterCategory === 'electricity') defaultNetwork = 'AEDC';
+    
+    if (filterCategory === 'cable') defaultPlanType = 'CABLE';
+    if (filterCategory === 'airtime') defaultPlanType = 'AIRTIME';
+    if (filterCategory === 'electricity') defaultPlanType = 'ELECTRICITY';
+
     setEditModal({
       isOpen: true,
       data: {
         category: filterCategory,
-        network: 'MTN',
+        network: defaultNetwork,
         planName: '',
         planId: '',
         apiCost: 0,
         vendorPrice: 0,
         userPrice: 0,
-        providerId: providers.length > 0 ? providers[0]._id : ''
+        providerId: '',
+        planType: defaultPlanType
       }
     });
   };
 
   const handleModalChange = (field: string, value: string | number) => {
     if (editModal.data) {
+      let newData = { ...editModal.data, [field]: value };
+      
+      // Auto-calculate prices based on category logic if apiCost changes
+      if (field === 'apiCost') {
+        const cost = Number(value) || 0;
+        const category = newData.category || filterCategory;
+        
+        if (category === 'data' || category === 'cable') {
+          newData.userPrice = Math.ceil(cost * 1.05);
+          newData.vendorPrice = Math.ceil(cost * 1.02);
+        } else if (category === 'airtime') {
+          newData.userPrice = 0.99;
+          newData.vendorPrice = 0.99;
+        } else if (category === 'electricity') {
+          newData.userPrice = 50;
+          newData.vendorPrice = 50;
+        }
+      }
+
       setEditModal({
         ...editModal,
-        data: { ...editModal.data, [field]: value }
+        data: newData
       });
     }
   };
@@ -76,7 +106,7 @@ export function PricingManagement() {
         if (editModal.data._id) {
           const response = await api.put(`/admin/pricing/${editModal.data._id}`, editModal.data);
           if (response.data.success) {
-            setPricingData(prev => prev.map(p => 
+            setPricingData(prev => prev.map(p =>
               p._id === editModal.data?._id ? response.data.data : p
             ));
             toast.success('Configuration updated');
@@ -109,7 +139,7 @@ export function PricingManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Pricing & Routing</h2>
-        <button 
+        <button
           onClick={handleAddClick}
           className="bg-[#1B3A6B] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2A5A9E] transition-colors flex items-center gap-2"
         >
@@ -123,11 +153,10 @@ export function PricingManagement() {
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
-                filterCategory === cat 
-                  ? 'bg-[#1B3A6B] text-white' 
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${filterCategory === cat
+                  ? 'bg-[#1B3A6B] text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -162,11 +191,10 @@ export function PricingManagement() {
                   <tr key={p._id} className="hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <span className={`w-3 h-3 rounded-full shrink-0 ${
-                          p.network === 'MTN' ? 'bg-[#FFCC00]' :
-                          p.network === 'Airtel' || p.network === 'AIRTEL' ? 'bg-[#E4002B]' :
-                          p.network === 'Glo' || p.network === 'GLO' ? 'bg-[#009A44]' : 'bg-gray-800'
-                        }`} />
+                        <span className={`w-3 h-3 rounded-full shrink-0 ${p.network === 'MTN' ? 'bg-[#FFCC00]' :
+                            p.network === 'Airtel' || p.network === 'AIRTEL' ? 'bg-[#E4002B]' :
+                              p.network === 'Glo' || p.network === 'GLO' ? 'bg-[#009A44]' : 'bg-gray-800'
+                          }`} />
                         <div>
                           <div className="font-bold text-gray-900 whitespace-nowrap">{p.network}</div>
                           <div className="text-sm text-gray-600 whitespace-nowrap">{p.planName}</div>
@@ -177,13 +205,12 @@ export function PricingManagement() {
 
                     <td className="py-4 px-4">
                       {p.planType && (
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
-                          p.planType === 'SME2' ? 'bg-blue-100 text-blue-700' :
-                          p.planType === 'CORPORATE GIFTING' ? 'bg-purple-100 text-purple-700' :
-                          p.planType === 'GIFTING' ? 'bg-green-100 text-green-700' :
-                          p.planType === 'DIRECT' ? 'bg-orange-100 text-orange-700' :
-                          'bg-gray-100 text-gray-600'
-                        }`}>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${p.planType === 'SME2' ? 'bg-blue-100 text-blue-700' :
+                            p.planType === 'CORPORATE GIFTING' ? 'bg-purple-100 text-purple-700' :
+                              p.planType === 'GIFTING' ? 'bg-green-100 text-green-700' :
+                                p.planType === 'DIRECT' ? 'bg-orange-100 text-orange-700' :
+                                  'bg-gray-100 text-gray-600'
+                          }`}>
                           {p.planType}
                         </span>
                       )}
@@ -198,7 +225,7 @@ export function PricingManagement() {
                     <td className="py-4 px-4">
                       <span className="font-medium text-gray-900 text-sm">{providerName}</span>
                     </td>
-                    
+
                     <td className="py-4 px-4">
                       <span className="font-medium text-gray-900">{p.apiCost}</span>
                     </td>
@@ -218,7 +245,7 @@ export function PricingManagement() {
                     </td>
 
                     <td className="py-4 px-4 text-right">
-                      <button 
+                      <button
                         onClick={() => handleEditClick(p)}
                         className="inline-flex items-center gap-2 bg-blue-50 text-[#1B3A6B] px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
                       >
@@ -249,7 +276,7 @@ export function PricingManagement() {
                 <Edit2 className="w-5 h-5 text-[#1B3A6B]" />
                 {editModal.data._id ? `Edit Configuration - ${editModal.data.network} ${editModal.data.planName}` : 'Add New Configuration'}
               </h3>
-              <button 
+              <button
                 onClick={() => setEditModal({ isOpen: false, data: null })}
                 className="text-gray-400 hover:text-gray-700"
               >
@@ -259,54 +286,180 @@ export function PricingManagement() {
 
             <div className="p-6 overflow-y-auto">
               <form id="edit-pricing-form" onSubmit={handleSaveModal} className="space-y-6">
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Routing Section */}
                   <div className="space-y-4">
                     <h4 className="font-semibold text-gray-900 border-b pb-2">Provider & Routing</h4>
-                    
+
                     {!editModal.data._id && (
                       <>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Network/Name</label>
-                          <input 
-                            type="text"
-                            required
-                            value={editModal.data.network}
-                            onChange={(e) => handleModalChange('network', e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
-                            placeholder="e.g. MTN or DStv"
-                          />
+                          {(filterCategory === 'data' || filterCategory === 'airtime') ? (
+                            <select
+                              required
+                              value={editModal.data.network}
+                              onChange={(e) => handleModalChange('network', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            >
+                              <option value="">Select Network...</option>
+                              <option value="MTN">MTN</option>
+                              <option value="GLO">GLO</option>
+                              <option value="AIRTEL">AIRTEL</option>
+                              <option value="9MOBILE">9MOBILE</option>
+                            </select>
+                          ) : filterCategory === 'cable' ? (
+                            <select
+                              required
+                              value={editModal.data.network}
+                              onChange={(e) => handleModalChange('network', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            >
+                              <option value="">Select Provider...</option>
+                              <option value="DSTV">DSTV</option>
+                              <option value="GOTV">GOTV</option>
+                              <option value="STARTIMES">STARTIMES</option>
+                            </select>
+                          ) : filterCategory === 'electricity' ? (
+                            <select
+                              required
+                              value={editModal.data.network}
+                              onChange={(e) => handleModalChange('network', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            >
+                              <option value="">Select Disco...</option>
+                              <option value="AEDC">AEDC</option>
+                              <option value="IBEDC">IBEDC</option>
+                              <option value="EKEDC">EKEDC</option>
+                              <option value="IKEDC">IKEDC</option>
+                              <option value="PHEDC">PHEDC</option>
+                              <option value="KEDCO">KEDCO</option>
+                              <option value="JEDC">JEDC</option>
+                              <option value="EEDC">EEDC</option>
+                              <option value="KAEDCO">KAEDCO</option>
+                              <option value="BEDC">BEDC</option>
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              required
+                              value={editModal.data.network}
+                              onChange={(e) => handleModalChange('network', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                              placeholder="e.g. MTN or DStv"
+                            />
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
-                          <input 
-                            type="text"
-                            required
-                            value={editModal.data.planName}
-                            onChange={(e) => handleModalChange('planName', e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
-                            placeholder="e.g. 1GB 30 Days"
-                          />
+                          {filterCategory === 'cable' ? (
+                            <select
+                              required
+                              value={editModal.data.planName}
+                              onChange={(e) => handleModalChange('planName', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            >
+                              <option value="">Select Package...</option>
+                              {editModal.data.network === 'DSTV' && (
+                                <>
+                                  <option value="DStv Padi">DStv Padi</option>
+                                  <option value="DStv Yanga">DStv Yanga</option>
+                                  <option value="DStv Confam">DStv Confam</option>
+                                  <option value="DStv Compact">DStv Compact</option>
+                                  <option value="DStv Compact Plus">DStv Compact Plus</option>
+                                  <option value="DStv Premium">DStv Premium</option>
+                                </>
+                              )}
+                              {editModal.data.network === 'GOTV' && (
+                                <>
+                                  <option value="GOtv Smallie">GOtv Smallie</option>
+                                  <option value="GOtv Jinja">GOtv Jinja</option>
+                                  <option value="GOtv Jolli">GOtv Jolli</option>
+                                  <option value="GOtv Max">GOtv Max</option>
+                                  <option value="GOtv Supa">GOtv Supa</option>
+                                  <option value="GOtv Supa Plus">GOtv Supa Plus</option>
+                                </>
+                              )}
+                              {editModal.data.network === 'STARTIMES' && (
+                                <>
+                                  <option value="Nova">Nova</option>
+                                  <option value="Basic">Basic</option>
+                                  <option value="Smart">Smart</option>
+                                  <option value="Classic">Classic</option>
+                                  <option value="Super">Super</option>
+                                </>
+                              )}
+                            </select>
+                          ) : filterCategory === 'data' ? (
+                            <select
+                              required
+                              value={editModal.data.planName}
+                              onChange={(e) => handleModalChange('planName', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                            >
+                              <option value="">Select Data Size...</option>
+                              <option value="500MB 30 Days">500MB 30 Days</option>
+                              <option value="1GB 30 Days">1GB 30 Days</option>
+                              <option value="1.5GB 30 Days">1.5GB 30 Days</option>
+                              <option value="2GB 30 Days">2GB 30 Days</option>
+                              <option value="3GB 30 Days">3GB 30 Days</option>
+                              <option value="5GB 30 Days">5GB 30 Days</option>
+                              <option value="10GB 30 Days">10GB 30 Days</option>
+                              <option value="15GB 30 Days">15GB 30 Days</option>
+                              <option value="20GB 30 Days">20GB 30 Days</option>
+                              <option value="40GB 30 Days">40GB 30 Days</option>
+                              <option value="50GB 30 Days">50GB 30 Days</option>
+                              <option value="100GB 30 Days">100GB 30 Days</option>
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              required
+                              value={editModal.data.planName}
+                              onChange={(e) => handleModalChange('planName', e.target.value)}
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                              placeholder={filterCategory === 'airtime' ? 'Airtime' : 'Electricity'}
+                            />
+                          )}
                         </div>
                       </>
                     )}
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Plan Type / Category</label>
-                      <input 
-                        type="text"
-                        value={editModal.data.planType || ''}
-                        onChange={(e) => handleModalChange('planType', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
-                        placeholder="e.g. SME2, CORPORATE GIFTING, GIFTING"
-                      />
+                      {filterCategory === 'data' ? (
+                        <select
+                          value={editModal.data.planType || ''}
+                          onChange={(e) => handleModalChange('planType', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                        >
+                          <option value="">Select Type...</option>
+                          <option value="SME">SME</option>
+                          <option value="SME2">SME2</option>
+                          <option value="CG">CG (Corporate Gifting)</option>
+                          <option value="CORPORATE GIFTING">CORPORATE GIFTING</option>
+                          <option value="GIFTING">GIFTING</option>
+                          <option value="DATA SHARE">DATA SHARE</option>
+                          <option value="AWOOF">AWOOF</option>
+                        </select>
+                      ) : (
+                        <select
+                          value={editModal.data.planType || ''}
+                          onChange={(e) => handleModalChange('planType', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                        >
+                          {filterCategory === 'cable' && <option value="CABLE">CABLE</option>}
+                          {filterCategory === 'airtime' && <option value="AIRTIME">AIRTIME</option>}
+                          {filterCategory === 'electricity' && <option value="ELECTRICITY">ELECTRICITY</option>}
+                        </select>
+                      )}
                       <p className="text-xs text-gray-500 mt-1">The type/category of this plan as set by the provider.</p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Target Provider</label>
-                      <select 
+                      <select
                         required
                         value={editModal.data.providerId}
                         onChange={(e) => handleModalChange('providerId', e.target.value)}
@@ -321,7 +474,7 @@ export function PricingManagement() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Plan ID</label>
-                      <input 
+                      <input
                         type="text"
                         required
                         value={editModal.data.planId}
@@ -336,10 +489,10 @@ export function PricingManagement() {
                   {/* Pricing Section */}
                   <div className="space-y-4">
                     <h4 className="font-semibold text-gray-900 border-b pb-2">Pricing Structure</h4>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">API Cost Price (₦)</label>
-                      <input 
+                      <input
                         type="number"
                         required
                         min="0"
@@ -351,7 +504,7 @@ export function PricingManagement() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Sell Price (₦)</label>
-                      <input 
+                      <input
                         type="number"
                         required
                         min="0"
@@ -360,15 +513,15 @@ export function PricingManagement() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
                       />
                       {editModal.data.vendorPrice > 0 && (
-                        <p className={`text-xs mt-1 ${editModal.data.vendorPrice >= editModal.data.apiPrice ? 'text-green-600' : 'text-red-600'}`}>
-                          Profit: ₦{editModal.data.vendorPrice - editModal.data.apiPrice}
+                        <p className={`text-xs mt-1 ${editModal.data.vendorPrice >= editModal.data.apiCost ? 'text-green-600' : 'text-red-600'}`}>
+                          Profit: ₦{editModal.data.vendorPrice - editModal.data.apiCost}
                         </p>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Normal User Sell Price (₦)</label>
-                      <input 
+                      <input
                         type="number"
                         required
                         min="0"
@@ -377,8 +530,8 @@ export function PricingManagement() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
                       />
                       {editModal.data.userPrice > 0 && (
-                        <p className={`text-xs mt-1 ${editModal.data.userPrice >= editModal.data.apiPrice ? 'text-green-600' : 'text-red-600'}`}>
-                          Profit: ₦{editModal.data.userPrice - editModal.data.apiPrice}
+                        <p className={`text-xs mt-1 ${editModal.data.userPrice >= editModal.data.apiCost ? 'text-green-600' : 'text-red-600'}`}>
+                          Profit: ₦{editModal.data.userPrice - editModal.data.apiCost}
                         </p>
                       )}
                     </div>
@@ -387,16 +540,16 @@ export function PricingManagement() {
 
               </form>
             </div>
-            
+
             <div className="p-6 border-t border-gray-100 flex gap-3 justify-end bg-gray-50 shrink-0">
-              <button 
+              <button
                 type="button"
-                onClick={() => setEditModal({isOpen: false, data: null})}
+                onClick={() => setEditModal({ isOpen: false, data: null })}
                 className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 form="edit-pricing-form"
                 type="submit"
                 className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#1B3A6B] rounded-lg hover:bg-[#2A5A9E] transition-colors"

@@ -80,14 +80,14 @@ class _DataScreenState extends State<DataScreen> {
 
   List<String> get _availableDataTypes {
     final netPlans = _apiPlans.where((p) => (p['network'] as String).toLowerCase() == _net.name.toLowerCase());
-    return netPlans.map((p) => (p['type'] as String?) ?? 'SME').toSet().toList();
+    return netPlans.map((p) => (p['planType'] as String?) ?? 'SME').toSet().toList();
   }
 
   List<dynamic> get _plans {
     if (_selectedDataType == null) return [];
     return _apiPlans.where((p) {
       final matchesNet = (p['network'] as String).toLowerCase() == _net.name.toLowerCase();
-      final matchesType = ((p['type'] as String?) ?? 'SME').toLowerCase() == _selectedDataType!.toLowerCase();
+      final matchesType = ((p['planType'] as String?) ?? 'SME').toLowerCase() == _selectedDataType!.toLowerCase();
       return matchesNet && matchesType;
     }).toList();
   }

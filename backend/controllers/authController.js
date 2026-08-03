@@ -67,9 +67,22 @@ exports.checkUser = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const identifier = sanitizeIdentifier(req.body.identifier);
+    const rawIdentifier = req.body.identifier.trim();
+    const sanitized = sanitizeIdentifier(rawIdentifier);
     const { password } = req.body;
-    const user = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
+    
+    // Look for raw input, sanitized input, or potential 13-digit if we append 234
+    const altIdentifier = rawIdentifier.length === 10 ? `234${rawIdentifier}` : rawIdentifier;
+
+    const user = await User.findOne({ 
+      $or: [
+        { email: sanitized }, 
+        { phone: sanitized },
+        { email: rawIdentifier },
+        { phone: rawIdentifier },
+        { phone: altIdentifier }
+      ] 
+    });
     
     const AuditLog = require('../models/AuditLog');
 
@@ -83,7 +96,7 @@ exports.login = async (req, res, next) => {
         action: 'USER_LOGIN_SUCCESS',
         level: 'info',
         source: 'mobile_app',
-        details: `User ${identifier} logged in successfully`
+        details: `User ${rawIdentifier} logged in successfully`
       });
 
       return sendResponse(res, 200, true, { _id: user._id, name: user.name, email: user.email, phone: user.phone, token });
@@ -96,7 +109,7 @@ exports.login = async (req, res, next) => {
       action: 'USER_LOGIN_FAILED',
       level: 'warning',
       source: 'mobile_app',
-      details: `Failed login attempt for identifier: ${identifier}`
+      details: `Failed login attempt for identifier: ${rawIdentifier}`
     });
 
     return sendResponse(res, 401, false, 'Invalid credentials');

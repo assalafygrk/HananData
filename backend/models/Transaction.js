@@ -5,6 +5,8 @@ const transactionSchema = new mongoose.Schema({
   type: { type: String, enum: ['airtime', 'data', 'cable', 'electricity', 'airtime-to-cash', 'wallet-funding', 'admin-credit', 'admin-debit'], required: true },
   network: { type: String },
   amount: { type: Number, required: true },
+  apiCost: { type: Number, default: 0 },
+  profit: { type: Number, default: 0 },
   fee: { type: Number, default: 0 },
   status: { type: String, enum: ['success', 'failed', 'pending'], default: 'pending' },
   refId: { type: String, required: true, unique: true },

@@ -21,6 +21,8 @@ router.use(authenticateUser);
 router.get('/profile', profileCtrl.getProfile);
 router.put('/profile', profileCtrl.updateProfile);
 router.post('/profile/pin', profileCtrl.setTransactionPin);
+router.post('/profile/forgot-pin', profileCtrl.forgotPin);
+router.post('/profile/verify-pin-otp', profileCtrl.verifyPinOtp);
 router.get('/wallet/balance', profileCtrl.getWalletBalance);
 router.post('/wallet/fund', profileCtrl.fundWallet);
 

@@ -34,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final profileRes = await ApiService.getProfile();
     if (profileRes['success'] == true && mounted) {
       setState(() => _userData = profileRes['data']);
+      if (profileRes['data']['hasTransactionPin'] == false) {
+        Navigator.pushNamed(context, '/set_pin');
+      }
     }
 
     final txRes = await ApiService.getUserTransactions();

@@ -42,6 +42,13 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
   }
 
   Future<void> _confirm(TxnData txn) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lockoutEnd = prefs.getInt('pin_lockout_end') ?? 0;
+    if (DateTime.now().millisecondsSinceEpoch < lockoutEnd) {
+      _showLockoutDialog();
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     // Map TxnData to backend API payload
@@ -77,6 +84,10 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
     if (!mounted) return;
 
     if (res['success'] == true) {
+      // Reset attempts on success
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('pin_attempts', 0);
+      
       NotificationService().showNotification(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
         title: 'Transaction Successful',
@@ -85,17 +96,127 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       );
       Navigator.pushReplacementNamed(context, '/success', arguments: txn);
     } else {
+      final errorMsg = res['message'] ?? 'Transaction failed';
+      
+      if (errorMsg.contains('Please set a transaction PIN')) {
+        Navigator.pushNamed(context, '/set_pin');
+        return;
+      }
+      
+      if (errorMsg.contains('Incorrect transaction PIN')) {
+        final prefs = await SharedPreferences.getInstance();
+        int attempts = prefs.getInt('pin_attempts') ?? 0;
+        attempts++;
+        await prefs.setInt('pin_attempts', attempts);
+        
+        if (attempts >= 3) {
+          final lockoutEnd = DateTime.now().add(const Duration(minutes: 3)).millisecondsSinceEpoch;
+          await prefs.setInt('pin_lockout_end', lockoutEnd);
+          _showLockoutDialog();
+        } else {
+          _showPinErrorDialog(3 - attempts);
+        }
+        
+        setState(() => _pin = '');
+        return;
+      }
+
       NotificationService().showNotification(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
         title: 'Transaction Failed',
         body:
             'Your purchase of ${txn.network ?? ''} ${txn.type} for ₦${txn.amount} failed.',
       );
-      final errorMsg = res['message'] ?? 'Transaction failed';
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMsg)));
       Navigator.pushReplacementNamed(context, '/failed', arguments: txn.copyWith(failureReason: errorMsg));
     }
+  }
+
+  void _showPinErrorDialog(int remaining) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_outline, color: Colors.redAccent, size: 48),
+              const SizedBox(height: 16),
+              const Text('Incorrect PIN', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('You have $remaining attempt(s) remaining.', textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(backgroundColor: kPrimaryNavy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('Try Again', style: TextStyle(color: Colors.white)),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLockoutDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.block, color: Colors.redAccent, size: 48),
+              const SizedBox(height: 16),
+              const Text('Too Many Attempts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('For your security, PIN entry is locked for 3 minutes.', textAlign: TextAlign.center, style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.pop(context); // Go back from confirm screen
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.pushNamed(context, '/forget_pin');
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: kPrimaryNavy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    child: const Text('Forgot PIN?', style: TextStyle(color: Colors.white)),
+                  )
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

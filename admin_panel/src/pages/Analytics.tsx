@@ -1,14 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, Activity, PieChart } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
+import api from '../api';
 
 export function Analytics() {
-  const [timeframe, setTimeframe] = useState('7days');
-  const [data] = useState<any[]>([]);
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalCost: 0,
+    totalProfit: 0,
+    profitMargin: "0.0",
+    chartData: []
+  });
 
-  const totalRevenue = data.reduce((acc, curr) => acc + (curr.revenue || 0), 0);
-  const totalCost = data.reduce((acc, curr) => acc + (curr.cost || 0), 0);
-  const totalProfit = data.reduce((acc, curr) => acc + (curr.profit || 0), 0);
-  const profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : "0.0";
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await api.get(`/admin/analytics/pnl?startDate=${startDate}&endDate=${endDate}`);
+        if (res.data && res.data.success) {
+          setStats({
+            totalRevenue: res.data.data.grossRevenue || 0,
+            totalCost: res.data.data.apiCosts || 0,
+            totalProfit: res.data.data.netProfit || 0,
+            profitMargin: res.data.data.margin ? res.data.data.margin.replace('%', '') : "0.0",
+            chartData: res.data.data.chartData || []
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch analytics", err);
+      }
+    };
+    fetchAnalytics();
+  }, [startDate, endDate]);
+
+  const { totalRevenue, totalCost, totalProfit, profitMargin, chartData } = stats;
 
   const StatCard = ({ title, value, subValue, icon: Icon, colorClass }: any) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -25,20 +57,42 @@ export function Analytics() {
     </div>
   );
 
+  const formatYAxis = (tickItem: any) => {
+    if (tickItem >= 1000) {
+      return `₦${(tickItem / 1000).toFixed(1)}k`;
+    }
+    return `₦${tickItem}`;
+  };
+
+  const formatDateAxis = (tickItem: string) => {
+    const date = new Date(tickItem);
+    return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
+  };
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Analytics & P&L</h2>
-        <select 
-          value={timeframe}
-          onChange={(e) => setTimeframe(e.target.value)}
-          className="border border-gray-300 rounded-lg py-2 px-4 text-sm focus:ring-2 focus:ring-[#1B3A6B] outline-none bg-white shadow-sm"
-        >
-          <option value="7days">Last 7 Days</option>
-          <option value="30days">Last 30 Days</option>
-          <option value="thisMonth">This Month</option>
-          <option value="lastMonth">Last Month</option>
-        </select>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600 font-medium">From:</label>
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border border-gray-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-[#1B3A6B] outline-none bg-white shadow-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600 font-medium">To:</label>
+            <input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border border-gray-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-[#1B3A6B] outline-none bg-white shadow-sm"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -75,16 +129,43 @@ export function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue vs Cost Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="py-12 text-center text-gray-500">
-             Charts will be available once the backend implements analytics routes.
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Revenue vs API Cost</h3>
+          <div className="h-80">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={formatDateAxis} tick={{ fontSize: 12 }} tickMargin={10} />
+                  <YAxis tickFormatter={formatYAxis} tick={{ fontSize: 12 }} />
+                  <RechartsTooltip formatter={(value: number) => [`₦${value.toLocaleString()}`, undefined]} labelFormatter={formatDateAxis} />
+                  <Legend />
+                  <Bar dataKey="revenue" name="Revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cost" name="API Cost" fill="#F97316" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-400">No data available for this timeframe</div>
+            )}
           </div>
         </div>
 
         {/* Profit Trend Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Net Profit Trend</h3>
-          <div className="py-12 text-center text-gray-500">
-             Charts will be available once the backend implements analytics routes.
+          <div className="h-80">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={formatDateAxis} tick={{ fontSize: 12 }} tickMargin={10} />
+                  <YAxis tickFormatter={formatYAxis} tick={{ fontSize: 12 }} />
+                  <RechartsTooltip formatter={(value: number) => [`₦${value.toLocaleString()}`, 'Profit']} labelFormatter={formatDateAxis} />
+                  <Line type="monotone" dataKey="profit" name="Net Profit" stroke="#10B981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-400">No data available for this timeframe</div>
+            )}
           </div>
         </div>
       </div>

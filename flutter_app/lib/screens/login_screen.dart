@@ -39,10 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() => _onPin = true);
       } else {
         if (mounted) {
-          UiHelpers.showBanner(context, 'Account not found. Please sign up.', isError: true);
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) Navigator.pushReplacementNamed(context, '/signup');
-          });
+          UiHelpers.showBanner(context, 'Account not found. Please check your credentials.', isError: true);
         }
       }
     } else {
@@ -284,7 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                       Center(
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () => Navigator.pushNamed(context, '/forget_password'),
                           child: Text('Forgot PIN?', style: dFont(size: 13, color: kMutedText)),
                         ),
                       ),

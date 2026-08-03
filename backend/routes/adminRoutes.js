@@ -32,6 +32,7 @@ router.put('/providers/:id', requireRole(['Super Admin']), miscCtrl.updateProvid
 router.delete('/providers/:id', requireRole(['Super Admin']), miscCtrl.deleteProvider);
 router.get('/pricing', miscCtrl.getPricing);
 router.post('/pricing', requireRole(['Super Admin']), miscCtrl.createPricing);
+router.post('/pricing/sync', requireRole(['Super Admin']), miscCtrl.syncPricing);
 router.put('/pricing/:id', requireRole(['Super Admin']), miscCtrl.updatePricing);
 router.get('/settings', miscCtrl.getSettings);
 router.put('/settings', requireRole(['Super Admin']), miscCtrl.updateSettings);

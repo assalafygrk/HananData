@@ -70,15 +70,19 @@ exports.purchaseService = (type) => async (req, res, next) => {
       pricingConfig = await PricingConfig.findOne({ category: type, network: network || serviceProvider, providerId: vtuProvider._id });
     }
 
+    let actualApiCost = 0;
     if (pricingConfig) {
       if (type === 'data' || type === 'cable') {
         amountToDebit = user.role === 'Vendor' ? pricingConfig.vendorPrice : pricingConfig.userPrice;
+        actualApiCost = pricingConfig.apiCost;
       } else if (type === 'airtime') {
         const multiplier = user.role === 'Vendor' ? pricingConfig.vendorPrice : pricingConfig.userPrice;
-        amountToDebit = Math.round(amount * multiplier); 
+        amountToDebit = Math.round(amount * multiplier);
+        actualApiCost = Math.round(amount * pricingConfig.apiCost);
       } else if (type === 'electricity') {
         const fee = user.role === 'Vendor' ? pricingConfig.vendorPrice : pricingConfig.userPrice;
         amountToDebit = amount + fee;
+        actualApiCost = amount;
       }
     } else if (type === 'data' || type === 'cable') {
       await recordFailedTxn('Pricing configuration not found');
@@ -90,6 +94,8 @@ exports.purchaseService = (type) => async (req, res, next) => {
       return sendResponse(res, 400, false, 'Insufficient balance');
     }
 
+    const profit = amountToDebit - actualApiCost;
+
     const apiClient = new SubandgainClient(vtuProvider.username, vtuProvider.apiKeyEncrypted);
 
     // Create pending transaction
@@ -97,7 +103,9 @@ exports.purchaseService = (type) => async (req, res, next) => {
       userId: user._id,
       type,
       network: network || serviceProvider,
-      amount,
+      amount: amountToDebit,
+      apiCost: actualApiCost,
+      profit,
       refId,
       status: 'pending'
     });

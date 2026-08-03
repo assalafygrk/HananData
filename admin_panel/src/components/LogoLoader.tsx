@@ -1,6 +1,4 @@
-import { Loader2 } from 'lucide-react';
-
-export function LogoLoader({ text }: { text?: string }) {
+export function LogoLoader({}: { text?: string }) {
   // text is intentionally ignored to remove the label
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/40 backdrop-blur-sm">

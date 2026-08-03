@@ -92,7 +92,45 @@ exports.actionTransaction = async (req, res, next) => {
 exports.getProviders = async (req, res, next) => {
   try {
     const providers = await Provider.find();
-    return sendResponse(res, 200, true, providers);
+    
+    // Attempt to fetch live balances for active VTU providers
+    const SubandgainClient = require('../../utils/subandgainClient');
+    
+    const updatedProviders = await Promise.all(providers.map(async (p) => {
+      if (p.type === 'vtu' && p.status === 'active' && p.apiKeyEncrypted && p.username) {
+        try {
+          const client = new SubandgainClient(p.username, p.apiKeyEncrypted);
+          const balanceRes = await client.checkBalance();
+          console.log(`Balance check for ${p.name}:`, balanceRes);
+          
+          let balanceValue = undefined;
+          if (balanceRes) {
+            if (balanceRes.balance !== undefined) balanceValue = balanceRes.balance;
+            else if (balanceRes.data && balanceRes.data.balance !== undefined) balanceValue = balanceRes.data.balance;
+            else if (balanceRes.wallet_balance !== undefined) balanceValue = balanceRes.wallet_balance;
+          }
+
+          if (balanceValue !== undefined) {
+            p.liveBalance = parseFloat(balanceValue);
+            p.lastPingAt = new Date();
+            await p.save();
+          } else if (balanceRes && typeof balanceRes === 'string' && !balanceRes.includes('error')) {
+            // Some APIs just return the raw number or string representation
+            const parsed = parseFloat(balanceRes);
+            if (!isNaN(parsed)) {
+              p.liveBalance = parsed;
+              p.lastPingAt = new Date();
+              await p.save();
+            }
+          }
+        } catch (err) {
+          console.error(`Failed to fetch balance for provider ${p.name}:`, err.message);
+        }
+      }
+      return p;
+    }));
+
+    return sendResponse(res, 200, true, updatedProviders);
   } catch (error) { next(error); }
 };
 
@@ -147,6 +185,17 @@ exports.addProvider = async (req, res, next) => {
     const { name, type, apiKeyEncrypted, baseUrl, webhookUrl, username } = req.body;
     if (!name || !type) return sendResponse(res, 400, false, 'Name and type are required');
     const newProvider = await Provider.create({ name, type, apiKeyEncrypted, baseUrl, webhookUrl, username });
+    
+    // Automatically trigger sync if it's a VTU provider
+    if (type === 'vtu') {
+      const { exec } = require('child_process');
+      const path = require('path');
+      const scriptPath = path.join(__dirname, '../../../scripts/syncSubandgainPricing.js');
+      exec(`node ${scriptPath}`, (error, stdout, stderr) => {
+        if (error) console.error(`Error auto-syncing pricing: ${error.message}`);
+      });
+    }
+
     return sendResponse(res, 201, true, newProvider);
   } catch (error) { next(error); }
 };
@@ -227,6 +276,23 @@ exports.addRole = async (req, res, next) => {
     const newAdmin = new Admin(req.body);
     await newAdmin.save();
     return sendResponse(res, 201, true, newAdmin);
+  } catch (error) { next(error); }
+};
+
+exports.syncPricing = async (req, res, next) => {
+  try {
+    const { exec } = require('child_process');
+    const path = require('path');
+    const scriptPath = path.join(__dirname, '../../../scripts/syncSubandgainPricing.js');
+    
+    // We execute it asynchronously so it doesn't block
+    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error syncing pricing: ${error.message}`);
+      }
+    });
+
+    return sendResponse(res, 200, true, { message: 'Pricing synchronization started in the background.' });
   } catch (error) { next(error); }
 };
 

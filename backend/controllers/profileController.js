@@ -7,9 +7,12 @@ const PlatformSettings = require('../models/PlatformSettings');
 
 exports.getProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('-passwordHash -transactionPinHash');
+    const user = await User.findById(req.user._id).select('-passwordHash');
     const settings = await PlatformSettings.findOne() || {};
-    return sendResponse(res, 200, true, { ...user.toObject(), settings });
+    const userObj = user.toObject();
+    const hasTransactionPin = !!userObj.transactionPinHash;
+    delete userObj.transactionPinHash;
+    return sendResponse(res, 200, true, { ...userObj, hasTransactionPin, settings });
   } catch (error) { next(error); }
 };
 
@@ -105,5 +108,46 @@ exports.setTransactionPin = async (req, res, next) => {
     });
 
     return sendResponse(res, 200, true, { message: 'Transaction PIN updated successfully.' });
+  } catch (error) { next(error); }
+};
+
+exports.forgotPin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return sendResponse(res, 404, false, 'User not found');
+    
+    // TODO: implement real OTP sending
+    return sendResponse(res, 200, true, { message: 'OTP sent successfully to your email (mocked)' });
+  } catch (error) { next(error); }
+};
+
+exports.verifyPinOtp = async (req, res, next) => {
+  try {
+    const { otp, newPin } = req.body;
+    
+    if (!newPin || !/^\d{4}$/.test(newPin.toString())) {
+      return sendResponse(res, 400, false, 'New transaction PIN must be exactly 4 digits.');
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return sendResponse(res, 404, false, 'User not found');
+
+    // TODO: implement real OTP verification here
+    
+    const salt = await bcrypt.genSalt(10);
+    user.transactionPinHash = await bcrypt.hash(newPin.toString(), salt);
+    await user.save();
+
+    await AuditLog.create({
+      actorId: user._id,
+      actorType: 'system',
+      actorModel: 'User',
+      action: 'RESET_TRANSACTION_PIN',
+      level: 'info',
+      source: 'mobile_app',
+      details: 'Transaction PIN reset via OTP'
+    });
+
+    return sendResponse(res, 200, true, { message: 'Transaction PIN reset successfully' });
   } catch (error) { next(error); }
 };

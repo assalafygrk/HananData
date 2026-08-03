@@ -25,6 +25,20 @@ class ApiService {
     };
   }
 
+  static Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body, {bool requiresAuth = false}) async {
+    try {
+      final headers = requiresAuth ? await _getHeaders() : {'Content-Type': 'application/json'};
+      final res = await http.post(
+        Uri.parse('$baseUrl$path'),
+        headers: headers,
+        body: jsonEncode(body)
+      );
+      return jsonDecode(res.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
   // --- Auth ---
   static Future<Map<String, dynamic>> checkUserExists(String phoneOrEmail) async {
     try {

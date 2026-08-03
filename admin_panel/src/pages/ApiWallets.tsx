@@ -9,7 +9,7 @@ export function ApiWallets() {
   const fetchProviders = async () => {
     setIsRefreshing(true);
     try {
-      const res = await api.get('/admin/providers');
+      const res = await api.get(`/admin/providers?_t=${new Date().getTime()}`);
       if (res.data.success) {
         setProviders(res.data.data);
       }

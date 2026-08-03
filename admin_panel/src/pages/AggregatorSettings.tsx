@@ -31,7 +31,7 @@ export function AggregatorSettings() {
     password: '' // Required for editing
   });
   
-  const [showFormPassword, setShowFormPassword] = useState(false);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Manage Delete password confirm modal
@@ -171,7 +171,7 @@ export function AggregatorSettings() {
   const closeModal = () => {
     setModal({ isOpen: false, type: null, isEdit: false, editId: null });
     setFormData({ name: '', username: '', apiKeyEncrypted: '', baseUrl: '', webhookUrl: '', password: '' });
-    setShowFormPassword(false);
+    
   };
 
   const initiateDelete = (id: string, type: 'provider' | 'gateway') => {

@@ -21,7 +21,7 @@ class SubandgainClient {
 
   async checkBalance() {
     try {
-      const url = this._buildUrl('query_balance.php');
+      const url = this._buildUrl('balance.php');
       const response = await axios.get(url);
       return response.data;
     } catch (error) {
