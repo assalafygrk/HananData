@@ -64,7 +64,7 @@ exports.purchaseService = (type) => async (req, res, next) => {
     let pricingConfig = null;
     let amountToDebit = amount; // Base fallback
 
-    if (type === 'data' || type === 'cable') {
+    if (type === 'data' || type === 'cable' || type === 'exam-pin') {
       pricingConfig = await PricingConfig.findOne({ category: type, planId: planId, providerId: vtuProvider._id });
     } else {
       pricingConfig = await PricingConfig.findOne({ category: type, network: network || serviceProvider, providerId: vtuProvider._id });
@@ -72,7 +72,7 @@ exports.purchaseService = (type) => async (req, res, next) => {
 
     let actualApiCost = 0;
     if (pricingConfig) {
-      if (type === 'data' || type === 'cable') {
+      if (type === 'data' || type === 'cable' || type === 'exam-pin') {
         amountToDebit = user.role === 'Vendor' ? pricingConfig.vendorPrice : pricingConfig.userPrice;
         actualApiCost = pricingConfig.apiCost;
       } else if (type === 'airtime') {
@@ -84,7 +84,7 @@ exports.purchaseService = (type) => async (req, res, next) => {
         amountToDebit = amount + fee;
         actualApiCost = amount;
       }
-    } else if (type === 'data' || type === 'cable') {
+    } else if (type === 'data' || type === 'cable' || type === 'exam-pin') {
       await recordFailedTxn('Pricing configuration not found');
       return sendResponse(res, 400, false, 'Pricing configuration not found for this service plan.');
     }
@@ -141,12 +141,17 @@ exports.purchaseService = (type) => async (req, res, next) => {
         accessToken: verifyRes.accessToken, 
         amount 
       });
+    } else if (type === 'exam-pin') {
+      apiResponse = await apiClient.purchaseEducation({ eduType: planId });
     }
 
     const statusStr = (apiResponse.status || '').toLowerCase();
     
     if (statusStr === 'approved' || statusStr === 'success' || statusStr === 'pending') {
       transaction.status = statusStr === 'pending' ? 'pending' : 'success';
+      if (apiResponse.token) {
+        transaction.token = apiResponse.token;
+      }
       await transaction.save();
 
       user.walletBalance -= amountToDebit;
@@ -165,7 +170,7 @@ exports.purchaseService = (type) => async (req, res, next) => {
       await Notification.create({
         userId: user._id,
         title: 'Transaction Successful',
-        message: `Your purchase of ${network || serviceProvider || ''} ${type} for ₦${amount} was successful.`,
+        message: `Your purchase of ${network || serviceProvider || ''} ${type} for ₦${amount} was successful.${apiResponse.token ? ' PIN: ' + apiResponse.token : ''}`,
         type: 'transaction',
         relatedId: transaction.refId
       });
@@ -232,7 +237,35 @@ exports.verifyElectricityMeter = async (req, res, next) => {
 
 exports.airtimeToCash = async (req, res, next) => {
   try {
+    const { network, amount, phone, pin } = req.body;
     const user = await User.findById(req.user._id);
+
+    if (!user.transactionPinHash) {
+      return sendResponse(res, 400, false, 'Please set a transaction PIN in your settings first.');
+    }
+    if (!pin) {
+      return sendResponse(res, 400, false, 'Transaction PIN is required.');
+    }
+    const isMatch = await bcrypt.compare(pin.toString(), user.transactionPinHash);
+    if (!isMatch) {
+      return sendResponse(res, 401, false, 'Incorrect transaction PIN.');
+    }
+
+    const refId = 'ATC-' + Date.now() + Math.floor(Math.random() * 1000);
+    const numAmount = Number(amount);
+    const fee = Math.round(numAmount * 0.25);
+
+    const transaction = await Transaction.create({
+      userId: user._id,
+      type: 'airtime-to-cash',
+      network,
+      amount: numAmount,
+      fee,
+      refId,
+      status: 'pending',
+      failureReason: `Airtime transfer from ${phone}`
+    });
+
     await AuditLog.create({
       actorId: user._id,
       actorType: 'system',
@@ -240,9 +273,10 @@ exports.airtimeToCash = async (req, res, next) => {
       action: 'AIRTIME_TO_CASH_INITIATED',
       level: 'info',
       source: 'mobile_app',
-      details: 'Airtime to cash initiated'
+      details: `Airtime to cash initiated for ${network} ₦${amount} from ${phone}`
     });
-    return sendResponse(res, 200, true, { message: 'Airtime to cash initiated' });
+
+    return sendResponse(res, 200, true, transaction);
   } catch (error) { next(error); }
 };
 

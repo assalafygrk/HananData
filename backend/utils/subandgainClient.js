@@ -116,6 +116,27 @@ class SubandgainClient {
       return { error: 'ERR_NETWORK', description: error.message };
     }
   }
+  async purchaseEducation({ eduType }) {
+    try {
+      const url = this._buildUrl('education.php', { eduType });
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Subandgain Education Error:', error.message);
+      return { error: 'ERR_NETWORK', description: error.message };
+    }
+  }
+
+  async queryEducation({ trans_id }) {
+    try {
+      const url = this._buildUrl('query_education.php', { trans_id });
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Subandgain Query Education Error:', error.message);
+      return { error: 'ERR_NETWORK', description: error.message };
+    }
+  }
 }
 
 module.exports = SubandgainClient;

@@ -29,15 +29,26 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
   Future<void> _loadBalance() async {
     final prefs = await SharedPreferences.getInstance();
     final userStr = prefs.getString('userData');
-    if (userStr != null) {
-      setState(() => _userData = jsonDecode(userStr));
+    if (userStr != null && mounted) {
+      try {
+        final decoded = jsonDecode(userStr);
+        final map = (decoded is Map<String, dynamic> && decoded.containsKey('data'))
+            ? decoded['data']
+            : decoded;
+        if (map is Map<String, dynamic>) {
+          setState(() => _userData = map);
+        }
+      } catch (_) {}
     }
     final res = await ApiService.getProfile();
     if (res['success'] == true && mounted) {
-      setState(() {
-        _userData = res['data'];
-      });
-      await prefs.setString('userData', jsonEncode(res['data']));
+      final freshData = res['data'] is Map<String, dynamic> ? res['data'] as Map<String, dynamic> : null;
+      if (freshData != null) {
+        setState(() {
+          _userData = freshData;
+        });
+        await prefs.setString('userData', jsonEncode(freshData));
+      }
     }
   }
 
@@ -67,6 +78,8 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       apiType = 'cable';
     } else if (apiType.contains('electricity')) {
       apiType = 'electricity';
+    } else if (apiType.contains('exam')) {
+      apiType = 'exam-pin';
     }
 
     String phoneToSend = txn.recipient ?? '';
@@ -101,7 +114,16 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
         body:
             'Your purchase of ${txn.network ?? ''} ${txn.type} for ₦${txn.amount} was successful.',
       );
-      Navigator.pushReplacementNamed(context, '/success', arguments: txn);
+
+      final returnedToken = (res['data'] != null && res['data']['token'] != null)
+          ? res['data']['token'].toString()
+          : null;
+
+      final finalTxn = returnedToken != null
+          ? txn.copyWith(failureReason: returnedToken)
+          : txn;
+
+      Navigator.pushReplacementNamed(context, '/success', arguments: finalTxn);
     } else {
       final errorMsg = res['message'] ?? 'Transaction failed';
       
@@ -254,8 +276,9 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       if (txn.fee > 0) _DetailRow(label: 'Fee', value: '₦${fmtNaira(txn.fee)}'),
     ];
 
-    final num currentBalance = _userData?['walletBalance'] ?? 0;
-    final balanceAfter = (currentBalance.toInt() - txn.total).clamp(0, 999999999);
+    final num rawBal = _userData?['walletBalance'] ?? _userData?['balance'] ?? _userData?['data']?['walletBalance'] ?? 0;
+    final num currentBalance = num.tryParse(rawBal.toString()) ?? 0;
+    final num diff = currentBalance - txn.total;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -343,11 +366,19 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
                               children: [
                                 Text('Wallet balance after',
                                     style: dFont(size: 12, color: kMutedText)),
-                                Text('₦${fmtNaira(balanceAfter)}',
-                                    style: dFont(
-                                        size: 12,
-                                        weight: FontWeight.w700,
-                                        color: kMediumText)),
+                                Text(
+                                  _userData == null
+                                      ? 'Loading...'
+                                      : (diff < 0
+                                          ? 'Insufficient Balance'
+                                          : '₦${fmtNaira(diff.toInt())}'),
+                                  style: dFont(
+                                      size: 12,
+                                      weight: FontWeight.w700,
+                                      color: (_userData != null && diff < 0)
+                                          ? Colors.red
+                                          : kMediumText),
+                                ),
                               ],
                             ),
                           ),

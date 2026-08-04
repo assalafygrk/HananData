@@ -143,6 +143,46 @@ async function syncPricing() {
     }
     console.log(`   ✅ Electricity configured for: ${electricityProviders.join(', ')}`);
 
+    // ─── 5. EXAM PINS ────────────────────────────────────────────────────────────
+    try {
+      console.log('\n🎓 Syncing Exam PIN Plans...');
+      const eduRes = await axios.get('https://subandgain.com/api/edu_prices.php');
+      const eduServices = eduRes.data; // Array of { SERVICE, BUNDLE }
+      let eduCount = 0;
+
+      if (Array.isArray(eduServices)) {
+        for (const srv of eduServices) {
+          const network = srv.SERVICE; // WAEC, NECO
+          for (const bundle of srv.BUNDLE) {
+            if (bundle.status && bundle.status !== 'Active') continue;
+
+            const apiCost = parseFloat(bundle.price);
+            if (isNaN(apiCost)) continue;
+
+            const userPrice = Math.ceil(apiCost * 1.05); // +5%
+            const vendorPrice = Math.ceil(apiCost * 1.02); // +2%
+
+            await PricingConfig.findOneAndUpdate(
+              { category: 'exam-pin', network, planId: bundle.eduCode },
+              {
+                planName: `${network} Result Checker (${bundle.eduCode})`,
+                planType: 'EXAM',
+                apiCost,
+                vendorPrice,
+                userPrice,
+                providerId: vtuProvider._id
+              },
+              { upsert: true, returnDocument: 'after' }
+            );
+            eduCount++;
+          }
+        }
+      }
+      console.log(`   ✅ ${eduCount} Exam PIN plans synced`);
+    } catch (e) {
+      console.log('   ❌ Error syncing Exam PIN plans:', e.message);
+    }
+
     console.log('\n🎉 All done! Run `node scripts/syncSubandgainPricing.js` anytime to refresh pricing.');
     process.exit(0);
   } catch (e) {

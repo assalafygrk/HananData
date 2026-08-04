@@ -1,6 +1,7 @@
 // lib/screens/success_screen.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_data.dart';
 import '../models/txn_data.dart';
@@ -106,7 +107,53 @@ class _SuccessScreenState extends State<SuccessScreen>
                       style: dFont(size: 14, color: kMutedText),
                     ),
                     const SizedBox(height: 28),
-                    // Receipt card
+// Receipt card
+                    if (txn.type.toLowerCase().contains('exam') || (txn.failureReason != null && txn.failureReason!.isNotEmpty)) ...[
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F0FF),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFF7B2FBE).withValues(alpha: 0.5), width: 1.5),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'RESULT CHECKER TOKEN / PIN',
+                              style: dFont(size: 11, weight: FontWeight.w800, color: const Color(0xFF7B2FBE)),
+                            ),
+                            const SizedBox(height: 8),
+                            SelectableText(
+                              txn.failureReason ?? 'Generated',
+                              style: dFont(size: 20, weight: FontWeight.w900, color: kPrimaryDark, letterSpacing: 1.5),
+                            ),
+                            const SizedBox(height: 10),
+                            InkWell(
+                              onTap: () {
+                                if (txn.failureReason != null) {
+                                  Clipboard.setData(ClipboardData(text: txn.failureReason!));
+                                  showTopBanner(context, 'Token/PIN copied to clipboard!', isError: false);
+                                }
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.copy_rounded, size: 16, color: Color(0xFF7B2FBE)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Copy PIN',
+                                    style: dFont(size: 13, weight: FontWeight.w700, color: const Color(0xFF7B2FBE)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(

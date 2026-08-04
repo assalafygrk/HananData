@@ -56,8 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
       const _QuickAction(label: 'Electricity',   icon: Icons.bolt_rounded,                route: '/electricity'),
       const _QuickAction(label: 'Airtime→Cash',  icon: Icons.swap_horiz_rounded,          route: '/airtimecash'),
       const _QuickAction(label: 'Exam PIN',      icon: Icons.school_rounded,              route: '/exam-pin'),
-      const _QuickAction(label: 'Bulk SMS',      icon: Icons.sms_rounded,                 route: '/bulk-sms'),
       const _QuickAction(label: 'Fund Wallet',   icon: Icons.account_balance_wallet_outlined, route: '/wallet'),
+      const _QuickAction(label: 'History',       icon: Icons.receipt_long_rounded,        route: '/history'),
     ];
 
     return Scaffold(

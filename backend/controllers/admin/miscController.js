@@ -80,6 +80,17 @@ exports.actionTransaction = async (req, res, next) => {
     if (action === 'resolve') newStatus = 'success';
     if (action === 'refund') newStatus = 'failed';
     if (action === 'retry') newStatus = 'pending';
+
+    // If resolving an airtime-to-cash transaction, credit user's wallet with net cash value
+    if (tx.type === 'airtime-to-cash' && action === 'resolve' && tx.status !== 'success') {
+      const User = require('../../models/User');
+      const user = await User.findById(tx.userId);
+      if (user) {
+        const netCash = tx.amount - (tx.fee || 0);
+        user.walletBalance = (user.walletBalance || 0) + netCash;
+        await user.save();
+      }
+    }
     
     tx.status = newStatus;
     tx.adminNote = (tx.adminNote ? tx.adminNote + ' | ' : '') + `Admin [${action}]: ${note}`;

@@ -82,6 +82,8 @@ export function TransactionManagement() {
                 <option value="data">Data</option>
                 <option value="cable">Cable TV</option>
                 <option value="electricity">Electricity</option>
+                <option value="airtime-to-cash">Airtime to Cash</option>
+                <option value="exam-pin">Exam PIN</option>
                 <option value="wallet-funding">Wallet Funding</option>
               </select>
             </div>

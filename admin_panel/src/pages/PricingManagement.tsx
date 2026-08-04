@@ -47,13 +47,16 @@ export function PricingManagement() {
   const handleAddClick = () => {
     let defaultNetwork = '';
     let defaultPlanType = '';
-    if (filterCategory === 'data' || filterCategory === 'airtime') defaultNetwork = 'MTN';
+    if (filterCategory === 'data' || filterCategory === 'airtime' || filterCategory === 'airtime-to-cash') defaultNetwork = 'MTN';
     if (filterCategory === 'cable') defaultNetwork = 'DSTV';
     if (filterCategory === 'electricity') defaultNetwork = 'AEDC';
+    if (filterCategory === 'exam-pin') defaultNetwork = 'WAEC';
     
     if (filterCategory === 'cable') defaultPlanType = 'CABLE';
     if (filterCategory === 'airtime') defaultPlanType = 'AIRTIME';
     if (filterCategory === 'electricity') defaultPlanType = 'ELECTRICITY';
+    if (filterCategory === 'exam-pin') defaultPlanType = 'EXAM';
+    if (filterCategory === 'airtime-to-cash') defaultPlanType = 'CONVERSION';
 
     setEditModal({
       isOpen: true,
@@ -80,7 +83,7 @@ export function PricingManagement() {
         const cost = Number(value) || 0;
         const category = newData.category || filterCategory;
         
-        if (category === 'data' || category === 'cable') {
+        if (category === 'data' || category === 'cable' || category === 'exam-pin') {
           newData.userPrice = Math.ceil(cost * 1.05);
           newData.vendorPrice = Math.ceil(cost * 1.02);
         } else if (category === 'airtime') {
@@ -135,6 +138,15 @@ export function PricingManagement() {
     return { profit, margin: margin.toFixed(1) };
   };
 
+  const categoryLabels: Record<string, string> = {
+    'airtime': 'Airtime',
+    'data': 'Data',
+    'cable': 'Cable TV',
+    'electricity': 'Electricity',
+    'airtime-to-cash': 'Airtime to Cash',
+    'exam-pin': 'Exam PIN',
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -149,16 +161,16 @@ export function PricingManagement() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex gap-2 overflow-x-auto">
-          {['airtime', 'data', 'cable', 'electricity', 'airtime-to-cash', 'bulk-sms', 'exam-pins'].map(cat => (
+          {['airtime', 'data', 'cable', 'electricity', 'airtime-to-cash', 'exam-pin'].map(cat => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${filterCategory === cat
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${filterCategory === cat
                   ? 'bg-[#1B3A6B] text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
             >
-              {cat}
+              {categoryLabels[cat] || cat}
             </button>
           ))}
         </div>
