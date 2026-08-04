@@ -4,7 +4,8 @@ import '../constants/app_data.dart';
 import '../models/txn_data.dart';
 import '../widgets/shared_widgets.dart';
 
-import '../utils/phone_utils.dart';
+// Removed unused PhoneUtils import
+import '../services/api_service.dart';
 
 class ElectricityScreen extends StatefulWidget {
   const ElectricityScreen({super.key});
@@ -34,12 +35,8 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   }
 
   void _onMeterChanged() {
-    final detected = PhoneUtils.detectElectricityDiscoIndex(_meterCtrl.text);
-    if (detected != null && detected != _discoIdx) {
-      setState(() {
-        _discoIdx = detected;
-      });
-    }
+    // Meter numbers do not have universal prefixes in Nigeria.
+    // Auto-detection is disabled to prevent incorrect provider selection.
   }
 
   @override
@@ -50,30 +47,66 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
     super.dispose();
   }
 
+  bool _isVerifying = false;
+
   bool get _canProceed {
     final amt = int.tryParse(_amountCtrl.text) ?? 0;
-    return amt >= 500 && _meterCtrl.text.length >= 10;
+    return amt >= 500 && _meterCtrl.text.length >= 10 && !_isVerifying;
   }
 
-  void _proceed() {
+  Future<void> _proceed() async {
     final amt = int.tryParse(_amountCtrl.text) ?? 0;
     final disco = kDiscos[_discoIdx];
     final short = _discoShorts[_discoIdx];
-    final txn = TxnData(
-      type: 'Electricity',
-      provider: short,
-      recipient: _meterType == 'prepaid'
-          ? 'Prepaid · ${_meterCtrl.text}'
-          : 'Postpaid · ${_meterCtrl.text}',
-      meterNumber: _meterCtrl.text,
-      amount: amt,
-      fee: 50,
-      total: amt + 50,
-      description: disco.split(' (')[0],
-      plan: '${_meterType[0].toUpperCase()}${_meterType.substring(1)} · Meter ${_meterCtrl.text}',
-      refId: genRef(),
-    );
-    Navigator.pushNamed(context, '/confirm', arguments: txn);
+    final meterType = _meterType == 'prepaid' ? 'PRE' : 'POST';
+    
+    setState(() => _isVerifying = true);
+    
+    try {
+      final res = await ApiService.post('/services/verify-electricity', {
+        'provider': short,
+        'meterNumber': _meterCtrl.text,
+        'meterType': meterType
+      }, requiresAuth: true);
+
+      if (res['success'] == true) {
+        final customerName = res['data']['customerName'];
+        
+        final txn = TxnData(
+          type: 'Electricity',
+          provider: short,
+          recipient: customerName ?? (_meterType == 'prepaid' ? 'Prepaid · ${_meterCtrl.text}' : 'Postpaid · ${_meterCtrl.text}'),
+          meterNumber: _meterCtrl.text,
+          amount: amt,
+          fee: 50,
+          total: amt + 50,
+          description: disco.split(' (')[0],
+          plan: '${_meterType[0].toUpperCase()}${_meterType.substring(1)} · Meter ${_meterCtrl.text}',
+          refId: genRef(),
+        );
+        if (mounted) {
+          Navigator.pushNamed(context, '/confirm', arguments: txn);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(res['message'] ?? 'Failed to verify meter'),
+            backgroundColor: Colors.red,
+          ));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Network error, please try again'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isVerifying = false);
+      }
+    }
   }
 
   @override
@@ -270,7 +303,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: PrimaryBtn(
-                label: 'Proceed',
+                label: _isVerifying ? 'Verifying...' : 'Proceed',
                 disabled: !_canProceed,
                 onPressed: _proceed,
               ),

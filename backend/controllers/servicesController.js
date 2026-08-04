@@ -200,6 +200,36 @@ exports.purchaseService = (type) => async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.verifyElectricityMeter = async (req, res, next) => {
+  try {
+    const { provider, meterNumber, meterType } = req.body;
+    if (!provider || !meterNumber || !meterType) {
+      return sendResponse(res, 400, false, 'Provider, meter number, and meter type are required.');
+    }
+
+    const vtuProvider = await Provider.findOne({ type: 'vtu', status: 'active' });
+    if (!vtuProvider || !vtuProvider.apiKeyEncrypted || !vtuProvider.username) {
+      return sendResponse(res, 500, false, 'VTU Provider not configured correctly.');
+    }
+
+    const apiClient = new SubandgainClient(vtuProvider.username, vtuProvider.apiKeyEncrypted);
+    const verifyRes = await apiClient.verifyElectricity({ 
+      service: provider, 
+      meterNumber, 
+      meterType 
+    });
+
+    if (verifyRes.error || !verifyRes.accessToken) {
+      return sendResponse(res, 400, false, verifyRes.description || 'Invalid Meter Number');
+    }
+
+    return sendResponse(res, 200, true, {
+      customerName: verifyRes.customerName,
+      accessToken: verifyRes.accessToken
+    });
+  } catch (error) { next(error); }
+};
+
 exports.airtimeToCash = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);

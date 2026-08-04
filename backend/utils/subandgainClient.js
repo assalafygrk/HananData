@@ -75,9 +75,21 @@ class SubandgainClient {
     }
   }
 
+  _mapElectricityService(service) {
+    const map = {
+      'KEDCO': 'KEDC',
+      'KAEDCO': 'KAEDC',
+      'JED': 'JEDC',
+      'PHED': 'PhED',
+      'PHEDC': 'PhED'
+    };
+    return map[service.toUpperCase()] || service;
+  }
+
   async verifyElectricity({ service, meterNumber, meterType }) {
     try {
-      const url = this._buildUrl('verify_electricity.php', { service, meterNumber, meterType });
+      const mappedService = this._mapElectricityService(service);
+      const url = this._buildUrl('verify_electricity.php', { service: mappedService, meterNumber, meterType });
       const response = await axios.get(url);
       return response.data;
     } catch (error) {
@@ -88,7 +100,8 @@ class SubandgainClient {
 
   async purchaseElectricity({ service, meterNumber, meterType, accessToken, amount }) {
     try {
-      const url = this._buildUrl('electricity.php', { service, meterNumber, meterType, accessToken, amount });
+      const mappedService = this._mapElectricityService(service);
+      const url = this._buildUrl('electricity.php', { service: mappedService, meterNumber, meterType, accessToken, amount });
       const response = await axios.get(url);
       return response.data;
     } catch (error) {

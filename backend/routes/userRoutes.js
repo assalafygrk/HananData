@@ -30,6 +30,7 @@ router.post('/wallet/fund', profileCtrl.fundWallet);
 router.post('/services/airtime', servicesCtrl.purchaseService('airtime'));
 router.post('/services/data', servicesCtrl.purchaseService('data'));
 router.post('/services/cable', servicesCtrl.purchaseService('cable'));
+router.post('/services/verify-electricity', servicesCtrl.verifyElectricityMeter);
 router.post('/services/electricity', servicesCtrl.purchaseService('electricity'));
 router.post('/services/airtime-to-cash', servicesCtrl.airtimeToCash);
 router.get('/services/pricing', servicesCtrl.getPricing);

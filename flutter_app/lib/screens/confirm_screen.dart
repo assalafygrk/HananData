@@ -69,10 +69,17 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       apiType = 'electricity';
     }
 
+    String phoneToSend = txn.recipient ?? '';
+    if (apiType == 'electricity' && txn.meterNumber != null) {
+      phoneToSend = txn.meterNumber!;
+    } else if (apiType == 'cable' && txn.recipient != null) {
+      phoneToSend = txn.recipient!.replaceAll(RegExp(r'\D'), '');
+    }
+
     final payload = {
       'network': txn.network,
       'amount': txn.amount,
-      'phone': txn.recipient,
+      'phone': phoneToSend,
       'planId': txn.planId ?? txn.plan,
       'provider': txn.provider,
       'pin': _pin,
