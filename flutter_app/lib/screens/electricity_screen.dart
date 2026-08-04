@@ -89,18 +89,12 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(res['message'] ?? 'Failed to verify meter'),
-            backgroundColor: Colors.red,
-          ));
+          showTopBanner(context, res['message'] ?? 'Failed to verify meter');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Network error, please try again'),
-          backgroundColor: Colors.red,
-        ));
+        showTopBanner(context, 'Network error, please try again');
       }
     } finally {
       if (mounted) {

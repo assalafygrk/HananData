@@ -99,7 +99,7 @@ exports.login = async (req, res, next) => {
         details: `User ${rawIdentifier} logged in successfully`
       });
 
-      return sendResponse(res, 200, true, { _id: user._id, name: user.name, email: user.email, phone: user.phone, token });
+      return sendResponse(res, 200, true, { _id: user._id, name: user.name, email: user.email, phone: user.phone, walletBalance: user.walletBalance, token });
     }
     
     await AuditLog.create({

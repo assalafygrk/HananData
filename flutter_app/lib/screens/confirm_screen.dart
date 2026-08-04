@@ -230,6 +230,13 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
   Widget build(BuildContext context) {
     final txn = ModalRoute.of(context)!.settings.arguments as TxnData;
 
+    // Derive api type from txn.type for label logic
+    final String apiType = txn.type.toLowerCase().contains('cable')
+        ? 'cable'
+        : txn.type.toLowerCase().contains('electricity')
+            ? 'electricity'
+            : txn.type.toLowerCase();
+
     // Build detail rows matching the React reference
     final rows = <_DetailRow>[
       _DetailRow(label: 'Service', value: txn.type),
@@ -238,13 +245,17 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       if (txn.provider != null)
         _DetailRow(label: 'Provider', value: txn.provider!),
       _DetailRow(label: 'Recipient', value: txn.recipient ?? '—'),
-      if (txn.plan != null) _DetailRow(label: 'Detail', value: txn.plan!),
+      if (txn.plan != null)
+        _DetailRow(
+          label: (apiType == 'cable' || apiType == 'electricity') ? 'Plan' : 'Detail',
+          value: txn.plan!,
+        ),
       _DetailRow(label: 'Amount', value: '₦${fmtNaira(txn.amount)}'),
       if (txn.fee > 0) _DetailRow(label: 'Fee', value: '₦${fmtNaira(txn.fee)}'),
     ];
 
-    final num currentBalance = _userData?['walletBalance'] ?? _userData?['balance'] ?? 0;
-    final balanceAfter = (currentBalance - txn.total).clamp(0, 999999).toInt();
+    final num currentBalance = _userData?['walletBalance'] ?? 0;
+    final balanceAfter = (currentBalance.toInt() - txn.total).clamp(0, 999999999);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

@@ -31,6 +31,97 @@ TextStyle dFont({
       height: height,
     );
 
+/// Shows a modern top-floating error or success banner below the status bar.
+void showTopBanner(BuildContext context, String message, {bool isError = true}) {
+  final overlay = Overlay.of(context);
+  late OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (_) => _TopBannerWidget(
+      message: message,
+      isError: isError,
+      onDismiss: () => entry.remove(),
+    ),
+  );
+  overlay.insert(entry);
+  Future.delayed(const Duration(seconds: 3), () {
+    if (entry.mounted) entry.remove();
+  });
+}
+
+class _TopBannerWidget extends StatefulWidget {
+  final String message;
+  final bool isError;
+  final VoidCallback onDismiss;
+  const _TopBannerWidget({required this.message, required this.isError, required this.onDismiss});
+  @override
+  State<_TopBannerWidget> createState() => _TopBannerWidgetState();
+}
+
+class _TopBannerWidgetState extends State<_TopBannerWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _slide = Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
+    );
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final bgColor = widget.isError ? const Color(0xFFFF4757) : const Color(0xFF00C896);
+    final icon = widget.isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded;
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SlideTransition(
+        position: _slide,
+        child: Material(
+          color: Colors.transparent,
+          child: GestureDetector(
+            onTap: widget.onDismiss,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 14),
+              decoration: BoxDecoration(
+                color: bgColor,
+                boxShadow: [
+                  BoxShadow(color: bgColor.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.message,
+                      style: dFont(size: 13, weight: FontWeight.w600, color: Colors.white),
+                    ),
+                  ),
+                  const Icon(Icons.close_rounded, color: Colors.white70, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class BrandLoader extends StatefulWidget {
   final double size;
   const BrandLoader({super.key, this.size = 50.0});

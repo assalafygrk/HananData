@@ -20,6 +20,7 @@ class _CableScreenState extends State<CableScreen> {
   
   List<dynamic> _apiPlans = [];
   bool _loading = true;
+  bool _isVerifying = false;
 
   @override
   void initState() {
@@ -61,26 +62,46 @@ class _CableScreenState extends State<CableScreen> {
     super.dispose();
   }
 
-  void _proceed() {
+  Future<void> _proceed() async {
     final pkg = _packages.firstWhere((p) => p['_id'] == _selectedId);
-    final price = pkg['userPrice'] ?? 0;
+    final price = (pkg['userPrice'] ?? 0) as int;
     final planName = pkg['planName'] ?? 'Cable Plan';
-    final txn = TxnData(
-      type: 'Cable TV',
-      provider: _prov.name,
-      recipient: 'Smartcard: ${_smartcardCtrl.text}',
-      amount: price,
-      fee: 0,
-      total: price,
-      description: '${_prov.name} $planName',
-      plan: planName,
-      planId: pkg['planId'],
-      refId: genRef(),
-    );
-    Navigator.pushNamed(context, '/confirm', arguments: txn);
+
+    setState(() => _isVerifying = true);
+
+    try {
+      final res = await ApiService.post('/services/verify-cable', {
+        'provider': _prov.name,
+        'smartNumber': _smartcardCtrl.text,
+      }, requiresAuth: true);
+
+      if (res['success'] == true) {
+        final customerName = res['data']['customerName'] as String? ?? _smartcardCtrl.text;
+        final txn = TxnData(
+          type: 'Cable TV',
+          provider: _prov.name,
+          recipient: customerName,
+          meterNumber: _smartcardCtrl.text,
+          amount: price,
+          fee: 0,
+          total: price,
+          description: '${_prov.name} $planName',
+          plan: planName,
+          planId: pkg['planId'],
+          refId: genRef(),
+        );
+        if (mounted) Navigator.pushNamed(context, '/confirm', arguments: txn);
+      } else {
+        if (mounted) showTopBanner(context, res['message'] ?? 'Failed to verify smartcard');
+      }
+    } catch (e) {
+      if (mounted) showTopBanner(context, 'Network error, please try again');
+    } finally {
+      if (mounted) setState(() => _isVerifying = false);
+    }
   }
 
-  bool get _canProceed => _selectedId != null && _smartcardCtrl.text.length >= 8;
+  bool get _canProceed => _selectedId != null && _smartcardCtrl.text.length >= 8 && !_isVerifying;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +241,7 @@ class _CableScreenState extends State<CableScreen> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: PrimaryBtn(
-                label: 'Proceed',
+                label: _isVerifying ? 'Verifying...' : 'Proceed',
                 disabled: !_canProceed,
                 onPressed: _proceed,
               ),

@@ -254,3 +254,28 @@ exports.getPricing = async (req, res, next) => {
     return sendResponse(res, 200, true, pricing);
   } catch (error) { next(error); }
 };
+exports.verifyCableSmartcard = async (req, res, next) => {
+  try {
+    const { provider, smartNumber } = req.body;
+    if (!provider || !smartNumber) {
+      return sendResponse(res, 400, false, 'Provider and smartcard number are required.');
+    }
+
+    const vtuProvider = await Provider.findOne({ type: 'vtu', status: 'active' });
+    if (!vtuProvider || !vtuProvider.apiKeyEncrypted || !vtuProvider.username) {
+      return sendResponse(res, 500, false, 'VTU Provider not configured correctly.');
+    }
+
+    const apiClient = new SubandgainClient(vtuProvider.username, vtuProvider.apiKeyEncrypted);
+    const verifyRes = await apiClient.verifyCable({ service: provider, smartNumber });
+
+    if (verifyRes.error || verifyRes.status !== 'success') {
+      return sendResponse(res, 400, false, verifyRes.description || 'Invalid Smartcard Number');
+    }
+
+    return sendResponse(res, 200, true, {
+      customerName: verifyRes.customerName,
+      smartNumber: verifyRes.smartNumber
+    });
+  } catch (error) { next(error); }
+};
