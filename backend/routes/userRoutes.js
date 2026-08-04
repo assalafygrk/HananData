@@ -33,8 +33,10 @@ router.post('/services/cable', servicesCtrl.purchaseService('cable'));
 router.post('/services/verify-electricity', servicesCtrl.verifyElectricityMeter);
 router.post('/services/verify-cable', servicesCtrl.verifyCableSmartcard);
 router.post('/services/electricity', servicesCtrl.purchaseService('electricity'));
+router.post('/services/exam-pin', servicesCtrl.purchaseService('exam-pin'));
 router.post('/services/airtime-to-cash', servicesCtrl.airtimeToCash);
 router.get('/services/pricing', servicesCtrl.getPricing);
+router.get('/services/upcoming', servicesCtrl.getUpcomingServices);
 
 // Misc
 router.get('/transactions/history', miscCtrl.getTransactions);

@@ -16,6 +16,7 @@ import { ReferralManagement } from './pages/ReferralManagement'
 import { ApiWallets } from './pages/ApiWallets'
 import { SystemLogs } from './pages/SystemLogs'
 import { LiveSupport } from './pages/LiveSupport'
+import { UpcomingServices } from './pages/UpcomingServices'
 import { Layout } from './components/Layout/Layout'
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/system-logs" element={<SystemLogs />} />
         <Route path="/settings" element={<AdminSettings />} />
         <Route path="/live-support" element={<LiveSupport />} />
+        <Route path="/upcoming-features" element={<UpcomingServices />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

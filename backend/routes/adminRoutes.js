@@ -6,6 +6,7 @@ const authCtrl = require('../controllers/admin/authController');
 const dashboardCtrl = require('../controllers/admin/dashboardController');
 const usersCtrl = require('../controllers/admin/usersController');
 const miscCtrl = require('../controllers/admin/miscController');
+const upcomingCtrl = require('../controllers/admin/upcomingController');
 
 // Auth
 router.post('/auth/login', authLimiter, authCtrl.login);
@@ -53,5 +54,11 @@ router.get('/referrals', requireRole(['Super Admin', 'Marketing']), miscCtrl.get
 // Broadcasts
 router.get('/broadcasts', requireRole(['Super Admin', 'Marketing']), miscCtrl.getBroadcasts);
 router.post('/broadcasts', requireRole(['Super Admin', 'Marketing']), miscCtrl.sendBroadcast);
+
+// Upcoming Services
+router.get('/upcoming-services', upcomingCtrl.getUpcomingServicesAdmin);
+router.post('/upcoming-services', requireRole(['Super Admin', 'Marketing']), upcomingCtrl.createUpcomingService);
+router.put('/upcoming-services/:id', requireRole(['Super Admin', 'Marketing']), upcomingCtrl.updateUpcomingService);
+router.delete('/upcoming-services/:id', requireRole(['Super Admin']), upcomingCtrl.deleteUpcomingService);
 
 module.exports = router;

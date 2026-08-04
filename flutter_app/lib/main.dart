@@ -25,6 +25,7 @@ import 'screens/account_limit_screen.dart';
 import 'screens/legal_screen.dart';
 import 'screens/my_referral_screen.dart';
 import 'screens/exam_pin_screen.dart';
+import 'screens/coming_soon_screen.dart';
 import 'screens/notification_detail_screen.dart';
 import 'screens/help_support_screen.dart';
 import 'screens/forget_password_screen.dart';
@@ -95,6 +96,7 @@ class HananDataApp extends StatelessWidget {
             '/legal':          (_) => const LegalScreen(),
             '/my-referral':    (_) => const MyReferralScreen(),
             '/exam-pin':       (_) => const ExamPinScreen(),
+            '/coming-soon':    (_) => const ComingSoonScreen(),
             '/notification-detail': (_) => const NotificationDetailScreen(),
             '/help-support':   (_) => const HelpSupportScreen(),
             '/forget_password':(_) => const ForgetPasswordScreen(),
@@ -155,6 +157,7 @@ final _routeBuilders = <String, WidgetBuilder>{
   '/legal':         (_) => const LegalScreen(),
   '/my-referral':   (_) => const MyReferralScreen(),
   '/exam-pin':      (_) => const ExamPinScreen(),
+  '/coming-soon':   (_) => const ComingSoonScreen(),
   '/forget_password':(_) => const ForgetPasswordScreen(),
   '/forget_pin':    (_) => const ForgetPinScreen(),
   '/set_pin':       (_) => const SetPinScreen(),

@@ -156,9 +156,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
         body:
             'Your purchase of ${txn.network ?? ''} ${txn.type} for ₦${txn.amount} failed.',
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)));
-      Navigator.pushReplacementNamed(context, '/failed', arguments: txn.copyWith(failureReason: errorMsg));
+      showTopBanner(context, errorMsg, isError: true);
     }
   }
 

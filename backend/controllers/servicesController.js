@@ -280,6 +280,66 @@ exports.airtimeToCash = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.getUpcomingServices = async (req, res, next) => {
+  try {
+    const UpcomingService = require('../models/UpcomingService');
+    let services = await UpcomingService.find({ isPublished: true }).sort({ order: 1, createdAt: -1 });
+
+    // Seed initial defaults if DB is empty
+    if (services.length === 0) {
+      const defaults = [
+        {
+          title: 'Gift Cards Exchange',
+          description: 'Buy and sell Amazon, Apple, Google Play and Steam gift cards instantly.',
+          icon: 'card_giftcard',
+          category: 'Finance',
+          status: 'in_development',
+          progress: 75,
+          expectedDate: 'Q3 2026',
+          isPublished: true,
+          order: 1
+        },
+        {
+          title: 'Global Airtime & Data',
+          description: 'Top-up mobile numbers across 150+ countries instantly.',
+          icon: 'public',
+          category: 'International',
+          status: 'testing',
+          progress: 90,
+          expectedDate: 'Q3 2026',
+          isPublished: true,
+          order: 2
+        },
+        {
+          title: 'eSIM Roaming Data',
+          description: 'Instant digital SIM profiles for international travel without physical SIM cards.',
+          icon: 'sim_card',
+          category: 'Telecom',
+          status: 'in_development',
+          progress: 60,
+          expectedDate: 'Q4 2026',
+          isPublished: true,
+          order: 3
+        },
+        {
+          title: 'Utility Bill Automation',
+          description: 'Schedule recurring monthly payments for DSTV, Electricity, and Data subscriptions.',
+          icon: 'autorenew',
+          category: 'Automation',
+          status: 'planned',
+          progress: 35,
+          expectedDate: 'Q4 2026',
+          isPublished: true,
+          order: 4
+        }
+      ];
+      services = await UpcomingService.insertMany(defaults);
+    }
+
+    return sendResponse(res, 200, true, services);
+  } catch (error) { next(error); }
+};
+
 exports.getPricing = async (req, res, next) => {
   try {
     const { category } = req.query;

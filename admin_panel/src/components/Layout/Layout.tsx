@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, CreditCard, Tag, Link2, 
-  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare, Search, MessageSquare
+  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare, Search, MessageSquare, Sparkles
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { QuickSearchModal } from './QuickSearchModal';
@@ -45,6 +45,7 @@ export function Layout() {
     { name: 'Referrals', path: '/referrals', icon: Gift },
     { name: 'Aggregator', path: '/aggregator', icon: Link2 },
     { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: 'Upcoming Features', path: '/upcoming-features', icon: Sparkles },
     { name: 'Live Support', path: '/live-support', icon: MessageSquare },
     { name: 'Roles', path: '/roles', icon: Shield },
     { name: 'System Logs', path: '/system-logs', icon: ActivitySquare },
