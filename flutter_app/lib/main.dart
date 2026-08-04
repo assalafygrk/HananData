@@ -31,10 +31,12 @@ import 'screens/help_support_screen.dart';
 import 'screens/forget_password_screen.dart';
 import 'screens/forget_pin_screen.dart';
 import 'screens/set_pin_screen.dart';
+import 'screens/restricted_screen.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
 final themeProvider = ThemeProvider();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +63,7 @@ class HananDataApp extends StatelessWidget {
       builder: (context, _) {
         return MaterialApp(
           title: 'HananData',
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           themeMode: themeProvider.themeMode,
           theme: AppTheme.lightTheme.copyWith(
@@ -99,6 +102,7 @@ class HananDataApp extends StatelessWidget {
             '/forget_password':(_) => const ForgetPasswordScreen(),
             '/forget_pin':     (_) => const ForgetPinScreen(),
             '/set_pin':        (_) => const SetPinScreen(),
+            '/restricted':     (_) => const RestrictedScreen(),
           },
           // ─── Custom page transitions ───────────────────────────────────────────
           onGenerateRoute: (settings) {
@@ -157,4 +161,5 @@ final _routeBuilders = <String, WidgetBuilder>{
   '/forget_password':(_) => const ForgetPasswordScreen(),
   '/forget_pin':    (_) => const ForgetPinScreen(),
   '/set_pin':       (_) => const SetPinScreen(),
+  '/restricted':    (_) => const RestrictedScreen(),
 };

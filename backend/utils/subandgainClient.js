@@ -53,9 +53,15 @@ class SubandgainClient {
     }
   }
 
+  _mapCableService(service) {
+    if (!service) return '';
+    return service.toUpperCase();
+  }
+
   async verifyCable({ service, smartNumber }) {
     try {
-      const url = this._buildUrl('verify_bills.php', { service, smartNumber });
+      const mappedService = this._mapCableService(service);
+      const url = this._buildUrl('verify_bills.php', { service: mappedService, smartNumber });
       const response = await axios.get(url);
       return response.data;
     } catch (error) {
@@ -66,7 +72,8 @@ class SubandgainClient {
 
   async purchaseCable({ service, bills_code, smartNumber }) {
     try {
-      const url = this._buildUrl('bills.php', { service, bills_code, smartNumber });
+      const mappedService = this._mapCableService(service);
+      const url = this._buildUrl('bills.php', { service: mappedService, bills_code, smartNumber });
       const response = await axios.get(url);
       return response.data;
     } catch (error) {

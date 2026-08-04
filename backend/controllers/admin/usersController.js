@@ -101,3 +101,35 @@ exports.debitUser = async (req, res, next) => {
     return sendResponse(res, 200, true, user);
   } catch (error) { next(error); }
 };
+exports.toggleUserStatus = async (req, res, next) => {
+  try {
+    const { status, adminPassword } = req.body;
+    if (!adminPassword) return sendResponse(res, 400, false, 'Admin password is required');
+    if (!['active', 'suspended'].includes(status)) return sendResponse(res, 400, false, 'Invalid status');
+
+    const admin = await Admin.findById(req.admin._id);
+    const isMatch = await bcrypt.compare(adminPassword, admin.passwordHash);
+    if (!isMatch) return sendResponse(res, 401, false, 'Invalid admin password');
+
+    const user = await User.findById(req.params.id);
+    if (!user) return sendResponse(res, 404, false, 'User not found');
+
+    const previousStatus = user.status;
+    user.status = status;
+    await user.save();
+
+    await AuditLog.create({
+      actorId: req.admin._id,
+      actorModel: 'Admin',
+      actorType: 'admin',
+      action: 'toggle_status',
+      targetType: 'User',
+      targetId: user._id,
+      details: `Changed user status from ${previousStatus} to ${status}`
+    });
+
+    return sendResponse(res, 200, true, user);
+  } catch (error) {
+    next(error);
+  }
+};

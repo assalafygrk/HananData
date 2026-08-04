@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart'; // To access navigatorKey
 
 class ApiService {
   static String get baseUrl {
@@ -25,6 +27,21 @@ class ApiService {
     };
   }
 
+  static dynamic _handleResponse(http.Response res) {
+    try {
+      final data = jsonDecode(res.body);
+      if (res.statusCode == 403 && data['message'] == 'ACCOUNT_RESTRICTED') {
+        logout().then((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil('/restricted', (route) => false);
+        });
+        return {'success': false, 'message': 'Account Suspended'};
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'Invalid response from server'};
+    }
+  }
+
   static Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body, {bool requiresAuth = false}) async {
     try {
       final headers = requiresAuth ? await _getHeaders() : {'Content-Type': 'application/json'};
@@ -33,7 +50,7 @@ class ApiService {
         headers: headers,
         body: jsonEncode(body)
       );
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -47,7 +64,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'identifier': phoneOrEmail})
       );
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -63,7 +80,7 @@ class ApiService {
           'password': password
         })
       );
-      final data = jsonDecode(res.body);
+      final data = _handleResponse(res);
       if (res.statusCode == 200 && data['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userToken', data['data']['token']);
@@ -82,7 +99,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body)
       );
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -99,7 +116,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.get(Uri.parse('$baseUrl/profile'), headers: headers);
-      final data = jsonDecode(res.body);
+      final data = _handleResponse(res);
       if (data['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userData', jsonEncode(data['data']));
@@ -114,7 +131,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.put(Uri.parse('$baseUrl/profile'), headers: headers, body: jsonEncode(data));
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -132,7 +149,7 @@ class ApiService {
         headers: headers,
         body: jsonEncode(body)
       );
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -142,7 +159,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.get(Uri.parse('$baseUrl/transactions/history'), headers: headers);
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -156,7 +173,7 @@ class ApiService {
         headers: headers,
         body: jsonEncode(body)
       );
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -166,7 +183,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.get(Uri.parse('$baseUrl/notifications'), headers: headers);
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -176,7 +193,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.get(Uri.parse('$baseUrl/referrals/my-history'), headers: headers);
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -185,7 +202,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.get(Uri.parse('$baseUrl/services/pricing?category=$category'), headers: headers);
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -194,7 +211,7 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final res = await http.post(Uri.parse('$baseUrl/notifications/$id/read'), headers: headers);
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
@@ -207,7 +224,7 @@ class ApiService {
         headers: headers,
         body: jsonEncode({'message': message})
       );
-      return jsonDecode(res.body);
+      return _handleResponse(res);
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }

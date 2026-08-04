@@ -49,6 +49,10 @@ const authenticateUser = async (req, res, next) => {
         return sendResponse(res, 401, false, 'Not authorized, user not found');
       }
 
+      if (user.status !== 'active') {
+        return sendResponse(res, 403, false, 'ACCOUNT_RESTRICTED');
+      }
+
       req.user = user;
       next();
     } catch (error) {

@@ -11,7 +11,7 @@ export function UserDetail() {
   const [userTransactions, setUserTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [actionModal, setActionModal] = useState<{isOpen: boolean, type: 'credit' | 'debit' | null}>({ isOpen: false, type: null });
+  const [actionModal, setActionModal] = useState<{isOpen: boolean, type: 'credit' | 'debit' | 'status' | null}>({ isOpen: false, type: null });
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentNote, setAdjustmentNote] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -41,9 +41,27 @@ export function UserDetail() {
   if (loading) return <div className="p-8 flex justify-center"><LogoLoader /></div>;
   if (!user) return <div className="p-8 text-center text-gray-500">User not found</div>;
 
-  const handleStatusToggle = () => {
-    // TODO: add status toggle endpoint if needed.
-    setUser((prev: any) => prev ? { ...prev, status: prev.status === 'active' ? 'suspended' : 'active' } : null);
+  const handleStatusToggle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminPassword || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      const newStatus = user.status === 'active' ? 'suspended' : 'active';
+      const response = await api.put(`/admin/users/${id}/status`, { status: newStatus, adminPassword });
+      
+      if (response.data.success) {
+        setUser(response.data.data);
+      } else {
+        alert(response.data.message || 'Failed to update user status');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error updating user status');
+    } finally {
+      setIsSubmitting(false);
+      setActionModal({ isOpen: false, type: null });
+      setAdminPassword('');
+    }
   };
 
   const handleWalletAdjustment = async (e: React.FormEvent) => {
@@ -124,7 +142,7 @@ export function UserDetail() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
             <button 
-              onClick={handleStatusToggle}
+              onClick={() => setActionModal({ isOpen: true, type: 'status' })}
               className={`w-full py-2.5 px-4 rounded-lg font-medium border ${
                 user.status === 'active' 
                   ? 'border-red-200 text-red-700 hover:bg-red-50' 
@@ -212,38 +230,42 @@ export function UserDetail() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-gray-100">
-              <h3 className={`text-lg font-bold flex items-center gap-2 capitalize ${actionModal.type === 'credit' ? 'text-green-700' : 'text-red-700'}`}>
-                {actionModal.type === 'credit' ? <ArrowUpCircle className="w-6 h-6" /> : <ArrowDownCircle className="w-6 h-6" />}
-                {actionModal.type} User Wallet
+              <h3 className={`text-lg font-bold flex items-center gap-2 capitalize ${actionModal.type === 'credit' ? 'text-green-700' : actionModal.type === 'debit' ? 'text-red-700' : 'text-orange-700'}`}>
+                {actionModal.type === 'credit' ? <ArrowUpCircle className="w-6 h-6" /> : actionModal.type === 'debit' ? <ArrowDownCircle className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />}
+                {actionModal.type === 'status' ? `${user.status === 'active' ? 'Suspend' : 'Reactivate'} User Account` : `${actionModal.type} User Wallet`}
               </h3>
             </div>
-            <form onSubmit={handleWalletAdjustment} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount (₦)
-                </label>
-                <input 
-                  type="number" 
-                  required
-                  min="1"
-                  value={adjustmentAmount}
-                  onChange={(e) => setAdjustmentAmount(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
-                  placeholder="e.g. 5000"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reason/Note (Required)
-                </label>
-                <textarea 
-                  required
-                  value={adjustmentNote}
-                  onChange={(e) => setAdjustmentNote(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none resize-none h-24"
-                  placeholder={`Explain why you are ${actionModal.type}ing the wallet...`}
-                />
-              </div>
+            <form onSubmit={actionModal.type === 'status' ? handleStatusToggle : handleWalletAdjustment} className="p-6 space-y-4">
+              {actionModal.type !== 'status' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Amount (₦)
+                    </label>
+                    <input 
+                      type="number" 
+                      required
+                      min="1"
+                      value={adjustmentAmount}
+                      onChange={(e) => setAdjustmentAmount(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                      placeholder="e.g. 5000"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Reason/Note (Required)
+                    </label>
+                    <textarea 
+                      required
+                      value={adjustmentNote}
+                      onChange={(e) => setAdjustmentNote(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none resize-none h-24"
+                      placeholder={`Explain why you are ${actionModal.type}ing the wallet...`}
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-red-500" />
@@ -277,15 +299,15 @@ export function UserDetail() {
                 </button>
                 <button 
                   type="submit"
-                  disabled={!adjustmentNote || !adjustmentAmount || !adminPassword || isSubmitting}
+                  disabled={(actionModal.type !== 'status' && (!adjustmentNote || !adjustmentAmount)) || !adminPassword || isSubmitting}
                   className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center min-w-[120px] ${
-                    actionModal.type === 'credit' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                    actionModal.type === 'credit' ? 'bg-green-600 hover:bg-green-700' : actionModal.type === 'debit' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'
                   }`}
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    `Confirm ${actionModal.type}`
+                    actionModal.type === 'status' ? 'Confirm Action' : `Confirm ${actionModal.type}`
                   )}
                 </button>
               </div>

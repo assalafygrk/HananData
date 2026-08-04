@@ -19,6 +19,7 @@ router.get('/analytics/pnl', requireRole(['Super Admin', 'Finance']), dashboardC
 // Users
 router.get('/users', usersCtrl.getUsers);
 router.get('/users/:id', usersCtrl.getUser);
+router.put('/users/:id/status', requireRole(['Super Admin', 'Support']), usersCtrl.toggleUserStatus);
 router.post('/users/:id/credit', requireRole(['Super Admin', 'Finance']), usersCtrl.creditUser);
 router.post('/users/:id/debit', requireRole(['Super Admin', 'Finance']), usersCtrl.debitUser);
 
