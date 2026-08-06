@@ -193,9 +193,9 @@ exports.deleteProvider = async (req, res, next) => {
 
 exports.addProvider = async (req, res, next) => {
   try {
-    const { name, type, apiKeyEncrypted, baseUrl, webhookUrl, username } = req.body;
+    const { name, type, apiKeyEncrypted, secretKeyEncrypted, businessId, baseUrl, webhookUrl, username } = req.body;
     if (!name || !type) return sendResponse(res, 400, false, 'Name and type are required');
-    const newProvider = await Provider.create({ name, type, apiKeyEncrypted, baseUrl, webhookUrl, username });
+    const newProvider = await Provider.create({ name, type, apiKeyEncrypted, secretKeyEncrypted, businessId, baseUrl, webhookUrl, username });
     
     // Automatically trigger sync if it's a VTU provider
     if (type === 'vtu') {

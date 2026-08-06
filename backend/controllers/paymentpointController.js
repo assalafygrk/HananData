@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const Provider = require('../models/Provider');
 const PlatformSettings = require('../models/PlatformSettings');
 const Notification = require('../models/Notification');
 const AuditLog = require('../models/AuditLog');
@@ -11,14 +12,15 @@ exports.getOrCreateVirtualAccount = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     if (!user) return sendResponse(res, 404, false, 'User not found');
 
-    if (user.virtualAccount && user.virtualAccount.accountNumber) {
+    // Ignore old mock accounts so they can be regenerated properly
+    if (user.virtualAccount && user.virtualAccount.accountNumber && user.virtualAccount.bankName !== 'PaymentPoint MFB') {
       return sendResponse(res, 200, true, user.virtualAccount);
     }
 
-    const settings = await PlatformSettings.findOne();
-    const apiKey = settings?.paymentPointApiKey;
-    const apiSecret = settings?.paymentPointApiSecret;
-    const businessId = settings?.paymentPointBusinessId;
+    const providerConfig = await Provider.findOne({ type: 'payment-gateway', status: 'active', name: { $regex: /paymentpoint/i } });
+    const apiKey = providerConfig?.apiKeyEncrypted;
+    const apiSecret = providerConfig?.secretKeyEncrypted;
+    const businessId = providerConfig?.businessId;
 
     if (apiKey && apiSecret && businessId) {
       const client = new PaymentPointClient(apiKey, apiSecret, businessId);
@@ -28,11 +30,12 @@ exports.getOrCreateVirtualAccount = async (req, res, next) => {
         phoneNumber: user.phone || '08000000000'
       });
 
-      if (resData && (resData.status === true || resData.bankCode || resData.accountNumber)) {
+      if (resData && resData.status === true && resData.data?.bankAccounts?.length > 0) {
+        const bankAccount = resData.data.bankAccounts[0];
         const accountDetails = {
-          bankName: resData.bankName || resData.bank || 'Palmpay / Wema Bank',
-          accountNumber: resData.accountNumber || resData.account_number || resData.data?.accountNumber,
-          accountName: resData.accountName || resData.account_name || `HananData - ${user.name}`,
+          bankName: bankAccount.bankName || bankAccount.bankCode || 'Palmpay',
+          accountNumber: bankAccount.accountNumber,
+          accountName: bankAccount.accountName || `HananData - ${user.name}`,
           provider: 'PaymentPoint'
         };
 

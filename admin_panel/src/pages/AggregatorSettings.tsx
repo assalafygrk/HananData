@@ -26,7 +26,9 @@ export function AggregatorSettings() {
     name: '',
     username: '',
     apiKeyEncrypted: '',
+    secretKeyEncrypted: '',
     baseUrl: '',
+    businessId: '',
     webhookUrl: '',
     password: '' // Required for editing
   });
@@ -107,7 +109,9 @@ export function AggregatorSettings() {
           name: authEditModal.item.name || '',
           username: authEditModal.item.username || '',
           apiKeyEncrypted: authEditModal.item.apiKeyEncrypted || '',
+          secretKeyEncrypted: authEditModal.item.secretKeyEncrypted || '',
           baseUrl: authEditModal.item.baseUrl || '',
+          businessId: authEditModal.item.businessId || '',
           webhookUrl: authEditModal.item.webhookUrl || '',
           password: authEditModal.password // Store it for the final PUT request
         });
@@ -170,7 +174,7 @@ export function AggregatorSettings() {
 
   const closeModal = () => {
     setModal({ isOpen: false, type: null, isEdit: false, editId: null });
-    setFormData({ name: '', username: '', apiKeyEncrypted: '', baseUrl: '', webhookUrl: '', password: '' });
+    setFormData({ name: '', username: '', apiKeyEncrypted: '', secretKeyEncrypted: '', baseUrl: '', businessId: '', webhookUrl: '', password: '' });
     
   };
 
@@ -370,18 +374,32 @@ export function AggregatorSettings() {
                   className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
                 />
               </div>
+              {modal.type === 'provider' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Base URL</label>
+                  <input 
+                    type="url" 
+                    value={formData.baseUrl}
+                    onChange={e => setFormData({...formData, baseUrl: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                    placeholder="https://api.provider.com"
+                  />
+                </div>
+              )}
+              {modal.type === 'gateway' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Business ID</label>
+                  <input 
+                    type="text" 
+                    value={formData.businessId}
+                    onChange={e => setFormData({...formData, businessId: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                    placeholder="Enter Business ID"
+                  />
+                </div>
+              )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Base URL</label>
-                <input 
-                  type="url" 
-                  value={formData.baseUrl}
-                  onChange={e => setFormData({...formData, baseUrl: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
-                  placeholder="https://api.provider.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{modal.type === 'gateway' ? 'Public / API Key' : 'API Key'}</label>
                 <input 
                   type="password" 
                   value={formData.apiKeyEncrypted}
@@ -389,15 +407,28 @@ export function AggregatorSettings() {
                   className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Username (Optional)</label>
-                <input 
-                  type="text" 
-                  value={formData.username}
-                  onChange={e => setFormData({...formData, username: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
-                />
-              </div>
+              {modal.type === 'gateway' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
+                  <input 
+                    type="password" 
+                    value={formData.secretKeyEncrypted}
+                    onChange={e => setFormData({...formData, secretKeyEncrypted: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                  />
+                </div>
+              )}
+              {modal.type === 'provider' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Username (Optional)</label>
+                  <input 
+                    type="text" 
+                    value={formData.username}
+                    onChange={e => setFormData({...formData, username: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#1B3A6B]" 
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Webhook URL (Optional)</label>
                 <input 

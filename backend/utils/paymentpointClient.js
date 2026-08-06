@@ -25,7 +25,20 @@ class PaymentPointClient {
       };
 
       const response = await axios.post(url, data, { headers });
-      return response.data;
+      
+      // PaymentPoint API returns 200 OK with { status: "success", bankAccounts: [...] }
+      if (response.data && response.data.status === 'success') {
+        return {
+          status: true,
+          data: response.data
+        };
+      }
+      
+      return {
+        status: false,
+        error: 'ERR_PAYMENTPOINT',
+        description: response.data?.message || 'Unknown error from PaymentPoint'
+      };
     } catch (error) {
       console.error('PaymentPoint createVirtualAccount Error:', error.response ? error.response.data : error.message);
       return {
