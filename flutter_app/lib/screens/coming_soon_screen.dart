@@ -94,15 +94,29 @@ class _ComingSoonScreenState extends State<ComingSoonScreen> {
     }
   }
 
-  void _toggleNotify(String id, String title) {
-    setState(() {
-      if (_notifiedIds.contains(id)) {
-        _notifiedIds.remove(id);
+  Future<void> _toggleNotify(String id, String title) async {
+    try {
+      final res = await ApiService.subscribeUpcomingService(id);
+      if (res['success'] == true) {
+        final isSubscribed = res['data']?['isSubscribed'] ?? false;
+        setState(() {
+          if (isSubscribed) {
+            _notifiedIds.add(id);
+          } else {
+            _notifiedIds.remove(id);
+          }
+        });
+        if (isSubscribed) {
+          showTopBanner(context, 'You will be notified when $title launches!', isError: false);
+        } else {
+          showTopBanner(context, 'Notification removed for $title', isError: false);
+        }
       } else {
-        _notifiedIds.add(id);
-        showTopBanner(context, 'You will be notified when $title launches!', isError: false);
+        showTopBanner(context, res['message'] ?? 'Something went wrong', isError: true);
       }
-    });
+    } catch (_) {
+      showTopBanner(context, 'Network error. Try again later.', isError: true);
+    }
   }
 
   @override

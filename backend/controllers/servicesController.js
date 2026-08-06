@@ -340,6 +340,30 @@ exports.getUpcomingServices = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.subscribeUpcomingService = async (req, res, next) => {
+  try {
+    const UpcomingService = require('../models/UpcomingService');
+    const service = await UpcomingService.findById(req.params.id);
+    if (!service) return sendResponse(res, 404, false, 'Upcoming feature not found');
+
+    const userId = req.user._id;
+    const alreadySubbed = (service.subscribers || []).some(s => s.userId.toString() === userId.toString());
+
+    if (alreadySubbed) {
+      service.subscribers = service.subscribers.filter(s => s.userId.toString() !== userId.toString());
+    } else {
+      if (!service.subscribers) service.subscribers = [];
+      service.subscribers.push({ userId, createdAt: new Date() });
+    }
+
+    await service.save();
+    return sendResponse(res, 200, true, {
+      isSubscribed: !alreadySubbed,
+      subscriberCount: service.subscribers.length
+    });
+  } catch (error) { next(error); }
+};
+
 exports.getPricing = async (req, res, next) => {
   try {
     const { category } = req.query;

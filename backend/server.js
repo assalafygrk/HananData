@@ -19,7 +19,9 @@ app.use(morgan('dev'));
 // Routes will be imported here
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
+const paymentpointCtrl = require('./controllers/paymentpointController');
 
+app.post('/api/paymentpoint/webhook', paymentpointCtrl.handleWebhook);
 app.use('/api/admin', adminRoutes);
 app.use('/api', userRoutes);
 

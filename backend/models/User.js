@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema({
   transactionPinHash: { type: String },
   referralCode: { type: String, unique: true },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  virtualAccount: {
+    bankName: { type: String },
+    accountNumber: { type: String },
+    accountName: { type: String },
+    provider: { type: String, default: 'PaymentPoint' }
+  },
   pushNotifs: { type: Boolean, default: true },
   emailNotifs: { type: Boolean, default: false },
   smsNotifs: { type: Boolean, default: false }

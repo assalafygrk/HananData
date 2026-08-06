@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Eye, EyeOff, Bell, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import { LogoLoader } from '../components/LogoLoader';
@@ -12,19 +12,25 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const ICON_OPTIONS = [
-  { value: 'card_giftcard', label: '🎁 Gift Cards' },
-  { value: 'public', label: '🌍 Global/International' },
-  { value: 'sim_card', label: '📱 SIM / eSIM' },
-  { value: 'autorenew', label: '🔄 Automation' },
-  { value: 'attach_money', label: '💵 Money' },
-  { value: 'business', label: '🏢 Business' },
-  { value: 'school', label: '🎓 Education' },
-  { value: 'savings', label: '💰 Savings' },
-  { value: 'currency_exchange', label: '💱 Exchange' },
-  { value: 'account_balance', label: '🏦 Banking' },
-  { value: 'payments', label: '💳 Payments' },
-  { value: 'receipt_long', label: '📋 Receipts' },
+  { value: 'card_giftcard', label: '🎁 Gift Cards', emoji: '🎁' },
+  { value: 'public', label: '🌍 Global/International', emoji: '🌍' },
+  { value: 'sim_card', label: '📱 SIM / eSIM', emoji: '📱' },
+  { value: 'autorenew', label: '🔄 Automation', emoji: '🔄' },
+  { value: 'attach_money', label: '💵 Money', emoji: '💵' },
+  { value: 'business', label: '🏢 Business', emoji: '🏢' },
+  { value: 'school', label: '🎓 Education', emoji: '🎓' },
+  { value: 'savings', label: '💰 Savings', emoji: '💰' },
+  { value: 'currency_exchange', label: '💱 Exchange', emoji: '💱' },
+  { value: 'account_balance', label: '🏦 Banking', emoji: '🏦' },
+  { value: 'payments', label: '💳 Payments', emoji: '💳' },
+  { value: 'receipt_long', label: '📋 Receipts', emoji: '📋' },
+  { value: 'auto_awesome', label: '✨ Auto', emoji: '✨' },
 ];
+
+function getIconEmoji(iconValue: string): string {
+  const found = ICON_OPTIONS.find(o => o.value === iconValue);
+  return found ? found.emoji : '✨';
+}
 
 const defaultForm = {
   title: '',
@@ -44,6 +50,7 @@ export function UpcomingServices() {
   const [modal, setModal] = useState<{ open: boolean; data: any }>({ open: false, data: null });
   const [form, setForm] = useState<any>(defaultForm);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [subsModal, setSubsModal] = useState<{ open: boolean; service: any }>({ open: false, service: null });
 
   const fetchServices = async () => {
     try {
@@ -152,6 +159,7 @@ export function UpcomingServices() {
                 <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
                 <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Progress</th>
                 <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Expected</th>
+                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Requests</th>
                 <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Visible</th>
                 <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
               </tr>
@@ -159,12 +167,18 @@ export function UpcomingServices() {
             <tbody className="divide-y divide-gray-100">
               {services.map(svc => {
                 const st = STATUS_LABELS[svc.status] || STATUS_LABELS.planned;
+                const subCount = svc.subscribers?.length || 0;
                 return (
                   <tr key={svc._id} className="hover:bg-gray-50">
                     <td className="py-4 px-4">
-                      <div className="font-semibold text-gray-900">{svc.title}</div>
-                      <div className="text-sm text-gray-500 mt-0.5 max-w-xs truncate">{svc.description}</div>
-                      <div className="text-xs text-gray-400 mt-0.5 capitalize">{svc.category}</div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl" title={svc.icon}>{getIconEmoji(svc.icon)}</span>
+                        <div>
+                          <div className="font-semibold text-gray-900">{svc.title}</div>
+                          <div className="text-sm text-gray-500 mt-0.5 max-w-xs truncate">{svc.description}</div>
+                          <div className="text-xs text-gray-400 mt-0.5 capitalize">{svc.category}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-4 px-4">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.color}`}>
@@ -183,6 +197,20 @@ export function UpcomingServices() {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-sm text-gray-600">{svc.expectedDate}</td>
+                    <td className="py-4 px-4">
+                      <button
+                        onClick={() => setSubsModal({ open: true, service: svc })}
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
+                          subCount > 0
+                            ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                        title="View subscriber requests"
+                      >
+                        <Bell className="w-3.5 h-3.5" />
+                        {subCount} {subCount === 1 ? 'Request' : 'Requests'}
+                      </button>
+                    </td>
                     <td className="py-4 px-4">
                       <button
                         onClick={() => handleTogglePublish(svc)}
@@ -377,6 +405,71 @@ export function UpcomingServices() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Subscribers Modal */}
+      {subsModal.open && subsModal.service && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{getIconEmoji(subsModal.service.icon)}</span>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">{subsModal.service.title}</h3>
+                  <p className="text-xs text-gray-500">
+                    {subsModal.service.subscribers?.length || 0} user{(subsModal.service.subscribers?.length || 0) !== 1 ? 's' : ''} interested
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSubsModal({ open: false, service: null })}
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {(!subsModal.service.subscribers || subsModal.service.subscribers.length === 0) ? (
+                <div className="text-center py-10 text-gray-400">
+                  <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                  <p className="font-medium">No subscribers yet</p>
+                  <p className="text-sm mt-1">Users who tap "Notify Me" in the mobile app will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {subsModal.service.subscribers.map((sub: any, idx: number) => {
+                    const user = sub.userId;
+                    const subDate = sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-NG', {
+                      day: 'numeric', month: 'short', year: 'numeric'
+                    }) : '—';
+                    return (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-[#1B3A6B] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {(user?.name || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{user?.name || 'Unknown User'}</p>
+                            <p className="text-xs text-gray-500">{user?.email || user?.phone || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-400">{subDate}</p>
+                          {user?.kycTier !== undefined && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
+                              KYC {user.kycTier}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

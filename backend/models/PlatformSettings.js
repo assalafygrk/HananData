@@ -10,7 +10,10 @@ const platformSettingsSchema = new mongoose.Schema({
   poolBalance: { type: Number, default: 500000 },
   supportPhone: { type: String, default: '0800-HANAN-DATA (toll free)' },
   supportEmail: { type: String, default: 'support@hanandata.ng' },
-  whatsapp: { type: String, default: '+2349160048633' }
+  whatsapp: { type: String, default: '+2349160048633' },
+  paymentPointApiKey: { type: String, default: '' },
+  paymentPointApiSecret: { type: String, default: '' },
+  paymentPointBusinessId: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('PlatformSettings', platformSettingsSchema);

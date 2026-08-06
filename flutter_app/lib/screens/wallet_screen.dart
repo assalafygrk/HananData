@@ -1,10 +1,12 @@
 // lib/screens/wallet_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_data.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
+import '../services/api_service.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -20,11 +22,14 @@ class _WalletScreenState extends State<WalletScreen> {
   final _quickAmounts = [1000, 5000, 10000, 20000];
 
   Map<String, dynamic>? _userData;
+  Map<String, dynamic>? _virtualAccount;
+  bool _loadingVA = false;
   
   @override
   void initState() {
     super.initState();
     _loadBalance();
+    _fetchVirtualAccount();
   }
 
   Future<void> _loadBalance() async {
@@ -33,6 +38,17 @@ class _WalletScreenState extends State<WalletScreen> {
     if (userStr != null) {
       setState(() => _userData = jsonDecode(userStr));
     }
+  }
+
+  Future<void> _fetchVirtualAccount() async {
+    setState(() => _loadingVA = true);
+    try {
+      final res = await ApiService.getVirtualAccount();
+      if (res['success'] == true && res['data'] != null && mounted) {
+        setState(() => _virtualAccount = Map<String, dynamic>.from(res['data']));
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loadingVA = false);
   }
 
   @override
@@ -232,10 +248,51 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildBankDetail() {
+    if (_loadingVA) {
+      return Container(
+        margin: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8EDF5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+      );
+    }
+
+    // Gateway not configured — no virtual account available
+    if (_virtualAccount == null) {
+      return Container(
+        margin: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF8E1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFFFE082)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline_rounded, color: Color(0xFFE65100), size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Bank transfer is not available yet. Please check back later or use another funding method.',
+                style: dFont(size: 12, color: const Color(0xFFE65100)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final bankName = _virtualAccount!['bankName'] ?? '';
+    final accountNumber = _virtualAccount!['accountNumber'] ?? '—';
+    final accountName = _virtualAccount!['accountName'] ?? 'HananData - ${_userData?['name'] ?? ''}';
+
     final rows = [
-      ['Account Name', 'HananData · ${_userData?['name']?.split(' ')[0] ?? ''}'],
-      ['Account No.', _userData?['virtualAccount'] ?? '0123 456 789'],
-      ['Bank', 'HananData MFB'],
+      ['Account Name', accountName],
+      ['Account No.', accountNumber],
+      ['Bank', bankName],
     ];
     return Container(
       margin: const EdgeInsets.only(top: 12),
@@ -256,7 +313,29 @@ class _WalletScreenState extends State<WalletScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(r[0], style: dFont(size: 13, color: kMutedText)),
-                Text(r[1], style: dFont(size: 13, weight: FontWeight.w700)),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(r[1], style: dFont(size: 13, weight: FontWeight.w700)),
+                    if (r[0] == 'Account No.' && accountNumber != '—') ...[
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: accountNumber));
+                          showTopBanner(context, 'Account number copied!', isError: false);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: kPrimaryNavy.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.copy_rounded, size: 14, color: kPrimaryNavy),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           )),

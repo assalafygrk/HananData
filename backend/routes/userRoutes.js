@@ -7,6 +7,7 @@ const profileCtrl = require('../controllers/profileController');
 const servicesCtrl = require('../controllers/servicesController');
 const miscCtrl = require('../controllers/miscController');
 const chatCtrl = require('../controllers/chatController');
+const paymentpointCtrl = require('../controllers/paymentpointController');
 const { securityGuardrail } = require('../middleware/guardrail');
 
 // Auth
@@ -25,6 +26,7 @@ router.post('/profile/forgot-pin', profileCtrl.forgotPin);
 router.post('/profile/verify-pin-otp', profileCtrl.verifyPinOtp);
 router.get('/wallet/balance', profileCtrl.getWalletBalance);
 router.post('/wallet/fund', profileCtrl.fundWallet);
+router.get('/wallet/virtual-account', paymentpointCtrl.getOrCreateVirtualAccount);
 
 // Services
 router.post('/services/airtime', servicesCtrl.purchaseService('airtime'));
@@ -37,6 +39,7 @@ router.post('/services/exam-pin', servicesCtrl.purchaseService('exam-pin'));
 router.post('/services/airtime-to-cash', servicesCtrl.airtimeToCash);
 router.get('/services/pricing', servicesCtrl.getPricing);
 router.get('/services/upcoming', servicesCtrl.getUpcomingServices);
+router.post('/services/upcoming/:id/notify', servicesCtrl.subscribeUpcomingService);
 
 // Misc
 router.get('/transactions/history', miscCtrl.getTransactions);

@@ -239,4 +239,24 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
+
+  static Future<Map<String, dynamic>> subscribeUpcomingService(String id) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.post(Uri.parse('$baseUrl/services/upcoming/$id/notify'), headers: headers);
+      return _handleResponse(res);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getVirtualAccount() async {
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse('$baseUrl/wallet/virtual-account'), headers: headers);
+      return _handleResponse(res);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
 }

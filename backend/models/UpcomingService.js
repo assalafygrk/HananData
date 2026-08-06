@@ -13,7 +13,11 @@ const upcomingServiceSchema = new mongoose.Schema({
   progress: { type: Number, default: 50, min: 0, max: 100 },
   expectedDate: { type: String, default: 'Q3 2026' },
   isPublished: { type: Boolean, default: true },
-  order: { type: Number, default: 0 }
+  order: { type: Number, default: 0 },
+  subscribers: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('UpcomingService', upcomingServiceSchema);

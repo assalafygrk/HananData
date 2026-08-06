@@ -3,7 +3,9 @@ const { sendResponse } = require('../../utils/helpers');
 
 exports.getUpcomingServicesAdmin = async (req, res, next) => {
   try {
-    const services = await UpcomingService.find().sort({ order: 1, createdAt: -1 });
+    const services = await UpcomingService.find()
+      .populate('subscribers.userId', 'name email phone kycTier')
+      .sort({ order: 1, createdAt: -1 });
     return sendResponse(res, 200, true, services);
   } catch (error) { next(error); }
 };
@@ -34,7 +36,7 @@ exports.updateUpcomingService = async (req, res, next) => {
       req.params.id,
       { $set: req.body },
       { new: true, runValidators: true }
-    );
+    ).populate('subscribers.userId', 'name email phone kycTier');
     if (!service) return sendResponse(res, 404, false, 'Upcoming service not found.');
     return sendResponse(res, 200, true, service);
   } catch (error) { next(error); }
