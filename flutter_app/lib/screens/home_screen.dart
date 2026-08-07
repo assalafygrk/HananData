@@ -16,6 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _userData;
   List<dynamic> _transactions = [];
   bool _isLoading = true;
+  bool _hideBalance = false;
 
   @override
   void initState() {
@@ -65,14 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           // Header with gradient
+          // Header without harsh gradient box
           Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF0D1B35), Color(0xFF1B3A6B)],
-              ),
-            ),
+            color: Colors.transparent,
             child: SafeArea(
               bottom: false,
               child: Padding(
@@ -87,11 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Good morning,',
-                              style: dFont(size: 12, color: const Color(0xFF7BAED4))),
+                              style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF7BAED4) : kMutedText)),
                             const SizedBox(height: 2),
                             Text('${_userData?['name']?.split(' ')[0] ?? 'User'} 👋',
                               style: GoogleFonts.inter(
-                                fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white,
+                                fontSize: 20, fontWeight: FontWeight.w700, 
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark,
                               )),
                           ],
                         ),
@@ -103,24 +100,26 @@ class _HomeScreenState extends State<HomeScreen> {
                               Container(
                                 width: 42, height: 42,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Theme.of(context).cardColor,
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: Theme.of(context).dividerColor),
                                 ),
-                                child: const Icon(Icons.notifications_outlined,
-                                  color: Colors.white, size: 22),
+                                child: Icon(Icons.notifications_outlined,
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryNavy, size: 22),
                               ),
                               // Unread badge
-                              Positioned(
-                                top: 6, right: 6,
-                                child: Container(
-                                  width: 10, height: 10,
-                                  decoration: BoxDecoration(
-                                    color: kAccentGreen,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFF0D1B35), width: 1.5),
+                              if ((_userData?['unreadNotificationsCount'] ?? 0) > 0)
+                                Positioned(
+                                  top: 6, right: 6,
+                                  child: Container(
+                                    width: 10, height: 10,
+                                    decoration: BoxDecoration(
+                                      color: kAccentGreen,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: const Color(0xFF0D1B35), width: 1.5),
+                                    ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -131,23 +130,63 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF0D1B35), Color(0xFF1B3A6B)],
+                        ),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Wallet Balance',
-                            style: dFont(size: 11, weight: FontWeight.w600, color: const Color(0xFF7BAED4))),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Wallet Balance',
+                                style: dFont(size: 11, weight: FontWeight.w600, color: const Color(0xFF7BAED4))),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => setState(() => _hideBalance = !_hideBalance),
+                                    child: Icon(
+                                      _hideBalance ? Icons.visibility_off : Icons.visibility,
+                                      color: const Color(0xFF7BAED4),
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  GestureDetector(
+                                    onTap: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Refreshing balance...'), duration: Duration(seconds: 1)),
+                                      );
+                                      _loadData();
+                                    },
+                                    child: const Icon(
+                                      Icons.refresh,
+                                      color: Color(0xFF7BAED4),
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 4),
-                          Text('₦${(_userData?['walletBalance'] ?? 0).toStringAsFixed(2)}',
+                          Text(_hideBalance ? '₦****' : '₦${(_userData?['walletBalance'] ?? 0).toStringAsFixed(2)}',
                             style: GoogleFonts.inter(
                               fontSize: 30, fontWeight: FontWeight.w800,
                               color: Colors.white, letterSpacing: -0.5,
                             )),
                           const SizedBox(height: 2),
-                          Text('${_userData?['virtualAccount'] ?? '0123 456 789'} · HananData MFB',
+                          Text(() {
+                            final va = _userData?['virtualAccount'];
+                            if (va is Map) {
+                              return '${va['accountNumber'] ?? '0123 456 789'} · ${va['bankName'] ?? 'HananData MFB'}';
+                            }
+                            return '0123 456 789 · HananData MFB';
+                          }(),
                             style: dFont(size: 11, color: const Color(0xFF7BAED4))),
                           const SizedBox(height: 16),
                           // Action buttons row
@@ -283,16 +322,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  static void _showReferral(BuildContext context) {
+  void _showReferral(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         margin: const EdgeInsets.only(top: 60),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -321,8 +360,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   Text('Refer & Earn', style: dFont(size: 22, weight: FontWeight.w800)),
                   const SizedBox(height: 6),
-                  Text('Share your code. Earn ₦200 for each friend who signs up and makes their first transaction.',
-                    style: dFont(size: 13, color: kMutedText), textAlign: TextAlign.center),
+                  Text('Share your code. Earn ₦1 every time your friend makes a transaction over ₦100!',
+                    style: dFont(size: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText), textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   // Referral code box
                   Container(
@@ -334,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Column(
                       children: [
-                        Text('Your Referral Code', style: dFont(size: 12, color: kMutedText)),
+                        Text('Your Referral Code', style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                         const SizedBox(height: 6),
                         Text('HANAN-A2B3C4',
                           style: dFont(size: 24, weight: FontWeight.w900, color: const Color(0xFF7B2FBE),
@@ -371,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 12),
                       Expanded(child: _statBox('₦2,400', 'Total\nEarned', kAccentGreen)),
                       const SizedBox(width: 12),
-                      Expanded(child: _statBox('₦200', 'Per\nReferral', kPrimaryNavy)),
+                      Expanded(child: _statBox('₦1', 'Per\nTransaction', kPrimaryNavy)),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -388,7 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  static Widget _statBox(String value, String label, Color color) {
+  Widget _statBox(String value, String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
@@ -400,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(value, style: dFont(size: 16, weight: FontWeight.w800, color: color)),
           const SizedBox(height: 4),
-          Text(label, style: dFont(size: 10, color: kMutedText), textAlign: TextAlign.center),
+          Text(label, style: dFont(size: 10, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -424,9 +463,9 @@ class _QuickActionTile extends StatelessWidget {
       onTap: () => Navigator.pushNamed(context, qa.route),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: kCardBorder),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -434,16 +473,18 @@ class _QuickActionTile extends StatelessWidget {
             Container(
               width: 40, height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F4FA),
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white.withValues(alpha: 0.1) 
+                    : const Color(0xFFF0F4FA),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(qa.icon, color: kPrimaryNavy, size: 20),
+              child: Icon(qa.icon, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryNavy, size: 20),
             ),
             const SizedBox(height: 8),
             Text(
               qa.label,
               textAlign: TextAlign.center,
-              style: dFont(size: 11, weight: FontWeight.w600, color: kMediumText),
+              style: dFont(size: 11, weight: FontWeight.w600, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : kMediumText),
             ),
           ],
         ),

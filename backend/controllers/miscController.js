@@ -34,11 +34,20 @@ const Notification = require('../models/Notification');
 
 exports.getNotifications = async (req, res, next) => {
   try {
+    const user = await require('../models/User').findById(req.user._id);
+    const readBroadcasts = user.readBroadcasts || [];
+
     const broadcasts = await Broadcast.find({ status: 'sent' }).sort({ sentAt: -1 }).limit(20);
     const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(20);
     
+    // Convert to plain objects to inject 'read' safely
+    const broadcastList = broadcasts.map(b => ({
+      ...b.toObject(),
+      read: readBroadcasts.some(id => id.toString() === b._id.toString())
+    }));
+
     // Merge and sort both
-    const combined = [...broadcasts, ...notifications].sort((a, b) => {
+    const combined = [...broadcastList, ...notifications].sort((a, b) => {
       const dateA = new Date(a.sentAt || a.createdAt);
       const dateB = new Date(b.sentAt || b.createdAt);
       return dateB - dateA;
@@ -51,14 +60,28 @@ exports.getNotifications = async (req, res, next) => {
 exports.markNotificationRead = async (req, res, next) => {
   try {
     const { id } = req.params;
+    
+    // Try to update standard notification
     const notification = await Notification.findOneAndUpdate(
       { _id: id, userId: req.user._id },
       { read: true },
       { new: true }
     );
-    if (!notification) {
-      return sendResponse(res, 404, false, null, 'Notification not found');
+    
+    if (notification) {
+      return sendResponse(res, 200, true, notification);
     }
-    return sendResponse(res, 200, true, notification);
+    
+    // If not found, it might be a broadcast
+    const broadcast = await Broadcast.findById(id);
+    if (broadcast) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(req.user._id, {
+        $addToSet: { readBroadcasts: broadcast._id }
+      });
+      return sendResponse(res, 200, true, { ...broadcast.toObject(), read: true });
+    }
+
+    return sendResponse(res, 404, false, null, 'Notification not found');
   } catch (error) { next(error); }
 };

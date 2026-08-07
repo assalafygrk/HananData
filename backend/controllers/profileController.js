@@ -12,7 +12,17 @@ exports.getProfile = async (req, res, next) => {
     const userObj = user.toObject();
     const hasTransactionPin = !!userObj.transactionPinHash;
     delete userObj.transactionPinHash;
-    return sendResponse(res, 200, true, { ...userObj, hasTransactionPin, settings });
+    const Notification = require('../models/Notification');
+    const Broadcast = require('../models/Broadcast');
+    const unreadPersonal = await Notification.countDocuments({ userId: user._id, read: false });
+    const allBroadcastsCount = await Broadcast.countDocuments({ status: 'sent' });
+    const readBroadcastsCount = user.readBroadcasts?.length || 0;
+    const unreadNotificationsCount = unreadPersonal + Math.max(0, allBroadcastsCount - readBroadcastsCount);
+
+    const limits = { 0: 10000, 1: 50000, 2: 500000 };
+    const dailyLimit = limits[user.kycTier || 0];
+
+    return sendResponse(res, 200, true, { ...userObj, hasTransactionPin, settings, unreadNotificationsCount, accountLimits: { dailyLimit } });
   } catch (error) { next(error); }
 };
 
@@ -92,22 +102,24 @@ exports.setTransactionPin = async (req, res, next) => {
       }
     }
 
-    // Hash the new PIN before saving — never store raw PINs
-    const salt = await bcrypt.genSalt(10);
-    user.transactionPinHash = await bcrypt.hash(targetPin.toString(), salt);
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.pinOtp = await bcrypt.hash(otp, 10);
+    user.pinOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    await AuditLog.create({
-      actorId: user._id,
-      actorType: 'system',
-      actorModel: 'User',
-      action: 'SET_TRANSACTION_PIN',
-      level: 'info',
-      source: 'mobile_app',
-      details: 'Transaction PIN updated'
-    });
+    const sendEmail = require('../utils/mailer');
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'HananData - PIN OTP Verification',
+        message: `Your OTP to set/change your transaction PIN is ${otp}. It expires in 10 minutes.`
+      });
+    } catch (err) {
+      console.error('Error sending OTP email:', err.message);
+    }
 
-    return sendResponse(res, 200, true, { message: 'Transaction PIN updated successfully.' });
+    return sendResponse(res, 200, true, { message: 'OTP sent to your email. Please verify to save your PIN.', requiresOtp: true });
   } catch (error) { next(error); }
 };
 
@@ -116,8 +128,23 @@ exports.forgotPin = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     if (!user) return sendResponse(res, 404, false, 'User not found');
     
-    // TODO: implement real OTP sending
-    return sendResponse(res, 200, true, { message: 'OTP sent successfully to your email (mocked)' });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.pinOtp = await bcrypt.hash(otp, 10);
+    user.pinOtpExpires = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    const sendEmail = require('../utils/mailer');
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'HananData - PIN Reset OTP',
+        message: `Your OTP to reset your transaction PIN is ${otp}. It expires in 10 minutes.`
+      });
+    } catch (err) {
+      console.error('Error sending OTP email:', err.message);
+    }
+    
+    return sendResponse(res, 200, true, { message: 'OTP sent successfully to your email.' });
   } catch (error) { next(error); }
 };
 
@@ -130,24 +157,32 @@ exports.verifyPinOtp = async (req, res, next) => {
     }
 
     const user = await User.findById(req.user._id);
-    if (!user) return sendResponse(res, 404, false, 'User not found');
+    if (!user.pinOtp || !user.pinOtpExpires || user.pinOtpExpires < Date.now()) {
+      return sendResponse(res, 400, false, 'OTP expired or not requested.');
+    }
 
-    // TODO: implement real OTP verification here
-    
+    const isMatch = await bcrypt.compare(otp.toString(), user.pinOtp);
+    if (!isMatch) {
+      return sendResponse(res, 400, false, 'Invalid OTP.');
+    }
+
+    // Hash and save new PIN
     const salt = await bcrypt.genSalt(10);
     user.transactionPinHash = await bcrypt.hash(newPin.toString(), salt);
+    user.pinOtp = undefined;
+    user.pinOtpExpires = undefined;
     await user.save();
 
     await AuditLog.create({
       actorId: user._id,
       actorType: 'system',
       actorModel: 'User',
-      action: 'RESET_TRANSACTION_PIN',
+      action: 'SET_TRANSACTION_PIN',
       level: 'info',
       source: 'mobile_app',
-      details: 'Transaction PIN reset via OTP'
+      details: 'Transaction PIN updated via OTP'
     });
 
-    return sendResponse(res, 200, true, { message: 'Transaction PIN reset successfully' });
+    return sendResponse(res, 200, true, { message: 'Transaction PIN updated successfully.' });
   } catch (error) { next(error); }
 };

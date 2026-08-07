@@ -1,7 +1,6 @@
 // lib/screens/coming_soon_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../constants/app_data.dart';
 import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 

@@ -10,8 +10,13 @@ const upcomingCtrl = require('../controllers/admin/upcomingController');
 
 // Auth
 router.post('/auth/login', authLimiter, authCtrl.login);
+router.post('/auth/verify-2fa', authLimiter, authCtrl.verify2FA);
 router.use(authenticateAdmin);
 router.post('/auth/verify-password', requireRole(['Super Admin']), miscCtrl.verifyPassword);
+router.post('/auth/change-password', authCtrl.changePassword);
+router.get('/auth/2fa/setup', authCtrl.setup2FA);
+router.post('/auth/2fa/enable', authCtrl.enable2FA);
+router.post('/auth/2fa/disable', authCtrl.disable2FA);
 
 // Dashboard
 router.get('/dashboard/stats', dashboardCtrl.getStats);

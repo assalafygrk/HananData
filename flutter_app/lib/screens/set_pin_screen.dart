@@ -13,7 +13,9 @@ class _SetPinScreenState extends State<SetPinScreen> {
   String _pin = '';
   String _confirmPin = '';
   bool _isConfirmStep = false;
+  bool _isOtpStep = false;
   bool _isLoading = false;
+  String _otp = '';
 
   Future<void> _submitPin() async {
     if (_pin != _confirmPin) {
@@ -31,12 +33,22 @@ class _SetPinScreenState extends State<SetPinScreen> {
     setState(() => _isLoading = false);
 
     if (res['success'] == true) {
-      if (mounted) {
-        UiHelpers.showBanner(context, 'Transaction PIN set successfully!');
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
+      if (res['data']?['requiresOtp'] == true) {
+        if (mounted) {
+          UiHelpers.showBanner(context, 'OTP sent to your email.');
+          setState(() {
+            _isOtpStep = true;
+            _otp = '';
+          });
+        }
+      } else {
+        if (mounted) {
+          UiHelpers.showBanner(context, 'Transaction PIN set successfully!');
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
       }
     } else {
@@ -51,9 +63,34 @@ class _SetPinScreenState extends State<SetPinScreen> {
     }
   }
 
+  Future<void> _verifyOtp() async {
+    setState(() => _isLoading = true);
+    final res = await ApiService.post('/profile/pin/verify', {
+      'otp': _otp,
+      'newPin': _pin,
+    }, requiresAuth: true);
+    setState(() => _isLoading = false);
+
+    if (res['success'] == true) {
+      if (mounted) {
+        UiHelpers.showBanner(context, 'Transaction PIN set successfully!');
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      }
+    } else {
+      if (mounted) {
+        UiHelpers.showBanner(context, res['message'] ?? 'Invalid OTP', isError: true);
+        setState(() => _otp = '');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currentPin = _isConfirmStep ? _confirmPin : _pin;
+    final currentPin = _isOtpStep ? _otp : (_isConfirmStep ? _confirmPin : _pin);
     
     return Scaffold(
       appBar: AppBar(
@@ -65,26 +102,29 @@ class _SetPinScreenState extends State<SetPinScreen> {
           children: [
             const SizedBox(height: 40),
             Text(
-              _isConfirmStep ? 'Confirm your PIN' : 'Create a 4-digit PIN',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kPrimaryDark),
+              _isOtpStep ? 'Enter Email OTP' : (_isConfirmStep ? 'Confirm your PIN' : 'Create a 4-digit PIN'),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark),
             ),
             const SizedBox(height: 12),
             Text(
-              'This PIN will be required to authorize all your transactions.',
+              _isOtpStep ? 'We sent a 6-digit OTP to your email.' : 'This PIN will be required to authorize all your transactions.',
               style: const TextStyle(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),
-            PINDots(value: currentPin, max: 4),
+            PINDots(value: currentPin, max: _isOtpStep ? 6 : 4),
             const Spacer(),
             if (_isLoading)
               const CircularProgressIndicator()
             else
               NumPad(
                 value: currentPin,
-                max: 4,
+                max: _isOtpStep ? 6 : 4,
                 onChanged: (v) {
-                  if (_isConfirmStep) {
+                  if (_isOtpStep) {
+                    setState(() => _otp = v);
+                    if (v.length == 6) _verifyOtp();
+                  } else if (_isConfirmStep) {
                     setState(() => _confirmPin = v);
                     if (v.length == 4) _submitPin();
                   } else {

@@ -74,7 +74,7 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                       Text('Invite & Earn Rewards', style: dFont(size: 22, weight: FontWeight.w800, color: kPrimaryDark)),
                       const SizedBox(height: 8),
                       Text(
-                        'Share your referral code. You and your friend both earn ₦200 when they make their first transaction.',
+                        'Share your referral code. You earn ₦1 every time your friend makes a transaction over ₦100!',
                         style: dFont(size: 14, color: kMutedText),
                         textAlign: TextAlign.center,
                       ),
@@ -122,9 +122,9 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 GestureDetector(
-                                  onTap: () {
-                                    Share.share('Sign up on HananData using my referral code $_referralCode and we both get ₦200!');
-                                  },
+                                    onTap: () {
+                                      Share.share('Sign up on HananData using my referral code $_referralCode!');
+                                    },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                     decoration: BoxDecoration(
@@ -156,7 +156,12 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: _StatCard(title: 'Total Earned', value: '₦${_referrals.where((r) => r['status'] == 'completed').length * 200}', icon: Icons.account_balance_wallet_rounded, color: const Color(0xFFF6A623)),
+                            child: _StatCard(
+                              title: 'Total Earned', 
+                              value: '₦${_referrals.fold<num>(0, (sum, r) => sum + (r['bonusPaid'] ?? 0))}', 
+                              icon: Icons.account_balance_wallet_rounded, 
+                              color: const Color(0xFFF6A623)
+                            ),
                           ),
                         ],
                       ),
@@ -177,10 +182,10 @@ class _MyReferralScreenState extends State<MyReferralScreen> {
                         Text('No referrals yet.', style: dFont(size: 14, color: kMutedText))
                       else
                         ..._referrals.map((r) => _ReferralRow(
-                          name: r['referredUser']?['name'] ?? 'Unknown',
+                          name: r['referredUserId']?['name'] ?? 'Unknown',
                           date: 'Recently', // format r['createdAt']
                           status: r['status'] ?? 'pending',
-                          reward: (r['status'] == 'completed') ? '+₦200' : '₦0',
+                          reward: '+₦${r['bonusPaid'] ?? 0}',
                         )),
                     ],
                   ),

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
 import '../constants/app_data.dart';
+import '../main.dart';
 
 const kPrimaryDark  = Color(0xFF0D1B35);
 const kPrimaryNavy  = Color(0xFF1B3A6B);
@@ -19,17 +20,19 @@ const kErrorRed     = Color(0xFFE53E3E);
 TextStyle dFont({
   double size = 14,
   FontWeight weight = FontWeight.w400,
-  Color color = kPrimaryDark,
+  Color? color,
   double? letterSpacing,
   double? height,
-}) =>
-    GoogleFonts.inter(
-      fontSize: size,
-      fontWeight: weight,
-      color: color,
-      letterSpacing: letterSpacing,
-      height: height,
-    );
+}) {
+  Color finalColor = color ?? (themeProvider.themeMode == ThemeMode.dark ? Colors.white : kPrimaryDark);
+  return GoogleFonts.inter(
+    fontSize: size,
+    fontWeight: weight,
+    color: finalColor,
+    letterSpacing: letterSpacing,
+    height: height,
+  );
+}
 
 /// Shows a modern top-floating error or success banner below the status bar.
 void showTopBanner(BuildContext context, String message, {bool isError = true}) {
@@ -1569,9 +1572,9 @@ class TxnRowApi extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFF0F4FA)),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
@@ -1585,7 +1588,7 @@ class TxnRowApi extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(type.toString().toUpperCase(), style: dFont(size: 13, weight: FontWeight.w700, color: const Color(0xFF1B3A6B))),
+                  Text(type.toString().toUpperCase(), style: dFont(size: 13, weight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1B3A6B))),
                   const SizedBox(height: 2),
                   Text(ref, style: dFont(size: 11, color: const Color(0xFF64748B))),
                 ],
@@ -1594,7 +1597,7 @@ class TxnRowApi extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 13, weight: FontWeight.w700, color: isCredit ? const Color(0xFF00C896) : const Color(0xFF1B3A6B))),
+                Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 13, weight: FontWeight.w700, color: isCredit ? const Color(0xFF00C896) : (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1B3A6B)))),
                 const SizedBox(height: 2),
                 Text(status.toString().toUpperCase(), style: dFont(size: 10, weight: FontWeight.w600, color: status == 'success' ? const Color(0xFF00C896) : (status == 'failed' ? Colors.red : Colors.orange))),
               ],

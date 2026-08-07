@@ -18,8 +18,12 @@ class PaymentPointClient {
         bankCode: ['20946'],
         businessId: this.businessId
       };
+      const authHeader = this.apiSecret.toLowerCase().startsWith('bearer ') 
+        ? this.apiSecret 
+        : `Bearer ${this.apiSecret}`;
+
       const headers = {
-        'Authorization': `Bearer ${this.apiSecret}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json',
         'api-key': this.apiKey
       };

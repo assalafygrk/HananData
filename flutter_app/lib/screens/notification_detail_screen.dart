@@ -16,7 +16,7 @@ class NotificationDetailScreen extends StatelessWidget {
           children: [
             // Header
             Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               padding: const EdgeInsets.fromLTRB(20, 16, 16, 14),
               child: Row(
                 children: [
@@ -28,12 +28,12 @@ class NotificationDetailScreen extends StatelessWidget {
                         color: kBackground,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.chevron_left_rounded, size: 22, color: kPrimaryDark),
+                      child: Icon(Icons.chevron_left_rounded, size: 22, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Text('Notification Details',
-                    style: dFont(size: 18, weight: FontWeight.w800, color: kPrimaryDark)),
+                    style: dFont(size: 18, weight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark)),
                 ],
               ),
             ),
@@ -46,9 +46,9 @@ class NotificationDetailScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: kCardBorder),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,14 +71,14 @@ class NotificationDetailScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   notif.title,
-                                  style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryDark),
+                                  style: dFont(size: 16, weight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark),
                                 ),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Icon(Icons.access_time_rounded, size: 14, color: kMutedText.withValues(alpha: 0.6)),
+                                    Icon(Icons.access_time_rounded, size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText.withValues(alpha: 0.6)),
                                     const SizedBox(width: 4),
-                                    Text(notif.time, style: dFont(size: 12, color: kMutedText)),
+                                    Text(notif.time, style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                                   ],
                                 ),
                               ],

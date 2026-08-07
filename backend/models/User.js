@@ -20,7 +20,14 @@ const userSchema = new mongoose.Schema({
   },
   pushNotifs: { type: Boolean, default: true },
   emailNotifs: { type: Boolean, default: false },
-  smsNotifs: { type: Boolean, default: false }
+  smsNotifs: { type: Boolean, default: false },
+  readBroadcasts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Broadcast' }],
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String },
+  pinOtp: { type: String },
+  pinOtpExpires: { type: Date },
+  resetOtp: { type: String },
+  resetOtpExpires: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

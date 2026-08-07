@@ -152,7 +152,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       Row(
                         children: [
                           Text('Your details',
-                            style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: kPrimaryDark)),
+                            style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark)),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -172,7 +172,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text('Tell us a bit about yourself', style: dFont(size: 14, color: kMutedText)),
+                      Text('Tell us a bit about yourself', style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                       const SizedBox(height: 24),
                       // Full Name
                       const SectionLabel('Full Name'),
@@ -203,9 +203,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 8),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: kCardBorder, width: 2),
+                          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
                         ),
                         child: Row(
                           children: [
@@ -223,7 +223,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 style: dFont(size: 15, weight: FontWeight.w600),
                                 decoration: InputDecoration(
                                   hintText: '08012345678',
-                                  hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
+                                  hintStyle: dFont(size: 15, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFFB8C4D9)),
                                   border: InputBorder.none,
                                   counterText: '',
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -254,9 +254,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.lock_rounded, color: kMutedText, size: 14),
+                            Icon(Icons.lock_rounded, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText, size: 14),
                             const SizedBox(width: 6),
-                            Text('End-to-End Encrypted', style: dFont(size: 12, color: kMutedText)),
+                            Text('End-to-End Encrypted', style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                           ],
                         ),
                       ),
@@ -266,12 +266,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     if (_step == 1 || _step == 2) ...[
                       Text(
                         _step == 1 ? 'Create your PIN' : 'Confirm your PIN',
-                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: kPrimaryDark),
+                        style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _step == 1 ? 'Choose a secure 6-digit PIN' : 'Re-enter to confirm',
-                        style: dFont(size: 14, color: kMutedText),
+                        style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText),
                       ),
                       const SizedBox(height: 20),
                       PINDots(value: _activePin),
@@ -295,7 +295,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           child: Text(
                             'By creating an account, you agree to our Terms and Privacy Policy.',
                             textAlign: TextAlign.center,
-                            style: dFont(size: 11, color: kMutedText),
+                            style: dFont(size: 11, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText),
                           ),
                         ),
                     ],
@@ -319,15 +319,15 @@ class _SignupScreenState extends State<SignupScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kCardBorder, width: 2),
+        color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
       ),
       child: Row(
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 14),
-            child: Icon(icon, color: kMutedText, size: 20),
+            child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText, size: 20),
           ),
           Expanded(
             child: TextField(
@@ -336,7 +336,7 @@ class _SignupScreenState extends State<SignupScreen> {
               style: dFont(size: 15, weight: FontWeight.w600),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
+                hintStyle: dFont(size: 15, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFFB8C4D9)),
                 border: InputBorder.none,
                 suffixIcon: suffix != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffix) : null,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),

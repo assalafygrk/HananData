@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/shared_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -58,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label: 'Help & Support',
           sub: 'Chat, call, or email us',
           highlight: true,
-          onTap: () => Navigator.pushNamed(context, '/help-support')),
+          onTap: () => _showHelp(context)),
       _MenuItem(
           icon: '⭐',
           label: 'Rate HananData',
@@ -83,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             // Header
             Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
               child: Row(
                 children: [
@@ -95,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            const Divider(height: 1, color: kCardBorder),
+            Divider(height: 1, color: Theme.of(context).dividerColor),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -103,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     // User card
                     Container(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 20),
                       child: Row(
@@ -318,29 +319,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
         icon: '💬',
         child: Column(
           children: [
-            _contactTile(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: 'Live Chat',
-                sub: 'Available 24/7',
-                color: kAccentGreen),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/help-support');
+              },
+              child: _contactTile(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Live Chat',
+                  sub: 'Available 24/7',
+                  color: kAccentGreen),
+            ),
             const SizedBox(height: 10),
-            _contactTile(
-                icon: Icons.phone_outlined,
-                label: 'Call Us',
-                sub: _userData?['settings']?['supportPhone'] ?? '0800-HANAN-DATA (toll free)',
-                color: kPrimaryNavy),
+            GestureDetector(
+              onTap: () async {
+                final phone = _userData?['settings']?['supportPhone'] ?? '0800-HANAN-DATA';
+                final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+                final uri = Uri.parse('tel:$cleanPhone');
+                if (await canLaunchUrl(uri)) await launchUrl(uri);
+              },
+              child: _contactTile(
+                  icon: Icons.phone_outlined,
+                  label: 'Call Us',
+                  sub: _userData?['settings']?['supportPhone'] ?? '0800-HANAN-DATA (toll free)',
+                  color: kPrimaryNavy),
+            ),
             const SizedBox(height: 10),
-            _contactTile(
-                icon: Icons.email_outlined,
-                label: 'Email Us',
-                sub: _userData?['settings']?['supportEmail'] ?? 'support@hanandata.ng',
-                color: kPrimaryBlue),
+            GestureDetector(
+              onTap: () async {
+                final email = _userData?['settings']?['supportEmail'] ?? 'support@hanandata.ng';
+                final uri = Uri.parse('mailto:$email?subject=HananData Support Request&body=Hello team,');
+                if (await canLaunchUrl(uri)) await launchUrl(uri);
+              },
+              child: _contactTile(
+                  icon: Icons.email_outlined,
+                  label: 'Email Us',
+                  sub: _userData?['settings']?['supportEmail'] ?? 'support@hanandata.ng',
+                  color: kPrimaryBlue),
+            ),
             const SizedBox(height: 10),
-            _contactTile(
-                icon: Icons.question_answer_outlined,
-                label: 'FAQ',
-                sub: 'Common questions answered',
-                color: const Color(0xFF9B59B6)),
+            GestureDetector(
+              onTap: () async {
+                final wa = _userData?['settings']?['whatsapp'] ?? '+2349160048633';
+                final cleanNum = wa.replaceAll('+', '').replaceAll(' ', '');
+                final uri = Uri.parse('https://wa.me/$cleanNum?text=Hello HananData Support,');
+                if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+              },
+              child: _contactTile(
+                  icon: Icons.chat_outlined, 
+                  label: 'WhatsApp',
+                  sub: _userData?['settings']?['whatsapp'] ?? '+2349160048633',
+                  color: Colors.green),
+            ),
           ],
         ));
   }
@@ -386,14 +416,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: dFont(size: 22, weight: FontWeight.w800))),
             const SizedBox(height: 4),
             Center(
-                child: Text('Version 2.4.1',
+                child: Text('Version 1.0.0',
                     style: dFont(size: 13, color: kMutedText))),
             const SizedBox(height: 24),
             _infoRow('Developer', 'Assalafygrk IT Hub'),
             const Divider(height: 1, color: kCardBorder),
-            _infoRow('Support Email', _userData?['settings']?['supportEmail'] ?? 'assalafyithub@gmail.com'),
+            _infoRow('Developer Email', 'assalafyithub@gmail.com'),
             const Divider(height: 1, color: kCardBorder),
-            _infoRow('WhatsApp', _userData?['settings']?['whatsapp'] ?? '+2349160048633'),
+            _infoRow('WhatsApp', '+2349160048633'),
             const Divider(height: 1, color: kCardBorder),
             _infoRow('Terms of Service', 'View →'),
             const Divider(height: 1, color: kCardBorder),
@@ -491,9 +521,9 @@ class _ProfileSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 60),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -548,9 +578,9 @@ class _RatingSheetState extends State<_RatingSheet> {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 60),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -638,7 +668,7 @@ class _MenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: item.highlight ? const Color(0xFFE8F5EE) : Colors.white,
+        color: item.highlight ? const Color(0xFFE8F5EE) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: item.highlight ? kAccentGreen : const Color(0xFFF0F4FA),
@@ -675,7 +705,7 @@ class _DarkModeTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: value
             ? const Color(0xFF1B3A6B).withValues(alpha: 0.08)
-            : Colors.white,
+            : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: value

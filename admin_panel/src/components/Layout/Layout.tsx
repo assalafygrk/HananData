@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, CreditCard, Tag, Link2, 
-  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare, Search, MessageSquare, Sparkles
+  Bell, Shield, Settings, LogOut, Menu, BarChart3, Gift, Wallet, ActivitySquare, Search, MessageSquare, Sparkles, Lock
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { QuickSearchModal } from './QuickSearchModal';
@@ -50,6 +50,7 @@ export function Layout() {
     { name: 'Roles', path: '/roles', icon: Shield },
     { name: 'System Logs', path: '/system-logs', icon: ActivitySquare },
     { name: 'Settings', path: '/settings', icon: Settings },
+    { name: 'Profile (Security)', path: '/profile', icon: Lock },
   ];
 
   const handleLogout = () => {

@@ -177,20 +177,21 @@ class _DataScreenState extends State<DataScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: kCardBorder, width: 2),
+                          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
+                            dropdownColor: Theme.of(context).cardColor,
                             value: _selectedDataType,
-                            hint: Text('Select Data Type', style: dFont(size: 15, weight: FontWeight.w600, color: kMutedText)),
+                            hint: Text('Select Data Type', style: dFont(size: 15, weight: FontWeight.w600, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                             isExpanded: true,
-                            icon: const Icon(Icons.keyboard_arrow_down, color: kPrimaryDark),
+                            icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark),
                             items: _availableDataTypes.map((type) {
                               return DropdownMenuItem<String>(
                                 value: type,
-                                child: Text(type, style: dFont(size: 15, weight: FontWeight.w600, color: kPrimaryDark)),
+                                child: Text(type, style: dFont(size: 15, weight: FontWeight.w600, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark)),
                               );
                             }).toList(),
                             onChanged: (val) {
@@ -222,7 +223,7 @@ class _DataScreenState extends State<DataScreen> {
                               duration: const Duration(milliseconds: 150),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: on ? _net.color : kCardBorder, width: 2,
@@ -269,7 +270,7 @@ class _DataScreenState extends State<DataScreen> {
                       const SizedBox(height: 20),
                       Center(
                         child: Text('No plans available for this network.',
-                            style: dFont(size: 13, color: kMutedText)),
+                            style: dFont(size: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                       ),
                     ],
                   ],
@@ -296,7 +297,7 @@ class _DataScreenState extends State<DataScreen> {
       keyboardType: type,
       style: dFont(size: 15, weight: FontWeight.w600),
       decoration: InputDecoration(
-        filled: true, fillColor: Colors.white,
+        filled: true, fillColor: Theme.of(context).cardColor,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: kCardBorder, width: 2)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16),

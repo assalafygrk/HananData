@@ -57,7 +57,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             // Header
             Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
               child: Row(
                 children: [
@@ -68,7 +68,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             // Filter chips
             Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               child: Column(
                 children: [
                   const Divider(height: 1, color: kCardBorder),

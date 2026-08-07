@@ -11,6 +11,7 @@ import { AggregatorSettings } from './pages/AggregatorSettings'
 import { NotificationsBroadcast } from './pages/NotificationsBroadcast'
 import { AdminRoles } from './pages/AdminRoles'
 import { AdminSettings } from './pages/AdminSettings'
+import { AdminProfile } from './pages/AdminProfile'
 import { Analytics } from './pages/Analytics'
 import { ReferralManagement } from './pages/ReferralManagement'
 import { ApiWallets } from './pages/ApiWallets'
@@ -41,6 +42,7 @@ function App() {
         <Route path="/roles" element={<AdminRoles />} />
         <Route path="/system-logs" element={<SystemLogs />} />
         <Route path="/settings" element={<AdminSettings />} />
+        <Route path="/profile" element={<AdminProfile />} />
         <Route path="/live-support" element={<LiveSupport />} />
         <Route path="/upcoming-features" element={<UpcomingServices />} />
       </Route>

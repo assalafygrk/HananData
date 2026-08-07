@@ -119,8 +119,26 @@ exports.login = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
   try {
     const identifier = sanitizeIdentifier(req.body.identifier);
-    // TODO: implement real OTP sending
-    return sendResponse(res, 200, true, { message: 'OTP sent successfully (mocked)' });
+    const user = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
+    if (!user) return sendResponse(res, 404, false, 'User not found');
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = await bcrypt.hash(otp, 10);
+    user.resetOtpExpires = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    const sendEmail = require('../utils/mailer');
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'HananData - Password Reset OTP',
+        message: `Your OTP to reset your account password is ${otp}. It expires in 10 minutes.`
+      });
+    } catch (err) {
+      console.error('Error sending OTP email:', err.message);
+    }
+
+    return sendResponse(res, 200, true, { message: 'OTP sent successfully to your email.' });
   } catch (error) { next(error); }
 };
 
@@ -128,12 +146,23 @@ exports.verifyOtp = async (req, res, next) => {
   try {
     const identifier = sanitizeIdentifier(req.body.identifier);
     const { otp, newPassword } = req.body;
-    // TODO: implement real OTP verification
+    
     const user = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
     if (!user) return sendResponse(res, 404, false, 'User not found');
     
+    if (!user.resetOtp || !user.resetOtpExpires || user.resetOtpExpires < Date.now()) {
+      return sendResponse(res, 400, false, 'OTP expired or not requested.');
+    }
+
+    const isMatch = await bcrypt.compare(otp.toString(), user.resetOtp);
+    if (!isMatch) {
+      return sendResponse(res, 400, false, 'Invalid OTP.');
+    }
+
     const salt = await bcrypt.genSalt(10);
     user.passwordHash = await bcrypt.hash(newPassword, salt);
+    user.resetOtp = undefined;
+    user.resetOtpExpires = undefined;
     await user.save();
 
     return sendResponse(res, 200, true, { message: 'Password reset successful' });

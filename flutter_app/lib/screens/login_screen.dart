@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           'Welcome back',
                           style: GoogleFonts.inter(
-                            fontSize: 28, fontWeight: FontWeight.w800, color: kPrimaryDark,
+                            fontSize: 28, fontWeight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Sign in securely to your HananData account',
-                      style: dFont(size: 14, color: kMutedText),
+                      style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText),
                     ),
                     const SizedBox(height: 32),
                     // Phone field (only shown when not on PIN phase)
@@ -147,9 +147,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: kCardBorder, width: 2),
+                          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
                         ),
                         child: Row(
                           children: [
@@ -163,9 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               Container(width: 1, height: 24, color: kCardBorder),
                             ] else ...[
-                              const Padding(
-                                padding: EdgeInsets.only(left: 16, right: 8, top: 14, bottom: 14),
-                                child: Icon(Icons.email_outlined, color: kMutedText, size: 20),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16, right: 8, top: 14, bottom: 14),
+                                child: Icon(Icons.email_outlined, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText, size: 20),
                               ),
                             ],
                             Expanded(
@@ -177,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: dFont(size: 15, weight: FontWeight.w600),
                                 decoration: InputDecoration(
                                   hintText: _useEmail ? 'you@email.com' : '08012345678',
-                                  hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
+                                  hintStyle: dFont(size: 15, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFFB8C4D9)),
                                   border: InputBorder.none,
                                   counterText: '',
                                   contentPadding: EdgeInsets.symmetric(horizontal: _useEmail ? 8 : 16, vertical: 14),
@@ -202,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             const Icon(Icons.verified_user_rounded, color: kAccentGreen, size: 16),
                             const SizedBox(width: 6),
-                            Text('256-bit Encryption Active', style: dFont(size: 12, color: kMutedText, weight: FontWeight.w600)),
+                            Text('256-bit Encryption Active', style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText, weight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -215,11 +215,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Container(
                               width: 36, height: 36,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: kCardBorder),
+                                border: Border.all(color: Theme.of(context).dividerColor),
                               ),
-                              child: const Icon(Icons.chevron_left_rounded, color: kPrimaryDark, size: 22),
+                              child: Icon(Icons.chevron_left_rounded, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark, size: 22),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -227,9 +227,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Enter your PIN',
-                                style: dFont(size: 18, weight: FontWeight.w800, color: kPrimaryDark)),
+                                style: dFont(size: 18, weight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark)),
                               Text('+234 ${_phoneCtrl.text}',
-                                style: dFont(size: 13, color: kMutedText)),
+                                style: dFont(size: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                             ],
                           ),
                         ],
@@ -282,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Center(
                         child: TextButton(
                           onPressed: () => Navigator.pushNamed(context, '/forget_password'),
-                          child: Text('Forgot PIN?', style: dFont(size: 13, color: kMutedText)),
+                          child: Text('Forgot PIN?', style: dFont(size: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                         ),
                       ),
                     ],
@@ -291,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('New to HananData?  ', style: dFont(size: 14, color: kMutedText)),
+                          Text('New to HananData?  ', style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                           GestureDetector(
                             onTap: () => Navigator.pushNamed(context, '/signup'),
                             child: Text(

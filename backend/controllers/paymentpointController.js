@@ -23,7 +23,7 @@ exports.getOrCreateVirtualAccount = async (req, res, next) => {
     const businessId = providerConfig?.businessId;
 
     if (apiKey && apiSecret && businessId) {
-      const client = new PaymentPointClient(apiKey, apiSecret, businessId);
+      const client = new PaymentPointClient(apiKey.trim(), apiSecret.trim(), businessId.trim());
       const resData = await client.createVirtualAccount({
         email: user.email || `${user.phone}@hanandata.ng`,
         name: user.name,

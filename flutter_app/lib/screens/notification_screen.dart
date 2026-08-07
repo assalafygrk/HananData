@@ -103,7 +103,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           children: [
             // Header
             Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               padding: const EdgeInsets.fromLTRB(20, 16, 16, 14),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -211,7 +211,7 @@ class _NotifTile extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        color: unread ? const Color(0xFFF0F6FF) : Colors.white,
+        color: unread ? const Color(0xFFF0F6FF) : Theme.of(context).cardColor,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

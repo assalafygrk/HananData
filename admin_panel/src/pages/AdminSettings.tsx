@@ -12,8 +12,9 @@ export function AdminSettings() {
   const [tier1Limit, setTier1Limit] = useState('10000');
   const [tier2Limit, setTier2Limit] = useState('50000');
   const [tier3Limit, setTier3Limit] = useState('500000');
-
-
+  
+  const [supportPhone, setSupportPhone] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
   
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -30,8 +31,8 @@ export function AdminSettings() {
           setTier1Limit(s.tier1Limit?.toString() || '10000');
           setTier2Limit(s.tier2Limit?.toString() || '50000');
           setTier3Limit(s.tier3Limit?.toString() || '500000');
-
-        }
+          setSupportPhone(s.supportPhone || '');
+          setSupportEmail(s.supportEmail || '');        }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
         toast.error('Failed to fetch settings');
@@ -52,8 +53,8 @@ export function AdminSettings() {
         tier1Limit: Number(tier1Limit),
         tier2Limit: Number(tier2Limit),
         tier3Limit: Number(tier3Limit),
-
-      });
+        supportPhone,
+        supportEmail,      });
       setIsSaved(true);
       toast.success('Settings saved successfully');
       setTimeout(() => setIsSaved(false), 3000);
@@ -175,7 +176,37 @@ export function AdminSettings() {
           </div>
         </div>
 
-
+        {/* Support & Contact Settings */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex items-center gap-2 bg-gray-50">
+            <UserX className="w-5 h-5 text-[#1B3A6B]" />
+            <h3 className="font-bold text-gray-900">Support & Contact Info</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Support Phone Number</label>
+                <input 
+                  type="text" 
+                  value={supportPhone}
+                  onChange={(e) => setSupportPhone(e.target.value)}
+                  placeholder="e.g. 0800-HANAN-DATA"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Support Email Address</label>
+                <input 
+                  type="email" 
+                  value={supportEmail}
+                  onChange={(e) => setSupportEmail(e.target.value)}
+                  placeholder="e.g. support@hanandata.ng"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <button 

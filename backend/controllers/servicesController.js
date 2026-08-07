@@ -12,7 +12,7 @@ const SubandgainClient = require('../utils/subandgainClient');
 
 exports.purchaseService = (type) => async (req, res, next) => {
   try {
-    const { network, amount, phone, planId, provider: serviceProvider, pin } = req.body;
+    const { network, amount, phone, planId, provider: serviceProvider, pin, bypassPin } = req.body;
     const user = await User.findById(req.user._id);
 
     const refId = 'TXN-' + Date.now() + Math.floor(Math.random() * 1000);
@@ -42,15 +42,17 @@ exports.purchaseService = (type) => async (req, res, next) => {
       return sendResponse(res, 400, false, 'Please set a transaction PIN in your settings first.');
     }
 
-    if (!pin) {
-      await recordFailedTxn('Transaction PIN is required');
-      return sendResponse(res, 400, false, 'Transaction PIN is required.');
-    }
+    if (!bypassPin) {
+      if (!pin) {
+        await recordFailedTxn('Transaction PIN is required');
+        return sendResponse(res, 400, false, 'Transaction PIN is required.');
+      }
 
-    const isMatch = await bcrypt.compare(pin.toString(), user.transactionPinHash);
-    if (!isMatch) {
-      await recordFailedTxn('Incorrect transaction PIN');
-      return sendResponse(res, 401, false, 'Incorrect transaction PIN.');
+      const isMatch = await bcrypt.compare(pin.toString(), user.transactionPinHash);
+      if (!isMatch) {
+        await recordFailedTxn('Incorrect transaction PIN');
+        return sendResponse(res, 401, false, 'Incorrect transaction PIN.');
+      }
     }
 
     // Load active VTU provider
@@ -174,6 +176,28 @@ exports.purchaseService = (type) => async (req, res, next) => {
         type: 'transaction',
         relatedId: transaction.refId
       });
+
+      // Reward referrer exactly ₦1 for every transaction over ₦100
+      if (amount > 100 && user.referredBy) {
+        const referrerId = user.referredBy;
+        await User.findByIdAndUpdate(referrerId, { $inc: { walletBalance: 1 } });
+        
+        // Also update ReferralHistory if it's the first one
+        const ReferralHistory = require('../models/ReferralHistory');
+        const pendingReferral = await ReferralHistory.findOne({ referredUserId: user._id, status: 'pending' });
+        if (pendingReferral) {
+          pendingReferral.status = 'paid';
+          pendingReferral.bonusPaid = (pendingReferral.bonusPaid || 0) + 1;
+          await pendingReferral.save();
+        }
+
+        await Notification.create({
+          userId: referrerId,
+          title: 'Referral Bonus',
+          message: `You earned ₦1 because your referral ${user.name} made a transaction!`,
+          type: 'gift'
+        });
+      }
 
       return sendResponse(res, 200, true, transaction);
     } else {

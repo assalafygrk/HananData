@@ -123,7 +123,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                     const SectionLabel('Sender Phone Number'),
                     const SizedBox(height: 4),
                     Text('The number that will send the airtime',
-                        style: dFont(size: 11, color: kMutedText)),
+                        style: dFont(size: 11, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                     const SizedBox(height: 8),
                     _phoneField(controller: _senderCtrl),
                     const SizedBox(height: 16),
@@ -145,9 +145,9 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: kCardBorder, width: 2),
+                        color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
                       ),
                       child: Row(
                         children: [
@@ -155,7 +155,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                             padding: const EdgeInsets.only(left: 16),
                             child: Text('₦',
                                 style: dFont(size: 22, weight: FontWeight.w700,
-                                    color: const Color(0xFFB8C4D9))),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFFB8C4D9))),
                           ),
                           Expanded(
                             child: TextField(
@@ -165,7 +165,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                               style: dFont(size: 22, weight: FontWeight.w800),
                               decoration: InputDecoration(
                                 hintText: 'Minimum ₦100',
-                                hintStyle: dFont(size: 16, color: const Color(0xFFB8C4D9)),
+                                hintStyle: dFont(size: 16, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFFB8C4D9)),
                                 border: InputBorder.none,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
                               ),
@@ -181,7 +181,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                     const SectionLabel('Wallet Phone Number'),
                     const SizedBox(height: 4),
                     Text('Where the cash will be credited',
-                        style: dFont(size: 11, color: kMutedText)),
+                        style: dFont(size: 11, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                     const SizedBox(height: 8),
                     _phoneField(controller: _recipientCtrl),
                     const SizedBox(height: 16),
@@ -201,7 +201,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: _confirmed ? const Color(0xFFE6F9F4) : Colors.white,
+                          color: _confirmed ? const Color(0xFFE6F9F4) : Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _confirmed ? kAccentGreen : kCardBorder, width: 2,
@@ -213,7 +213,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
                               duration: const Duration(milliseconds: 150),
                               width: 24, height: 24,
                               decoration: BoxDecoration(
-                                color: _confirmed ? kAccentGreen : Colors.white,
+                                color: _confirmed ? kAccentGreen : Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(7),
                                 border: Border.all(
                                   color: _confirmed ? kAccentGreen : kCardBorder, width: 2,
@@ -291,9 +291,9 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
   Widget _phoneField({required TextEditingController controller}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kCardBorder, width: 2),
+        color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
       ),
       child: Row(
         children: [
@@ -311,7 +311,7 @@ class _AirtimeCashScreenState extends State<AirtimeCashScreen> {
               style: dFont(size: 15, weight: FontWeight.w600),
               decoration: InputDecoration(
                 hintText: '08012345678',
-                hintStyle: dFont(size: 15, color: const Color(0xFFB8C4D9)),
+                hintStyle: dFont(size: 15, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFFB8C4D9)),
                 border: InputBorder.none,
                 counterText: '',
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -368,7 +368,7 @@ class _TransferCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _instructionRow('Step', 'From $senderPhone, dial or send airtime to:'),
+          _instructionRow(context, 'Step', 'From $senderPhone, dial or send airtime to:'),
           const SizedBox(height: 8),
           // Transfer number — tappable to copy
           GestureDetector(
@@ -381,7 +381,7 @@ class _TransferCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: net.color),
               ),
@@ -408,11 +408,11 @@ class _TransferCard extends StatelessWidget {
     );
   }
 
-  Widget _instructionRow(String label, String text) {
+  Widget _instructionRow(BuildContext context, String label, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ', style: dFont(size: 12, weight: FontWeight.w700, color: kMutedText)),
+        Text('$label: ', style: dFont(size: 12, weight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
         Expanded(child: Text(text, style: dFont(size: 12, color: kMediumText))),
       ],
     );
@@ -431,9 +431,9 @@ class _ConversionSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kCardBorder),
+        color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -444,9 +444,9 @@ class _ConversionSummary extends StatelessWidget {
               children: [
                 const SectionLabel('Conversion Summary'),
                 const SizedBox(height: 12),
-                _row('Airtime submitted', '₦${fmtNaira(num)}', kPrimaryDark),
+                _row(context, 'Airtime submitted', '₦${fmtNaira(num)}', kPrimaryDark),
                 const SizedBox(height: 8),
-                _row('Conversion fee (25%)', '-₦${fmtNaira(fee)}', kErrorRed),
+                _row(context, 'Conversion fee (25%)', '-₦${fmtNaira(fee)}', kErrorRed),
                 const SizedBox(height: 8),
                 const Divider(color: kCardBorder),
                 const SizedBox(height: 8),
@@ -485,11 +485,11 @@ class _ConversionSummary extends StatelessWidget {
     );
   }
 
-  Widget _row(String label, String value, Color valColor) {
+  Widget _row(BuildContext context, String label, String value, Color valColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: dFont(size: 14, color: kMutedText)),
+        Text(label, style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
         Text(value, style: dFont(size: 14, weight: FontWeight.w600, color: valColor)),
       ],
     );

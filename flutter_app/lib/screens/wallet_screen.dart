@@ -57,7 +57,7 @@ class _WalletScreenState extends State<WalletScreen> {
     super.dispose();
   }
 
-  int get _amt => int.tryParse(_amountCtrl.text) ?? 0;
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +68,7 @@ class _WalletScreenState extends State<WalletScreen> {
           children: [
             // Header
             Container(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
               child: Row(
                 children: [
@@ -117,7 +117,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: kCardBorder, width: 2),
                       ),
@@ -168,7 +168,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 duration: const Duration(milliseconds: 150),
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: on ? const Color(0xFFE8EDF5) : Colors.white,
+                                  color: on ? const Color(0xFFE8EDF5) : Theme.of(context).cardColor,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: on ? kPrimaryNavy : kCardBorder),
                                 ),
@@ -195,38 +195,6 @@ class _WalletScreenState extends State<WalletScreen> {
                       onTap: () => setState(() => _method = _method == 'bank' ? null : 'bank'),
                       expandedContent: _buildBankDetail(),
                     ),
-                    const SizedBox(height: 8),
-                    _FundingMethod(
-                      id: 'card',
-                      title: 'Debit / Credit Card',
-                      subtitle: 'Visa, Mastercard or Verve',
-                      emoji: '💳',
-                      selected: _method == 'card',
-                      onTap: () => setState(() => _method = _method == 'card' ? null : 'card'),
-                      expandedContent: _buildCardDetail(),
-                    ),
-                    const SizedBox(height: 8),
-                    _FundingMethod(
-                      id: 'ussd',
-                      title: 'USSD Payment',
-                      subtitle: 'No internet needed',
-                      emoji: '📱',
-                      selected: _method == 'ussd',
-                      onTap: () => setState(() => _method = _method == 'ussd' ? null : 'ussd'),
-                      expandedContent: _buildUssdDetail(),
-                    ),
-                    const SizedBox(height: 16),
-                    // Pay button for card method
-                    if (_method == 'card' && _amt > 0) ...[
-                      PrimaryBtn(
-                        label: 'Pay ₦${fmtNaira(_amt)}',
-                        onPressed: () {
-                          // Mock for now, you can hook this to a real payment gateway
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment via card is coming soon')));
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
                   ],
                 ),
               ),
@@ -346,74 +314,6 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
     );
   }
-
-  Widget _buildCardDetail() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        children: [
-          _cardInput('Card Number'),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: _cardInput('MM/YY')),
-              const SizedBox(width: 10),
-              Expanded(child: _cardInput('CVV')),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _cardInput(String hint) {
-    return TextField(
-      style: dFont(size: 14),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: dFont(size: 14, color: const Color(0xFFB8C4D9)),
-        filled: true,
-        fillColor: kBackground,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: kCardBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: kCardBorder),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
-    );
-  }
-
-  Widget _buildUssdDetail() {
-    final amount = _amountCtrl.text.isEmpty ? 'AMOUNT' : _amountCtrl.text;
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8EDF5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Dial this code on your phone:', style: dFont(size: 12, color: kMutedText)),
-          const SizedBox(height: 6),
-          Text(
-            '*737*50*$amount*60483#',
-            style: GoogleFonts.robotoMono(
-              fontSize: 17, fontWeight: FontWeight.w700, color: kPrimaryNavy,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text('Works on all networks · No data required',
-            style: dFont(size: 11, color: kMutedText)),
-        ],
-      ),
-    );
-  }
 }
 
 // ─── Funding Method Accordion Tile ───────────────────────────────────────────
@@ -442,7 +342,7 @@ class _FundingMethod extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: selected ? kPrimaryNavy : kCardBorder, width: 2),
       ),
