@@ -42,7 +42,8 @@ class _AppLockScreenState extends State<AppLockScreen> {
       if (!canAuth) return;
       final didAuth = await auth.authenticate(
         localizedReason: 'Unlock HananData',
-        options: const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
+        persistAcrossBackgrounding: true,
+        biometricOnly: true,
       );
       if (didAuth && mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -80,7 +81,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
           await prefs.setString('app_lock_pin', _pin);
           if (mounted) Navigator.pushReplacementNamed(context, '/home');
         } else {
-          UiHelpers.showBanner(context, 'PINs do not match. Try again.', isError: true);
+          showTopBanner(context, 'PINs do not match. Try again.', isError: true);
           setState(() {
             _confirmPin = '';
             _pin = '';
@@ -91,7 +92,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
       if (_pin == _savedPin) {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        UiHelpers.showBanner(context, 'Incorrect PIN', isError: true);
+        showTopBanner(context, 'Incorrect PIN', isError: true);
         setState(() => _pin = '');
       }
     }
@@ -113,7 +114,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
             Container(
               width: 80, height: 80,
               decoration: BoxDecoration(
-                color: kPrimaryNavy.withOpacity(0.1),
+                color: kPrimaryNavy.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.lock_rounded, color: kPrimaryNavy, size: 40),
