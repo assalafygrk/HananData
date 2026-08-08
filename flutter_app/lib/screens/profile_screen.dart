@@ -11,7 +11,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _darkMode = false;
   Map<String, dynamic>? _userData;
 
   @override
@@ -697,57 +696,3 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-// ─── Dark Mode toggle tile (inline — no sub-screen) ───────────────────────────
-
-class _DarkModeTile extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  const _DarkModeTile({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        color: value
-            ? const Color(0xFF1B3A6B).withValues(alpha: 0.08)
-            : Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: value
-              ? kPrimaryNavy.withValues(alpha: 0.3)
-              : const Color(0xFFF0F4FA),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Text(value ? '🌙' : '☀️', style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Dark Mode',
-                      style: dFont(
-                          size: 14,
-                          weight: FontWeight.w600,
-                          color: kPrimaryDark)),
-                  Text(value ? 'Dark theme enabled' : 'Light theme active',
-                      style: dFont(size: 12, color: kMutedText)),
-                ],
-              ),
-            ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeTrackColor: kPrimaryNavy,
-              thumbColor: WidgetStateProperty.all(Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

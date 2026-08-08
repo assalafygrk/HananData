@@ -11,7 +11,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _darkMode       = false;
+
   bool _biometrics     = false;
   bool _txnPin         = true;
   bool _pushNotifs     = true;
@@ -382,54 +382,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
-    showModalBottomSheet(
-      context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        margin: const EdgeInsets.only(top: 60),
-        decoration: const BoxDecoration(color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 64, height: 64,
-                decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(20)),
-                child: const Icon(Icons.delete_forever_rounded, color: kErrorRed, size: 32)),
-              const SizedBox(height: 16),
-              Text('Delete Account?', style: dFont(size: 20, weight: FontWeight.w800)),
-              const SizedBox(height: 8),
-              Text('This action is irreversible. All your data, transactions, and wallet balance will be permanently deleted.',
-                  style: dFont(size: 13, color: kMutedText), textAlign: TextAlign.center),
-              const SizedBox(height: 24),
-              Row(children: [
-                Expanded(child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: kCardBorder),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: Text('Cancel', style: dFont(size: 14, weight: FontWeight.w700, color: kMediumText)),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: ElevatedButton(
-                  onPressed: () { Navigator.pop(context); },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kErrorRed,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: Text('Delete', style: dFont(size: 14, weight: FontWeight.w700, color: Colors.white)),
-                )),
-              ]),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 }
 
 // ─── Reusable setting tiles ───────────────────────────────────────────────────
