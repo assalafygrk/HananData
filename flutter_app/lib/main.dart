@@ -21,7 +21,6 @@ import 'screens/wallet_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/notification_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/account_limit_screen.dart';
 import 'screens/legal_screen.dart';
 import 'screens/my_referral_screen.dart';
 import 'screens/exam_pin_screen.dart';
@@ -33,9 +32,8 @@ import 'screens/forget_pin_screen.dart';
 import 'screens/set_pin_screen.dart';
 import 'screens/restricted_screen.dart';
 import 'services/notification_service.dart';
-import 'theme/app_theme.dart';
+import 'screens/app_lock_screen.dart';
 
-final themeProvider = ThemeProvider();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -58,21 +56,15 @@ class HananDataApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: themeProvider,
-      builder: (context, _) {
-        return MaterialApp(
-          title: 'HananData',
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          themeMode: themeProvider.themeMode,
-          theme: AppTheme.lightTheme.copyWith(
-            textTheme: GoogleFonts.interTextTheme(),
-          ),
-          darkTheme: AppTheme.darkTheme.copyWith(
-            textTheme: GoogleFonts.interTextTheme(ThemeData(brightness: Brightness.dark).textTheme),
-          ),
-          initialRoute: '/splash',
+    return MaterialApp(
+      title: 'HananData',
+      navigatorKey: navigatorKey,
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.light,
+      theme: AppTheme.lightTheme.copyWith(
+        textTheme: GoogleFonts.interTextTheme(),
+      ),
+      initialRoute: '/splash',
           routes: {
             '/splash':         (_) => const SplashScreen(),
             '/onboarding':     (_) => const OnboardingScreen(),
@@ -92,7 +84,6 @@ class HananDataApp extends StatelessWidget {
             '/profile':        (_) => const ProfileScreen(),
             '/notifications':  (_) => const NotificationScreen(),
             '/settings':       (_) => const SettingsScreen(),
-            '/account-limit':  (_) => const AccountLimitScreen(),
             '/legal':          (_) => const LegalScreen(),
             '/my-referral':    (_) => const MyReferralScreen(),
             '/exam-pin':       (_) => const ExamPinScreen(),
@@ -103,6 +94,7 @@ class HananDataApp extends StatelessWidget {
             '/forget_pin':     (_) => const ForgetPinScreen(),
             '/set_pin':        (_) => const SetPinScreen(),
             '/restricted':     (_) => const RestrictedScreen(),
+            '/app_lock':       (_) => const AppLockScreen(),
           },
           // ─── Custom page transitions ───────────────────────────────────────────
           onGenerateRoute: (settings) {
@@ -128,8 +120,6 @@ class HananDataApp extends StatelessWidget {
             );
           },
         );
-      },
-    );
   }
 }
 
@@ -153,7 +143,6 @@ final _routeBuilders = <String, WidgetBuilder>{
   '/profile':       (_) => const ProfileScreen(),
   '/notifications': (_) => const NotificationScreen(),
   '/settings':      (_) => const SettingsScreen(),
-  '/account-limit': (_) => const AccountLimitScreen(),
   '/legal':         (_) => const LegalScreen(),
   '/my-referral':   (_) => const MyReferralScreen(),
   '/exam-pin':      (_) => const ExamPinScreen(),
@@ -162,4 +151,5 @@ final _routeBuilders = <String, WidgetBuilder>{
   '/forget_pin':    (_) => const ForgetPinScreen(),
   '/set_pin':       (_) => const SetPinScreen(),
   '/restricted':    (_) => const RestrictedScreen(),
+  '/app_lock':      (_) => const AppLockScreen(),
 };

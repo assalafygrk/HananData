@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
 import '../services/api_service.dart';
-import '../main.dart'; // For themeProvider
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -78,19 +77,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // ── Appearance ─────────────────────────────────────────
                     const _SectionHeader(label: 'Appearance', icon: Icons.palette_outlined),
                     _SettingGroup(children: [
-                      _ToggleTile(
-                        icon: Icons.dark_mode_rounded,
-                        iconColor: const Color(0xFF5C4FC8),
-                        label: 'Dark Mode',
-                        sub: 'Switch to dark theme',
-                        value: _darkMode,
-                        onChanged: (v) {
-                          setState(() => _darkMode = v);
-                          _saveBool('setting_darkMode', v);
-                          themeProvider.toggleTheme(v);
-                        },
-                      ),
-                      const _Divider(),
                       _TapTile(
                         icon: Icons.language_rounded,
                         iconColor: kPrimaryBlue,
@@ -98,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         sub: _language,
                         onTap: () => _pickOption(
                           title: 'Select Language',
-                          options: ['English', 'Hausa', 'Yoruba', 'Igbo'],
+                          options: ['English', 'Arabic', 'Hausa', 'Yoruba', 'Igbo'],
                           current: _language,
                           onSelect: (v) { setState(() => _language = v); _saveString('setting_language', v); },
                         ),
@@ -111,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         sub: _currency,
                         onTap: () => _pickOption(
                           title: 'Select Currency',
-                          options: ['NGN (₦)', 'USD (\$)', 'GBP (£)', 'EUR (€)'],
+                          options: ['NGN (₦)', 'USD (\$)', 'GBP (£)', 'EUR (€)', 'JPY (¥)'],
                           current: _currency,
                           onSelect: (v) { setState(() => _currency = v); _saveString('setting_currency', v); },
                         ),
@@ -145,15 +131,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Set Transaction PIN',
                         sub: 'Update your 4-digit PIN',
                         onTap: () => _showChangePIN(context),
-                        showArrow: true,
-                      ),
-                      const _Divider(),
-                      _TapTile(
-                        icon: Icons.history_rounded,
-                        iconColor: kMediumText,
-                        label: 'Login Activity',
-                        sub: 'View recent sessions',
-                        onTap: () => _showComingSoon(context),
                         showArrow: true,
                       ),
                     ]),
@@ -198,27 +175,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ]),
 
-                    // ── Data & Privacy ─────────────────────────────────────
-                    const _SectionHeader(label: 'Data & Privacy', icon: Icons.privacy_tip_outlined),
-                    _SettingGroup(children: [
-                      _TapTile(
-                        icon: Icons.download_outlined,
-                        iconColor: kPrimaryBlue,
-                        label: 'Download My Data',
-                        sub: 'Export account data',
-                        onTap: () => _showComingSoon(context),
-                        showArrow: true,
-                      ),
-                      const _Divider(),
-                      _TapTile(
-                        icon: Icons.delete_outline_rounded,
-                        iconColor: kErrorRed,
-                        label: 'Delete Account',
-                        sub: 'Permanently remove account',
-                        onTap: () => _confirmDelete(context),
-                        showArrow: true,
-                      ),
-                    ]),
 
                     // ── App Info ───────────────────────────────────────────
                     const _SectionHeader(label: 'App Information', icon: Icons.info_outline_rounded),

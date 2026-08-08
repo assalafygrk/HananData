@@ -182,13 +182,13 @@ exports.purchaseService = (type) => async (req, res, next) => {
         const referrerId = user.referredBy;
         await User.findByIdAndUpdate(referrerId, { $inc: { walletBalance: 1 } });
         
-        // Also update ReferralHistory if it's the first one
+        // Update ReferralHistory counter
         const ReferralHistory = require('../models/ReferralHistory');
-        const pendingReferral = await ReferralHistory.findOne({ referredUserId: user._id, status: 'pending' });
-        if (pendingReferral) {
-          pendingReferral.status = 'paid';
-          pendingReferral.bonusPaid = (pendingReferral.bonusPaid || 0) + 1;
-          await pendingReferral.save();
+        const referralRecord = await ReferralHistory.findOne({ referredUserId: user._id });
+        if (referralRecord) {
+          referralRecord.status = 'paid';
+          referralRecord.bonusPaid = (referralRecord.bonusPaid || 0) + 1;
+          await referralRecord.save();
         }
 
         await Notification.create({

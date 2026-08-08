@@ -42,11 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           sub: 'Name, email, BVN',
           onTap: () => _showAccountDetails(context)),
       _MenuItem(
-          icon: '📊',
-          label: 'Account Limit',
-          sub: 'View & upgrade your tier',
-          onTap: () => Navigator.pushNamed(context, '/account-limit')),
-      _MenuItem(
           icon: '🎁',
           label: 'My Referral',
           sub: 'Share & earn rewards',
@@ -202,12 +197,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         children: [
-                          // Dark Mode — toggle inline (no sub-screen)
-                          _DarkModeTile(
-                            value: _darkMode,
-                            onChanged: (v) => setState(() => _darkMode = v),
-                          ),
-                          const SizedBox(height: 8),
                           // Settings
                           _MenuTile(
                               item: _MenuItem(
@@ -292,25 +281,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ─── Sub-screen bottom sheets ─────────────────────────────────────────────
 
   void _showAccountDetails(BuildContext context) {
-    _showSheet(context,
-        title: 'Account Details',
-        icon: '👤',
-        child: Column(
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
           children: [
-            _infoRow('Full Name', _userData?['name'] ?? 'N/A'),
-            const Divider(height: 1, color: kCardBorder),
-            _infoRow('Phone', _userData?['phone'] ?? 'N/A'),
-            const Divider(height: 1, color: kCardBorder),
-            _infoRow('Email', _userData?['email'] ?? 'N/A'),
-            const Divider(height: 1, color: kCardBorder),
-            _infoRow('BVN', '•••••••••••'),
-            const Divider(height: 1, color: kCardBorder),
-            _infoRow('Tier', 'Tier 2 · Verified'),
-            const Divider(height: 1, color: kCardBorder),
-            _infoRow(
-                'Account No.', _userData?['virtualAccount'] ?? '0123 456 789'),
+            const Text('👤', style: TextStyle(fontSize: 24)),
+            const SizedBox(width: 8),
+            Text('Account Details', style: dFont(size: 20, weight: FontWeight.w800)),
           ],
-        ));
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _infoRow('Full Name', _userData?['name'] ?? 'N/A'),
+              const Divider(height: 1, color: kCardBorder),
+              _infoRow('Phone', _userData?['phone'] ?? 'N/A'),
+              const Divider(height: 1, color: kCardBorder),
+              _infoRow('Email', _userData?['email'] ?? 'N/A'),
+              const Divider(height: 1, color: kCardBorder),
+              _infoRow('BVN', '•••••••••••'),
+              const Divider(height: 1, color: kCardBorder),
+              _infoRow('Tier', 'Tier ${_userData?['kycTier'] ?? 0} · ${_userData?['kycStatus'] == 'verified' ? 'Verified' : 'Unverified'}'),
+              const Divider(height: 1, color: kCardBorder),
+              _infoRow('Account No.', _userData?['virtualAccount']?['accountNumber'] ?? 'N/A'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close', style: dFont(size: 14, color: kPrimaryNavy, weight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showHelp(BuildContext context) {
