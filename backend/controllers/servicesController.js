@@ -96,6 +96,30 @@ exports.purchaseService = (type) => async (req, res, next) => {
       return sendResponse(res, 400, false, 'Insufficient balance');
     }
 
+    // Verify Financial Limits
+    const PlatformSettings = require('../models/PlatformSettings');
+    const settings = await PlatformSettings.findOne();
+    if (settings) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const dailyTxns = await Transaction.aggregate([
+        { $match: { userId: user._id, status: 'successful', createdAt: { $gte: today } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]);
+      const dailyTotal = dailyTxns.length > 0 ? dailyTxns[0].total : 0;
+      const proposedTotal = dailyTotal + amountToDebit;
+
+      let limit = settings.tier1Limit;
+      if (user.kycTier === 2) limit = settings.tier2Limit;
+      if (user.kycTier === 3) limit = settings.tier3Limit;
+
+      if (proposedTotal > limit) {
+        await recordFailedTxn(`Daily transaction limit (₦${limit}) exceeded.`);
+        return sendResponse(res, 400, false, `This transaction exceeds your daily Tier ${user.kycTier || 1} limit of ₦${limit}.`);
+      }
+    }
+
     const profit = amountToDebit - actualApiCost;
 
     const apiClient = new SubandgainClient(vtuProvider.username, vtuProvider.apiKeyEncrypted);

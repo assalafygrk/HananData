@@ -20,10 +20,11 @@ app.use(morgan('dev'));
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const paymentpointCtrl = require('./controllers/paymentpointController');
+const { checkMaintenanceMode } = require('./middleware/maintenance');
 
 app.post('/api/paymentpoint/webhook', paymentpointCtrl.handleWebhook);
 app.use('/api/admin', adminRoutes);
-app.use('/api', userRoutes);
+app.use('/api', checkMaintenanceMode, userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hanan Data API is running...');

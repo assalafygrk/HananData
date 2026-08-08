@@ -24,6 +24,12 @@ exports.signup = async (req, res, next) => {
     email = sanitizeIdentifier(email);
     phone = sanitizeIdentifier(phone);
 
+    const PlatformSettings = require('../models/PlatformSettings');
+    const settings = await PlatformSettings.findOne();
+    if (settings && settings.disableRegistration) {
+      return sendResponse(res, 403, false, 'New user registrations are temporarily disabled.');
+    }
+
     const userExists = await User.findOne({ $or: [{ email }, { phone }] });
     if (userExists) return sendResponse(res, 400, false, 'User already exists');
 

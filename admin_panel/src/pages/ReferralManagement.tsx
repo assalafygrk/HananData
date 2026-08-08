@@ -3,11 +3,8 @@ import { Users, Gift, Save, CheckCircle2 } from 'lucide-react';
 import api from '../api';
 
 export function ReferralManagement() {
-  const [bonusAmount, setBonusAmount] = useState('500');
-  const [minFunding, setMinFunding] = useState('2000');
   const [referrals, setReferrals] = useState<any[]>([]);
   const [isActive, setIsActive] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,11 +23,7 @@ export function ReferralManagement() {
     fetchReferrals();
   }, []);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
-  };
+
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -58,54 +51,21 @@ export function ReferralManagement() {
               </label>
             </div>
             
-            <form onSubmit={handleSaveSettings} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bonus Amount (₦)</label>
-                <p className="text-xs text-gray-500 mb-2">Amount credited to the referrer</p>
-                <input 
-                  type="number" 
-                  required
-                  value={bonusAmount}
-                  onChange={(e) => setBonusAmount(e.target.value)}
-                  disabled={!isActive}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none disabled:opacity-50 disabled:bg-gray-50"
-                />
+            <div className="p-6 space-y-4">
+              <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
+                <h4 className="font-bold text-purple-900 mb-2">How it works</h4>
+                <ul className="text-sm text-purple-800 space-y-3 list-disc pl-4">
+                  <li>User shares their unique referral code.</li>
+                  <li>New user registers using the referral code.</li>
+                  <li>Whenever the new user completes <span className="font-semibold">any transaction over ₦100</span>, the referrer receives an instant bonus.</li>
+                  <li>The referrer receives <span className="font-semibold">₦1 bonus per qualifying transaction</span>.</li>
+                  <li>This applies to all future transactions the referred user makes!</li>
+                </ul>
+                <div className="mt-4 text-xs text-purple-600 bg-purple-100/50 p-3 rounded-lg border border-purple-200">
+                  <p><strong>Note:</strong> The referral logic is currently managed automatically by the core system and cannot be altered here.</p>
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Min. First Funding (₦)</label>
-                <p className="text-xs text-gray-500 mb-2">Amount referred user must fund before bonus is released</p>
-                <input 
-                  type="number" 
-                  required
-                  value={minFunding}
-                  onChange={(e) => setMinFunding(e.target.value)}
-                  disabled={!isActive}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none disabled:opacity-50 disabled:bg-gray-50"
-                />
-              </div>
-
-              <div className="pt-4">
-                <button 
-                  type="submit"
-                  disabled={!isActive}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  {isSaved ? 'Settings Saved' : 'Save Configurations'}
-                </button>
-              </div>
-            </form>
-          </div>
-          
-          <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
-            <h4 className="font-bold text-purple-900 mb-2">How it works</h4>
-            <ul className="text-sm text-purple-800 space-y-2 list-disc pl-4">
-              <li>User shares their unique referral code.</li>
-              <li>New user registers with code.</li>
-              <li>New user funds wallet with at least ₦{minFunding}.</li>
-              <li>Referrer instantly receives ₦{bonusAmount} bonus.</li>
-            </ul>
+            </div>
           </div>
         </div>
 
