@@ -30,7 +30,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _darkMode    = prefs.getBool('setting_darkMode') ?? false;
       _biometrics  = prefs.getBool('setting_biometrics') ?? false;
       _txnPin      = prefs.getBool('setting_txnPin') ?? true;
       _pushNotifs  = prefs.getBool('setting_pushNotifs') ?? true;
