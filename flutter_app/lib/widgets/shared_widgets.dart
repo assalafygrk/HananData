@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
 import '../constants/app_data.dart';
-import '../main.dart';
 
 const kPrimaryDark  = Color(0xFF0D1B35);
 const kPrimaryNavy  = Color(0xFF1B3A6B);
@@ -24,7 +23,7 @@ TextStyle dFont({
   double? letterSpacing,
   double? height,
 }) {
-  Color finalColor = color ?? (themeProvider.themeMode == ThemeMode.dark ? Colors.white : kPrimaryDark);
+  Color finalColor = color ?? kPrimaryDark;
   return GoogleFonts.inter(
     fontSize: size,
     fontWeight: weight,

@@ -302,8 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(height: 1, color: kCardBorder),
               _infoRow('Email', _userData?['email'] ?? 'N/A'),
               const Divider(height: 1, color: kCardBorder),
-              _infoRow('BVN', '•••••••••••'),
-              const Divider(height: 1, color: kCardBorder),
+
               _infoRow('Tier', 'Tier ${_userData?['kycTier'] ?? 0} · ${_userData?['kycStatus'] == 'verified' ? 'Verified' : 'Unverified'}'),
               const Divider(height: 1, color: kCardBorder),
               _infoRow('Account No.', _userData?['virtualAccount']?['accountNumber'] ?? 'N/A'),

@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../utils/ui_helpers.dart';
 import '../widgets/shared_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -180,14 +182,29 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Colors.white, letterSpacing: -0.5,
                             )),
                           const SizedBox(height: 2),
-                          Text(() {
-                            final va = _userData?['virtualAccount'];
-                            if (va is Map) {
-                              return '${va['accountNumber'] ?? '0123 456 789'} · ${va['bankName'] ?? 'HananData MFB'}';
-                            }
-                            return '0123 456 789 · HananData MFB';
-                          }(),
-                            style: dFont(size: 11, color: const Color(0xFF7BAED4))),
+                          GestureDetector(
+                            onTap: () {
+                              final va = _userData?['virtualAccount'];
+                              final acctNum = (va is Map) ? (va['accountNumber'] ?? '0123 456 789') : '0123 456 789';
+                              Clipboard.setData(ClipboardData(text: acctNum.toString()));
+                              UiHelpers.showBanner(context, 'Account Number copied to clipboard', isError: false);
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(() {
+                                  final va = _userData?['virtualAccount'];
+                                  if (va is Map) {
+                                    return '${va['accountNumber'] ?? '0123 456 789'} · ${va['bankName'] ?? 'HananData MFB'}';
+                                  }
+                                  return '0123 456 789 · HananData MFB';
+                                }(),
+                                  style: dFont(size: 11, color: const Color(0xFF7BAED4))),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.copy_rounded, color: Color(0xFF7BAED4), size: 12),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           // Action buttons row
                           Row(
