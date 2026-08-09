@@ -18,15 +18,22 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLoginStatus() async {
-    await Future.delayed(const Duration(seconds: 2));
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('userToken');
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('userToken');
 
-    if (!mounted) return;
-    if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacementNamed(context, '/app_lock');
-    } else {
-      Navigator.pushReplacementNamed(context, '/onboarding');
+      if (!mounted) return;
+      if (token != null && token.isNotEmpty) {
+        Navigator.pushReplacementNamed(context, '/app_lock');
+      } else {
+        Navigator.pushReplacementNamed(context, '/onboarding');
+      }
+    } catch (e) {
+      debugPrint('Error in splash screen routing: $e');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/onboarding');
+      }
     }
   }
 
