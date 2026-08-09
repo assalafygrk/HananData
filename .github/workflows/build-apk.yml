@@ -30,12 +30,12 @@ jobs:
 
       - name: Build APK
         working-directory: ./flutter_app
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: HananData-Release-APKs
-          path: flutter_app/build/app/outputs/flutter-apk/app-*-release.apk
+          name: HananData-Release-APK
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
 
