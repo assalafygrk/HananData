@@ -18,6 +18,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _onPin = false;
   bool _isLoading = false;
   bool _useEmail = false;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map?;
+    if (args != null && args['phone'] != null && _phoneCtrl.text.isEmpty) {
+      _phoneCtrl.text = args['phone'];
+      _useEmail = _phoneCtrl.text.contains('@');
+    }
+  }
 
   @override
   void dispose() {

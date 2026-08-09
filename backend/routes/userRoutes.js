@@ -12,7 +12,9 @@ const { securityGuardrail } = require('../middleware/guardrail');
 
 // Auth
 router.post('/auth/check', authLimiter, authCtrl.checkUser);
-router.post('/auth/signup', authLimiter, authCtrl.signup);
+router.post('/auth/signup/init', authLimiter, authCtrl.signupInit);
+router.post('/auth/signup/verify', authLimiter, authCtrl.signupVerify);
+router.post('/auth/signup/complete', authLimiter, authCtrl.signupComplete);
 router.post('/auth/login', authLimiter, authCtrl.login);
 router.post('/auth/forgot-password', authLimiter, authCtrl.forgotPassword);
 router.post('/auth/verify-otp', authLimiter, authCtrl.verifyOtp);

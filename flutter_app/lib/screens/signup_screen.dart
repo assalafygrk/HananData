@@ -17,6 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _referralCtrl = TextEditingController();
+  final _otpCtrl = TextEditingController();
   String _pin     = '';
   String _confirm = '';
   bool _isLoading = false;
@@ -27,21 +28,61 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _referralCtrl.dispose();
+    _otpCtrl.dispose();
     super.dispose();
   }
 
-  String get _activePin => _step == 1 ? _pin : _confirm;
+  String get _activePin => _step == 2 ? _pin : _confirm;
 
   void _setActivePin(String v) {
     setState(() {
-      if (_step == 1) {
+      if (_step == 2) {
         _pin = v;
       } else {
         _confirm = v;
       }
     });
-    if (v.length == 6 && _step == 2) {
+    if (v.length == 6 && _step == 3) {
       _handleSignup();
+    }
+  }
+
+  Future<void> _handleInit() async {
+    setState(() => _isLoading = true);
+    final body = {
+      'name': _nameCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+      'phone': _phoneCtrl.text.trim(),
+      'referralCode': _referralCtrl.text.trim(),
+    };
+    final res = await ApiService.post('/auth/signup/init', body);
+    setState(() => _isLoading = false);
+
+    if (res['success'] == true) {
+      if (mounted) {
+        UiHelpers.showBanner(context, 'OTP sent to your email.');
+        setState(() => _step = 1);
+      }
+    } else {
+      if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Error', isError: true);
+    }
+  }
+
+  Future<void> _handleVerify() async {
+    if (_otpCtrl.text.length < 6) return;
+    setState(() => _isLoading = true);
+    final res = await ApiService.post('/auth/signup/verify', {
+      'email': _emailCtrl.text.trim(),
+      'otp': _otpCtrl.text.trim(),
+    });
+    setState(() => _isLoading = false);
+
+    if (res['success'] == true) {
+      if (mounted) {
+        setState(() => _step = 2);
+      }
+    } else {
+      if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Invalid OTP', isError: true);
     }
   }
 
@@ -52,18 +93,15 @@ class _SignupScreenState extends State<SignupScreen> {
     }
     setState(() => _isLoading = true);
     final body = {
-      'name': _nameCtrl.text.trim(),
       'email': _emailCtrl.text.trim(),
-      'phone': _phoneCtrl.text.trim(),
-      'password': _pin, // We use pin as password for simplicity
-      'referralCode': _referralCtrl.text.trim(),
+      'pin': _pin,
     };
-    final res = await ApiService.signup(body);
+    final res = await ApiService.post('/auth/signup/complete', body);
     setState(() => _isLoading = false);
     if (res['success'] == true) {
       if (mounted) {
         UiHelpers.showBanner(context, 'Account created! Please sign in.');
-        Navigator.pop(context); // go back to login
+        Navigator.pushReplacementNamed(context, '/login', arguments: {'phone': _phoneCtrl.text.trim()});
       }
     } else {
       if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Error', isError: true);
@@ -85,7 +123,7 @@ class _SignupScreenState extends State<SignupScreen> {
           });
         }
       } else {
-        setState(() => _step = 1);
+        _handleInit();
       }
     } else {
       if (mounted) UiHelpers.showBanner(context, res['message'] ?? 'Network error', isError: true);
@@ -127,7 +165,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   children: [
                     // Progress bar
                     Row(
-                      children: List.generate(3, (i) => Expanded(
+                      children: List.generate(4, (i) => Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 3),
                           child: AnimatedContainer(
@@ -262,15 +300,42 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ],
 
-                    // Steps 1 & 2: PIN
-                    if (_step == 1 || _step == 2) ...[
+                    // Step 1: OTP
+                    if (_step == 1) ...[
+                      Text('Verify your Email', style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark)),
+                      const SizedBox(height: 4),
+                      Text('Enter the 6-digit OTP sent to ${_emailCtrl.text.trim()}', style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
+                      const SizedBox(height: 24),
+                      _inputField(
+                        controller: _otpCtrl,
+                        hint: '123456',
+                        icon: Icons.password_rounded,
+                        type: TextInputType.number,
+                      ),
+                      const SizedBox(height: 24),
+                      PrimaryBtn(
+                        label: _isLoading ? 'Verifying...' : 'Verify OTP',
+                        disabled: _otpCtrl.text.length < 6 || _isLoading,
+                        onPressed: _handleVerify,
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: TextButton(
+                          onPressed: _isLoading ? null : _handleInit,
+                          child: Text('Resend OTP', style: dFont(size: 14, color: kPrimaryNavy, weight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
+
+                    // Steps 2 & 3: PIN
+                    if (_step == 2 || _step == 3) ...[
                       Text(
-                        _step == 1 ? 'Create your PIN' : 'Confirm your PIN',
+                        _step == 2 ? 'Create your PIN' : 'Confirm your PIN',
                         style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _step == 1 ? 'Choose a secure 6-digit PIN' : 'Re-enter to confirm',
+                        _step == 2 ? 'Choose a secure 6-digit PIN' : 'Re-enter to confirm',
                         style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText),
                       ),
                       const SizedBox(height: 20),
@@ -279,18 +344,18 @@ class _SignupScreenState extends State<SignupScreen> {
                       NumPad(value: _activePin, onChanged: _setActivePin),
                       const SizedBox(height: 16),
                       PrimaryBtn(
-                        label: _step == 1 ? 'Continue' : (_isLoading ? 'Creating...' : 'Create Account'),
+                        label: _step == 2 ? 'Continue' : (_isLoading ? 'Creating...' : 'Create Account'),
                         disabled: _activePin.length < 6 || _isLoading,
                         onPressed: () {
-                          if (_step == 1) {
-                            setState(() { _step = 2; _confirm = ''; });
+                          if (_step == 2) {
+                            setState(() { _step = 3; _confirm = ''; });
                           } else {
                             _handleSignup();
                           }
                         },
                       ),
                       const SizedBox(height: 20),
-                      if (_step == 2)
+                      if (_step == 3)
                         Center(
                           child: Text(
                             'By creating an account, you agree to our Terms and Privacy Policy.',

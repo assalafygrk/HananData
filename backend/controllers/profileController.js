@@ -102,24 +102,22 @@ exports.setTransactionPin = async (req, res, next) => {
       }
     }
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.pinOtp = await bcrypt.hash(otp, 10);
-    user.pinOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const salt = await bcrypt.genSalt(10);
+    user.transactionPinHash = await bcrypt.hash(targetPin.toString(), salt);
     await user.save();
 
-    const sendEmail = require('../utils/mailer');
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'HananData - PIN OTP Verification',
-        message: `Your OTP to set/change your transaction PIN is ${otp}. It expires in 10 minutes.`
-      });
-    } catch (err) {
-      console.error('Error sending OTP email:', err.message);
-    }
+    const AuditLog = require('../models/AuditLog');
+    await AuditLog.create({
+      actorId: user._id,
+      actorType: 'system',
+      actorModel: 'User',
+      action: 'SET_TRANSACTION_PIN',
+      level: 'info',
+      source: 'mobile_app',
+      details: 'Transaction PIN updated'
+    });
 
-    return sendResponse(res, 200, true, { message: 'OTP sent to your email. Please verify to save your PIN.', requiresOtp: true });
+    return sendResponse(res, 200, true, { message: 'Transaction PIN saved successfully.' });
   } catch (error) { next(error); }
 };
 

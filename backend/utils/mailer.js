@@ -2,8 +2,10 @@ const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
   const transporter = nodemailer.createTransport({
+    service: process.env.SMTP_HOST?.includes('gmail') ? 'gmail' : undefined,
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
+    port: parseInt(process.env.SMTP_PORT) || 465,
+    secure: parseInt(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
@@ -11,7 +13,7 @@ const sendEmail = async (options) => {
   });
 
   const message = {
-    from: `${process.env.FROM_NAME || 'HananData'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+    from: `${process.env.FROM_NAME || 'HananData'} <${process.env.SMTP_USER}>`,
     to: options.email,
     subject: options.subject,
     text: options.message

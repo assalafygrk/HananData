@@ -183,25 +183,40 @@ class _HomeScreenState extends State<HomeScreen> {
                             )),
                           const SizedBox(height: 2),
                           GestureDetector(
-                            onTap: () {
+                            onTap: () async {
                               final va = _userData?['virtualAccount'];
-                              final acctNum = (va is Map) ? (va['accountNumber'] ?? '0123 456 789') : '0123 456 789';
-                              Clipboard.setData(ClipboardData(text: acctNum.toString()));
-                              UiHelpers.showBanner(context, 'Account Number copied to clipboard', isError: false);
+                              final acctNum = (va is Map) ? va['accountNumber'] : null;
+                              if (acctNum != null) {
+                                Clipboard.setData(ClipboardData(text: acctNum.toString()));
+                                UiHelpers.showBanner(context, 'Account Number copied to clipboard', isError: false);
+                              } else {
+                                setState(() => _isLoading = true);
+                                final res = await ApiService.get('/wallet/virtual-account', requiresAuth: true);
+                                setState(() => _isLoading = false);
+                                if (res['success'] == true) {
+                                  _fetchProfile(); // refresh to get new VA
+                                  UiHelpers.showBanner(context, 'Virtual account generated successfully!');
+                                } else {
+                                  UiHelpers.showBanner(context, res['message'] ?? 'Failed to generate account', isError: true);
+                                }
+                              }
                             },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(() {
                                   final va = _userData?['virtualAccount'];
-                                  if (va is Map) {
-                                    return '${va['accountNumber'] ?? '0123 456 789'} · ${va['bankName'] ?? 'HananData MFB'}';
+                                  if (va is Map && va['accountNumber'] != null) {
+                                    return '${va['accountNumber']} · ${va['bankName'] ?? 'Bank'}';
                                   }
-                                  return '0123 456 789 · HananData MFB';
+                                  return 'Tap to generate virtual account';
                                 }(),
                                   style: dFont(size: 11, color: const Color(0xFF7BAED4))),
                                 const SizedBox(width: 4),
-                                const Icon(Icons.copy_rounded, color: Color(0xFF7BAED4), size: 12),
+                                if (_userData?['virtualAccount'] is Map && _userData?['virtualAccount']['accountNumber'] != null)
+                                  const Icon(Icons.copy_rounded, color: Color(0xFF7BAED4), size: 12),
+                                if (!(_userData?['virtualAccount'] is Map) || _userData?['virtualAccount']['accountNumber'] == null)
+                                  const Icon(Icons.refresh_rounded, color: Color(0xFF7BAED4), size: 12),
                               ],
                             ),
                           ),
