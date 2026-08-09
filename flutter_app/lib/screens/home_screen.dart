@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 final res = await ApiService.get('/wallet/virtual-account', requiresAuth: true);
                                 setState(() => _isLoading = false);
                                 if (res['success'] == true) {
-                                  _fetchProfile(); // refresh to get new VA
+                                  _loadData();
                                   UiHelpers.showBanner(context, 'Virtual account generated successfully!');
                                 } else {
                                   UiHelpers.showBanner(context, res['message'] ?? 'Failed to generate account', isError: true);
