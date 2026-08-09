@@ -65,7 +65,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
 
   Future<void> _verifyOtp() async {
     setState(() => _isLoading = true);
-    final res = await ApiService.post('/profile/pin/verify', {
+    final res = await ApiService.post('/profile/verify-pin-otp', {
       'otp': _otp,
       'newPin': _pin,
     }, requiresAuth: true);
