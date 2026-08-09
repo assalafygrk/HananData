@@ -27,15 +27,7 @@ class OnboardingScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 28, height: 28,
-                      decoration: BoxDecoration(
-                        color: kAccentGreen,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text('H', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-                    ),
+                    Image.asset('assets/images/logo.png', width: 28, height: 28),
                     const SizedBox(width: 10),
                     Text(
                       'HananData',
