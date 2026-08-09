@@ -11,6 +11,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+//  c
   Map<String, dynamic>? _userData;
 
   @override
@@ -288,7 +289,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             const Text('👤', style: TextStyle(fontSize: 24)),
             const SizedBox(width: 8),
-            Text('Account Details', style: dFont(size: 20, weight: FontWeight.w800)),
+            Text('Account Details',
+                style: dFont(size: 20, weight: FontWeight.w800)),
           ],
         ),
         content: SingleChildScrollView(
@@ -301,17 +303,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(height: 1, color: kCardBorder),
               _infoRow('Email', _userData?['email'] ?? 'N/A'),
               const Divider(height: 1, color: kCardBorder),
-
-              _infoRow('Tier', 'Tier ${_userData?['kycTier'] ?? 0} · ${_userData?['kycStatus'] == 'verified' ? 'Verified' : 'Unverified'}'),
+              _infoRow('Tier',
+                  'Tier ${_userData?['kycTier'] ?? 0} · ${_userData?['kycStatus'] == 'verified' ? 'Verified' : 'Unverified'}'),
               const Divider(height: 1, color: kCardBorder),
-              _infoRow('Account No.', _userData?['virtualAccount']?['accountNumber'] ?? 'N/A'),
+              _infoRow('Account No.',
+                  _userData?['virtualAccount']?['accountNumber'] ?? 'N/A'),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Close', style: dFont(size: 14, color: kPrimaryNavy, weight: FontWeight.w700)),
+            child: Text('Close',
+                style: dFont(
+                    size: 14, color: kPrimaryNavy, weight: FontWeight.w700)),
           ),
         ],
       ),
@@ -338,7 +343,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
-                final phone = _userData?['settings']?['supportPhone'] ?? '0800-HANAN-DATA';
+                final phone = _userData?['settings']?['supportPhone'] ??
+                    '0800-HANAN-DATA';
                 final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
                 final uri = Uri.parse('tel:$cleanPhone');
                 if (await canLaunchUrl(uri)) await launchUrl(uri);
@@ -346,32 +352,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: _contactTile(
                   icon: Icons.phone_outlined,
                   label: 'Call Us',
-                  sub: _userData?['settings']?['supportPhone'] ?? '0800-HANAN-DATA (toll free)',
+                  sub: _userData?['settings']?['supportPhone'] ??
+                      '0800-HANAN-DATA (toll free)',
                   color: kPrimaryNavy),
             ),
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
-                final email = _userData?['settings']?['supportEmail'] ?? 'support@hanandata.ng';
-                final uri = Uri.parse('mailto:$email?subject=HananData Support Request&body=Hello team,');
+                final email = _userData?['settings']?['supportEmail'] ??
+                    'support@hanandata.ng';
+                final uri = Uri.parse(
+                    'mailto:$email?subject=HananData Support Request&body=Hello team,');
                 if (await canLaunchUrl(uri)) await launchUrl(uri);
               },
               child: _contactTile(
                   icon: Icons.email_outlined,
                   label: 'Email Us',
-                  sub: _userData?['settings']?['supportEmail'] ?? 'support@hanandata.ng',
+                  sub: _userData?['settings']?['supportEmail'] ??
+                      'support@hanandata.ng',
                   color: kPrimaryBlue),
             ),
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
-                final wa = _userData?['settings']?['whatsapp'] ?? '+2349160048633';
+                final wa =
+                    _userData?['settings']?['whatsapp'] ?? '+2349160048633';
                 final cleanNum = wa.replaceAll('+', '').replaceAll(' ', '');
-                final uri = Uri.parse('https://wa.me/$cleanNum?text=Hello HananData Support,');
-                if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+                final uri = Uri.parse(
+                    'https://wa.me/$cleanNum?text=Hello HananData Support,');
+                if (await canLaunchUrl(uri))
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
               },
               child: _contactTile(
-                  icon: Icons.chat_outlined, 
+                  icon: Icons.chat_outlined,
                   label: 'WhatsApp',
                   sub: _userData?['settings']?['whatsapp'] ?? '+2349160048633',
                   color: Colors.green),
@@ -673,7 +686,9 @@ class _MenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: item.highlight ? const Color(0xFFE8F5EE) : Theme.of(context).cardColor,
+        color: item.highlight
+            ? const Color(0xFFE8F5EE)
+            : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: item.highlight ? kAccentGreen : const Color(0xFFF0F4FA),
@@ -698,55 +713,55 @@ class _MenuTile extends StatelessWidget {
 
 // ─── Dark Mode toggle tile (inline — no sub-screen) ───────────────────────────
 
-class _DarkModeTile extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  const _DarkModeTile({required this.value, required this.onChanged});
+// class _DarkModeTile extends StatelessWidget {
+//   final bool value;
+//   final ValueChanged<bool> onChanged;
+//   const _DarkModeTile({required this.value, required this.onChanged});
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        color: value
-            ? const Color(0xFF1B3A6B).withValues(alpha: 0.08)
-            : Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: value
-              ? kPrimaryNavy.withValues(alpha: 0.3)
-              : const Color(0xFFF0F4FA),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Text(value ? '🌙' : '☀️', style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Dark Mode',
-                      style: dFont(
-                          size: 14,
-                          weight: FontWeight.w600,
-                          color: kPrimaryDark)),
-                  Text(value ? 'Dark theme enabled' : 'Light theme active',
-                      style: dFont(size: 12, color: kMutedText)),
-                ],
-              ),
-            ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeTrackColor: kPrimaryNavy,
-              thumbColor: WidgetStateProperty.all(Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return AnimatedContainer(
+//       duration: const Duration(milliseconds: 200),
+//       decoration: BoxDecoration(
+//         color: value
+//             ? const Color(0xFF1B3A6B).withValues(alpha: 0.08)
+//             : Theme.of(context).cardColor,
+//         borderRadius: BorderRadius.circular(16),
+//         border: Border.all(
+//           color: value
+//               ? kPrimaryNavy.withValues(alpha: 0.3)
+//               : const Color(0xFFF0F4FA),
+//         ),
+//       ),
+//       child: Padding(
+//         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+//         child: Row(
+//           children: [
+//             Text(value ? '🌙' : '☀️', style: const TextStyle(fontSize: 20)),
+//             const SizedBox(width: 12),
+//             Expanded(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text('Dark Mode',
+//                       style: dFont(
+//                           size: 14,
+//                           weight: FontWeight.w600,
+//                           color: kPrimaryDark)),
+//                   Text(value ? 'Dark theme enabled' : 'Light theme active',
+//                       style: dFont(size: 12, color: kMutedText)),
+//                 ],
+//               ),
+//             ),
+//             Switch(
+//               value: value,
+//               onChanged: onChanged,
+//               activeTrackColor: kPrimaryNavy,
+//               thumbColor: WidgetStateProperty.all(Colors.white),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
