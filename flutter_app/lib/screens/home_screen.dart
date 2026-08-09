@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 UiHelpers.showBanner(context, 'Account Number copied to clipboard', isError: false);
                               } else {
                                 setState(() => _isLoading = true);
-                                final res = await ApiService.get('/wallet/virtual-account', requiresAuth: true);
+                                final res = await ApiService.getVirtualAccount();
                                 setState(() => _isLoading = false);
                                 if (res['success'] == true) {
                                   _loadData();
