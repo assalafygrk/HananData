@@ -43,13 +43,13 @@ export function AdminLogin() {
     }
   };
 
-  const handleVerify2FA = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerify2FA = async (e?: React.FormEvent, code?: string) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError('');
     
     try {
-      const response = await api.post('/admin/auth/verify-2fa', { adminId, code: twoFactorCode });
+      const response = await api.post('/admin/auth/verify-2fa', { adminId, code: code || twoFactorCode });
       if (response.data.success) {
         localStorage.setItem('adminToken', response.data.data.token);
         localStorage.setItem('adminData', JSON.stringify(response.data.data));
@@ -158,6 +158,7 @@ export function AdminLogin() {
                   <OtpInput
                     value={twoFactorCode}
                     onChange={setTwoFactorCode}
+                    onComplete={(val) => handleVerify2FA(undefined, val)}
                   />
                 </div>
               </div>

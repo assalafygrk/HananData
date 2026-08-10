@@ -75,7 +75,7 @@ export function AdminProfile() {
       adminData.twoFactorEnabled = false;
       localStorage.setItem('adminData', JSON.stringify(adminData));
     } catch (err: any) {
-      toast.error('Failed to disable 2FA');
+      toast.error(err.response?.data?.message || 'Failed to disable 2FA');
     }
   };
 

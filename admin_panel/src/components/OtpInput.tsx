@@ -1,13 +1,21 @@
-import React, { useRef, KeyboardEvent, ClipboardEvent } from 'react';
+import React, { useRef, KeyboardEvent, ClipboardEvent, useEffect } from 'react';
 
 interface OtpInputProps {
   length?: number;
   value: string;
   onChange: (value: string) => void;
+  onComplete?: (value: string) => void;
+  autoFocus?: boolean;
 }
 
-const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange }) => {
+const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange, onComplete, autoFocus = true }) => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (autoFocus) {
+      inputsRef.current[0]?.focus();
+    }
+  }, [autoFocus]);
 
   const focusInput = (index: number) => {
     if (index >= 0 && index < length) {
@@ -45,7 +53,11 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange }) => {
     if (char) {
       const newValue = value.split('');
       newValue[index] = char;
-      onChange(newValue.join(''));
+      const newValStr = newValue.join('');
+      onChange(newValStr);
+      if (newValStr.length === length && onComplete) {
+        onComplete(newValStr);
+      }
       focusInput(index + 1);
     }
   };
@@ -58,6 +70,10 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange }) => {
       const newValue = pastedText.padEnd(length, '').slice(0, length);
       onChange(newValue);
       
+      if (newValue.length === length && onComplete) {
+        onComplete(newValue);
+      }
+
       const nextIndex = Math.min(pastedText.length, length - 1);
       focusInput(nextIndex);
     }

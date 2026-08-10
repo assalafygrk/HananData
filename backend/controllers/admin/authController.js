@@ -23,7 +23,7 @@ exports.login = async (req, res, next) => {
         source: 'admin_panel',
         details: `Admin ${email} logged in successfully`
       });
-      return sendResponse(res, 200, true, { _id: admin._id, name: admin.name, email: admin.email, role: admin.role, token });
+      return sendResponse(res, 200, true, { _id: admin._id, name: admin.name, email: admin.email, role: admin.role, twoFactorEnabled: admin.twoFactorEnabled, token });
     }
     
     await AuditLog.create({
@@ -68,7 +68,7 @@ exports.verify2FA = async (req, res, next) => {
         source: 'admin_panel',
         details: `Admin ${admin.email} logged in successfully with 2FA`
       });
-      return sendResponse(res, 200, true, { _id: admin._id, name: admin.name, email: admin.email, role: admin.role, token });
+      return sendResponse(res, 200, true, { _id: admin._id, name: admin.name, email: admin.email, role: admin.role, twoFactorEnabled: admin.twoFactorEnabled, token });
     } else {
       return sendResponse(res, 400, false, 'Invalid 2FA code');
     }
