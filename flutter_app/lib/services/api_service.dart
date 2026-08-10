@@ -7,15 +7,7 @@ import '../main.dart'; // To access navigatorKey
 
 class ApiService {
   static String get baseUrl {
-    if (kIsWeb) {
-      final host = Uri.base.host;
-      if (host.isNotEmpty && host != 'localhost') {
-        return 'http://$host:5000/api';
-      }
-      return 'http://127.0.0.1:5000/api';
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) return 'http://192.168.0.103:5000/api';
-    return 'http://127.0.0.1:5000/api';
+    return 'https://hip-pots-report.loca.lt/api';
   }
 
   static Future<Map<String, String>> _getHeaders() async {
