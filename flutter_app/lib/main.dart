@@ -33,6 +33,7 @@ import 'screens/forget_pin_screen.dart';
 import 'screens/set_pin_screen.dart';
 import 'screens/restricted_screen.dart';
 import 'services/notification_service.dart';
+import 'services/api_service.dart';
 import 'screens/app_lock_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -40,6 +41,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+  await ApiService.init();
   // Portrait only — Android-first phone layout
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

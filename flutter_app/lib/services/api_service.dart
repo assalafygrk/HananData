@@ -4,10 +4,39 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart'; // To access navigatorKey
-
 class ApiService {
+  static String? _customBaseUrl;
+
+  static Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _customBaseUrl = prefs.getString('customApiUrl');
+  }
+
+  static Future<void> setCustomBaseUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (url.isEmpty) {
+      await prefs.remove('customApiUrl');
+      _customBaseUrl = null;
+    } else {
+      final formattedUrl = url.startsWith('http') ? url : 'http://$url:5000/api';
+      await prefs.setString('customApiUrl', formattedUrl);
+      _customBaseUrl = formattedUrl;
+    }
+  }
+
   static String get baseUrl {
-    return 'https://hip-pots-report.loca.lt/api';
+    if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
+      return _customBaseUrl!;
+    }
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host.isNotEmpty && host != 'localhost') {
+        return 'http://$host:5000/api';
+      }
+      return 'http://127.0.0.1:5000/api';
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) return 'http://192.168.0.105:5000/api';
+    return 'http://127.0.0.1:5000/api';
   }
 
   static Future<Map<String, String>> _getHeaders() async {
