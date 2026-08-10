@@ -15,7 +15,7 @@ class NotificationService {
     );
 
     await _flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
+      initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle notification tap
         debugPrint('Notification tapped: ${response.payload}');
@@ -49,10 +49,10 @@ class NotificationService {
     );
 
     await _flutterLocalNotificationsPlugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: platformChannelSpecifics,
+      id,
+      title,
+      body,
+      platformChannelSpecifics,
       payload: payload,
     );
   }
