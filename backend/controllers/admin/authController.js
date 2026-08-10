@@ -77,7 +77,7 @@ exports.verify2FA = async (req, res, next) => {
 
 exports.setup2FA = async (req, res, next) => {
   try {
-    const admin = await Admin.findById(req.user._id);
+    const admin = await Admin.findById(req.admin._id);
     const secret = speakeasy.generateSecret({ name: `HananData Admin (${admin.email})` });
     
     // Temporarily save secret until verified
@@ -94,7 +94,7 @@ exports.setup2FA = async (req, res, next) => {
 exports.enable2FA = async (req, res, next) => {
   try {
     const { code } = req.body;
-    const admin = await Admin.findById(req.user._id);
+    const admin = await Admin.findById(req.admin._id);
 
     const verified = speakeasy.totp.verify({
       secret: admin.twoFactorSecret,
@@ -115,7 +115,7 @@ exports.enable2FA = async (req, res, next) => {
 
 exports.disable2FA = async (req, res, next) => {
   try {
-    const admin = await Admin.findById(req.user._id);
+    const admin = await Admin.findById(req.admin._id);
     admin.twoFactorEnabled = false;
     admin.twoFactorSecret = undefined;
     await admin.save();
@@ -126,7 +126,7 @@ exports.disable2FA = async (req, res, next) => {
 exports.changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const admin = await Admin.findById(req.user._id);
+    const admin = await Admin.findById(req.admin._id);
 
     const isMatch = await bcrypt.compare(currentPassword, admin.passwordHash);
     if (!isMatch) return sendResponse(res, 401, false, 'Incorrect current password');
