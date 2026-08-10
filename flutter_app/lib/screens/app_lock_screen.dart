@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:google_fonts/google_fonts.dart';
 import '../widgets/shared_widgets.dart';
 
 class AppLockScreen extends StatefulWidget {
@@ -25,15 +25,16 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
   Future<void> _checkSetup() async {
     final prefs = await SharedPreferences.getInstance();
-    _savedPin = prefs.getString('account_pin'); // changed from app_lock_pin to be unified if needed, but we'll check whatever is saved
+    _savedPin = prefs.getString(
+        'account_pin'); // changed from app_lock_pin to be unified if needed, but we'll check whatever is saved
     if (_savedPin == null || _savedPin!.isEmpty) {
       // If no PIN is saved (e.g. from login), just bypass or force login
       // We will fallback to whatever is saved or just bypass if none.
       // But we should have saved it at login/signup.
     }
-    
+
     _biometricsEnabled = prefs.getBool('setting_biometrics') ?? false;
-    
+
     if (_biometricsEnabled) {
       _authenticateBiometrics();
     } else {
@@ -43,14 +44,13 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
   Future<void> _authenticateBiometrics() async {
     try {
-      final canAuth = await auth.canCheckBiometrics || await auth.isDeviceSupported();
+      final canAuth =
+          await auth.canCheckBiometrics || await auth.isDeviceSupported();
       if (!canAuth) return;
       final didAuth = await auth.authenticate(
         localizedReason: 'Unlock HananData',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
+        biometricOnly: true,
+        // stickyAuth: true,
       );
       if (didAuth && mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -76,11 +76,12 @@ class _AppLockScreenState extends State<AppLockScreen> {
   }
 
   void _processPin() async {
-    // In a real app, you might verify this PIN with the backend. 
+    // In a real app, you might verify this PIN with the backend.
     // Here we verify with the locally saved pin if it exists, or just let them in if we haven't synced it yet for simplicity, but let's check local storage.
     final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString('account_pin') ?? prefs.getString('app_lock_pin');
-    
+    final saved =
+        prefs.getString('account_pin') ?? prefs.getString('app_lock_pin');
+
     if (saved != null && saved.isNotEmpty) {
       if (_pin == saved) {
         if (mounted) Navigator.pushReplacementNamed(context, '/home');
@@ -102,18 +103,22 @@ class _AppLockScreenState extends State<AppLockScreen> {
         GestureDetector(
           onTap: _authenticateBiometrics,
           child: Container(
-            width: 100, height: 100,
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
               color: kAccentGreen.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.fingerprint_rounded, color: kAccentGreen, size: 60),
+            child: const Icon(Icons.fingerprint_rounded,
+                color: kAccentGreen, size: 60),
           ),
         ),
         const SizedBox(height: 24),
-        Text('Unlock with Biometrics', style: dFont(size: 20, weight: FontWeight.w700)),
+        Text('Unlock with Biometrics',
+            style: dFont(size: 20, weight: FontWeight.w700)),
         const SizedBox(height: 8),
-        Text('Tap the icon to authenticate', style: dFont(size: 14, color: kMutedText)),
+        Text('Tap the icon to authenticate',
+            style: dFont(size: 14, color: kMutedText)),
         const Spacer(),
         Padding(
           padding: const EdgeInsets.all(24.0),
@@ -123,10 +128,13 @@ class _AppLockScreenState extends State<AppLockScreen> {
               onPressed: () => setState(() => _showPinScreen = true),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 side: const BorderSide(color: kPrimaryNavy),
               ),
-              child: Text('Use Account PIN', style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryNavy)),
+              child: Text('Use Account PIN',
+                  style: dFont(
+                      size: 16, weight: FontWeight.w700, color: kPrimaryNavy)),
             ),
           ),
         ),
@@ -139,7 +147,8 @@ class _AppLockScreenState extends State<AppLockScreen> {
       children: [
         const SizedBox(height: 60),
         Container(
-          width: 80, height: 80,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
             color: kPrimaryNavy.withValues(alpha: 0.1),
             shape: BoxShape.circle,
@@ -147,20 +156,27 @@ class _AppLockScreenState extends State<AppLockScreen> {
           child: const Icon(Icons.lock_rounded, color: kPrimaryNavy, size: 40),
         ),
         const SizedBox(height: 24),
-        Text('Enter your 6-digit PIN', style: dFont(size: 18, weight: FontWeight.w700)),
+        Text('Enter your 6-digit PIN',
+            style: dFont(size: 18, weight: FontWeight.w700)),
         const SizedBox(height: 8),
-        Text('Welcome back to HananData', style: dFont(size: 14, color: kMutedText)),
+        Text('Welcome back to HananData',
+            style: dFont(size: 14, color: kMutedText)),
         const SizedBox(height: 40),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(6, (index) {
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 16, height: 16,
+              width: 16,
+              height: 16,
               decoration: BoxDecoration(
                 color: _pin.length > index ? kPrimaryNavy : Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(color: _pin.length > index ? kPrimaryNavy : Colors.grey.shade400, width: 2),
+                border: Border.all(
+                    color: _pin.length > index
+                        ? kPrimaryNavy
+                        : Colors.grey.shade400,
+                    width: 2),
               ),
             );
           }),
@@ -169,7 +185,9 @@ class _AppLockScreenState extends State<AppLockScreen> {
           const SizedBox(height: 20),
           TextButton(
             onPressed: () => setState(() => _showPinScreen = false),
-            child: Text('Use Biometrics', style: dFont(size: 15, color: kPrimaryBlue, weight: FontWeight.w600)),
+            child: Text('Use Biometrics',
+                style: dFont(
+                    size: 15, color: kPrimaryBlue, weight: FontWeight.w600)),
           )
         ],
         const Spacer(),
@@ -183,7 +201,9 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(3, (j) {
                     final num = i * 3 + j + 1;
-                    return _NumpadBtn(text: num.toString(), onTap: () => _onKey(num.toString()));
+                    return _NumpadBtn(
+                        text: num.toString(),
+                        onTap: () => _onKey(num.toString()));
                   }),
                 ),
               Row(
@@ -218,7 +238,11 @@ class _NumpadBtn extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isEmpty;
   final bool isIcon;
-  const _NumpadBtn({required this.text, this.onTap, this.isEmpty = false, this.isIcon = false});
+  const _NumpadBtn(
+      {required this.text,
+      this.onTap,
+      this.isEmpty = false,
+      this.isIcon = false});
 
   @override
   Widget build(BuildContext context) {
@@ -226,9 +250,11 @@ class _NumpadBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 72, height: 72,
+        width: 72,
+        height: 72,
         alignment: Alignment.center,
-        child: Text(text, style: dFont(size: isIcon ? 28 : 28, weight: FontWeight.w600)),
+        child: Text(text,
+            style: dFont(size: isIcon ? 28 : 28, weight: FontWeight.w600)),
       ),
     );
   }
