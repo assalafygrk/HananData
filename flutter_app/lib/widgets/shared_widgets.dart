@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
+import 'dart:io';
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
 import '../constants/app_data.dart';
 
 const kPrimaryDark  = Color(0xFF0D1B35);
@@ -1400,6 +1403,8 @@ class TxnRowApi extends StatelessWidget {
     final statusColor = status == 'success' ? kAccentGreen : (status == 'failed' ? Colors.red : Colors.orange);
     final statusText = status == 'success' ? 'Transaction Successful' : (status == 'failed' ? 'Transaction Failed' : 'Transaction Pending');
 
+    final screenshotController = ScreenshotController();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1418,87 +1423,97 @@ class TxnRowApi extends StatelessWidget {
               Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4))),
               const SizedBox(height: 24),
               
-              Row(
-                children: [
-                  if (imageUrl != null)
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.grey[100],
-                      backgroundImage: AssetImage(imageUrl),
-                    )
-                  else
-                    CircleAvatar(
-                      backgroundColor: const Color(0xFFFFF7E6),
-                      radius: 20,
-                      child: Text(avatarLetter, style: dFont(color: const Color(0xFFF59E0B), weight: FontWeight.w700)),
-                    ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(planText, style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryDark)),
-                        Text(dateStr, style: dFont(size: 13, color: kMutedText)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF29519E),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Text('Amount Paid', style: dFont(size: 13, color: Colors.white70)),
-                    const SizedBox(height: 8),
-                    Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 32, weight: FontWeight.w800, color: Colors.white)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
+              Screenshot(
+                controller: screenshotController,
+                child: Container(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: statusColor),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(statusIcon, color: statusColor, size: 16),
-                    const SizedBox(width: 8),
-                    Text(statusText, style: dFont(size: 13, weight: FontWeight.w600, color: statusColor)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          if (imageUrl != null)
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.grey[100],
+                              backgroundImage: AssetImage(imageUrl),
+                            )
+                          else
+                            CircleAvatar(
+                              backgroundColor: const Color(0xFFFFF7E6),
+                              radius: 20,
+                              child: Text(avatarLetter, style: dFont(color: const Color(0xFFF59E0B), weight: FontWeight.w700)),
+                            ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(planText, style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryDark)),
+                                Text(dateStr, style: dFont(size: 13, color: kMutedText)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
 
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Column(
-                  children: [
-                    _receiptRow('Type', type.toUpperCase()),
-                    Divider(color: Colors.grey[200], height: 1),
-                    if (network != null) ...[
-                      _receiptRow('Network', network),
-                      Divider(color: Colors.grey[200], height: 1),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF29519E),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('Amount Paid', style: dFont(size: 13, color: Colors.white70)),
+                            const SizedBox(height: 8),
+                            Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 32, weight: FontWeight.w800, color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: statusColor),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(statusIcon, color: statusColor, size: 16),
+                            const SizedBox(width: 8),
+                            Text(statusText, style: dFont(size: 13, weight: FontWeight.w600, color: statusColor)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          children: [
+                            _receiptRow('Type', type.toUpperCase()),
+                            Divider(color: Colors.grey[200], height: 1),
+                            if (network != null) ...[
+                              _receiptRow('Network', network),
+                              Divider(color: Colors.grey[200], height: 1),
+                            ],
+                            _receiptRow('Date', dateStr),
+                            Divider(color: Colors.grey[200], height: 1),
+                            _receiptRow('Reference', ref),
+                          ],
+                        ),
+                      ),
                     ],
-                    _receiptRow('Date', dateStr),
-                    Divider(color: Colors.grey[200], height: 1),
-                    _receiptRow('Reference', ref),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -1507,9 +1522,19 @@ class TxnRowApi extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    final text = 'HananData Receipt\n\nType: ${type.toUpperCase()}\nAmount: ₦$amount\nRef: $ref\nStatus: ${status.toUpperCase()}\nDate: $dateStr\n\nThank you for choosing HananData!';
-                    Share.share(text);
+                  onPressed: () async {
+                    try {
+                      final image = await screenshotController.capture();
+                      if (image != null) {
+                        final dir = await getTemporaryDirectory();
+                        final file = File('${dir.path}/receipt_${ref.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '')}.png');
+                        await file.writeAsBytes(image);
+                        await Share.shareXFiles([XFile(file.path)], text: 'My HananData Receipt');
+                      }
+                    } catch (e) {
+                      final text = 'HananData Receipt\n\nType: ${type.toUpperCase()}\nAmount: ₦$amount\nRef: $ref\nStatus: ${status.toUpperCase()}\nDate: $dateStr\n\nThank you for choosing HananData!';
+                      Share.share(text);
+                    }
                   },
                   icon: const Icon(Icons.share, color: kPrimaryDark),
                   label: Text('Share Receipt', style: dFont(size: 15, weight: FontWeight.w700, color: kPrimaryDark)),

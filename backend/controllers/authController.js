@@ -105,13 +105,11 @@ exports.signupComplete = async (req, res, next) => {
     if (pendingUser.referralCode) {
       const referrer = await User.findOne({ referralCode: pendingUser.referralCode.toUpperCase() });
       if (referrer) {
-        let config = await ReferralConfig.findOne();
-        const bonusAmount = config ? config.bonusAmount : 500;
         await ReferralHistory.create({
           referrerId: referrer._id,
           referredUserId: user._id,
-          bonusPaid: bonusAmount,
-          status: 'pending' // Paid after first funding
+          bonusPaid: 0,
+          status: 'active'
         });
       }
     }

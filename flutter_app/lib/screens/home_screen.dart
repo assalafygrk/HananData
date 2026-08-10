@@ -50,6 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  }
+
   @override
   Widget build(BuildContext context) {
     final quickActions = [
@@ -84,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Good morning,',
+                            Text(_getGreeting(),
                               style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF7BAED4) : kMutedText)),
                             const SizedBox(height: 2),
                             Text('${_userData?['name']?.split(' ')[0] ?? 'User'} 👋',
@@ -281,9 +288,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           // Scrollable body
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: RefreshIndicator(
+              onRefresh: _loadData,
+              color: kPrimaryNavy,
+              backgroundColor: Colors.white,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Quick Actions
                   Padding(
@@ -341,6 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+          ),
           ),
           // Bottom nav
           AppBottomNav(
@@ -407,13 +420,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text('Your Referral Code', style: dFont(size: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
                         const SizedBox(height: 6),
-                        Text('HANAN-A2B3C4',
+                        Text(_userData?['referralCode'] ?? 'LOADING...',
                           style: dFont(size: 24, weight: FontWeight.w900, color: const Color(0xFF7B2FBE),
                             letterSpacing: 2)),
                         const SizedBox(height: 10),
                         GestureDetector(
                           onTap: () {
-                            // Copy code
+                            if (_userData?['referralCode'] != null) {
+                              Clipboard.setData(ClipboardData(text: _userData!['referralCode']));
+                              UiHelpers.showBanner(context, 'Referral code copied to clipboard!', isError: false);
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

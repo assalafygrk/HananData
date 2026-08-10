@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:in_app_review/in_app_review.dart';
+import '../utils/ui_helpers.dart';
 import '../widgets/shared_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -131,9 +133,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(_userData?['name'] ?? 'User',
-                                    style: dFont(
-                                        size: 18, weight: FontWeight.w800)),
+                                Row(
+                                  children: [
+                                    Text(_userData?['name'] ?? 'User',
+                                        style: dFont(
+                                            size: 18, weight: FontWeight.w800)),
+                                    if (_userData?['kycStatus'] == 'verified') ...[
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.verified, color: kPrimaryBlue, size: 16),
+                                    ]
+                                  ],
+                                ),
                                 const SizedBox(height: 2),
                                 Text(_userData?['phone'] ?? '+234 --- --- ----',
                                     style: dFont(size: 13, color: kMutedText)),
@@ -650,7 +660,17 @@ class _RatingSheetState extends State<_RatingSheet> {
                 PrimaryBtn(
                   label: _stars == 0 ? 'Select a rating' : 'Submit Rating',
                   disabled: _stars == 0,
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    if (_stars >= 4) {
+                      final InAppReview inAppReview = InAppReview.instance;
+                      if (await inAppReview.isAvailable()) {
+                        inAppReview.requestReview();
+                      }
+                    } else {
+                      UiHelpers.showBanner(context, 'Thank you for your feedback!', isError: false);
+                    }
+                  },
                 ),
               ],
             ),

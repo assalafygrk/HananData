@@ -128,7 +128,7 @@ class _ComingSoonScreenState extends State<ComingSoonScreen> {
             BackHeader(title: 'Upcoming Features', onBack: () => Navigator.pop(context)),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: BrandLoader())
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
                       child: Column(

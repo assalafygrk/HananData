@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/shared_widgets.dart';
 import '../services/api_service.dart';
+import 'package:local_auth/local_auth.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -112,7 +113,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         label: 'Biometric Login',
                         sub: 'Use fingerprint or face ID',
                         value: _biometrics,
-                        onChanged: (v) { setState(() => _biometrics = v); _saveBool('setting_biometrics', v); },
+                        onChanged: (v) async {
+                          if (v) {
+                            final LocalAuthentication auth = LocalAuthentication();
+                            try {
+                              final didAuth = await auth.authenticate(
+                                localizedReason: 'Authenticate to enable biometrics',
+                                biometricOnly: true,
+                              );
+                              if (didAuth) {
+                                setState(() => _biometrics = true);
+                                _saveBool('setting_biometrics', true);
+                              }
+                            } catch (e) {
+                              debugPrint('Biometrics error: $e');
+                            }
+                          } else {
+                            setState(() => _biometrics = false);
+                            _saveBool('setting_biometrics', false);
+                          }
+                        },
                       ),
                       const _Divider(),
                       _ToggleTile(
