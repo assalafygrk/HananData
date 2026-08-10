@@ -1411,7 +1411,6 @@ class TxnRowApi extends StatelessWidget {
       isScrollControlled: true,
       builder: (ctx) {
         return Container(
-        return Container(
           decoration: const BoxDecoration(
             color: Color(0xFFF3F4F6), // light grey background behind receipt
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -1448,7 +1447,7 @@ class TxnRowApi extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text('${isCredit ? '+' : ''}₦$amount', style: dFont(size: 32, weight: FontWeight.w900, color: kPrimaryDark)),
                       const SizedBox(height: 24),
-                      _DashedDivider(),
+                      // _DashedDivider(),
                       const SizedBox(height: 24),
                       _receiptRow('Transaction Type', type.toUpperCase()),
                       if (network != null && network.isNotEmpty)
