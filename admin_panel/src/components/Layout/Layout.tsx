@@ -54,9 +54,11 @@ export function Layout() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
-    navigate('/login');
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminData');
+      navigate('/login');
+    }
   };
 
   if (!token) {

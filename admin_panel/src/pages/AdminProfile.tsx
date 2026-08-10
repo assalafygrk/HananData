@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Key, Smartphone } from 'lucide-react';
 import toast from 'react-hot-toast';
+import OtpInput from '../components/OtpInput';
 import api from '../api';
 
 export function AdminProfile() {
@@ -160,16 +161,13 @@ export function AdminProfile() {
               <p className="text-sm text-gray-600 mb-4">Scan this QR code with your Authenticator App.</p>
               <img src={qrCode} alt="2FA QR Code" className="mx-auto w-48 h-48 mb-4 border" />
               <div className="max-w-xs mx-auto">
-                <label className="block text-left text-sm font-medium text-gray-700 mb-1">Enter Verification Code</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 123456"
+                <label className="block text-center text-sm font-medium text-gray-700 mb-2">Enter Verification Code</label>
+                <div className="flex flex-col gap-4 items-center">
+                  <OtpInput 
                     value={verifyCode}
-                    onChange={(e) => setVerifyCode(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none text-center tracking-widest"
+                    onChange={setVerifyCode}
                   />
-                  <button onClick={handleEnable2FA} className="px-4 py-2 bg-[#1B3A6B] text-white font-medium rounded-lg hover:bg-[#2A5A9E] transition-colors">
+                  <button onClick={handleEnable2FA} className="w-full px-4 py-2 bg-[#1B3A6B] text-white font-medium rounded-lg hover:bg-[#2A5A9E] transition-colors">
                     Verify
                   </button>
                 </div>

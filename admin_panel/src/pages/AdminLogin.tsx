@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { ShieldAlert, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ShieldAlert } from 'lucide-react';
+import OtpInput from '../components/OtpInput';
 import api from '../api';
 
 export function AdminLogin() {
@@ -153,15 +154,10 @@ export function AdminLogin() {
                 <label className="block text-sm font-medium text-gray-700 text-center mb-2">
                   Enter 2FA Code from Authenticator App
                 </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    required
+                <div className="mt-1 flex justify-center">
+                  <OtpInput
                     value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value)}
-                    className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3A6B] focus:border-[#1B3A6B] sm:text-lg text-center tracking-widest transition-all"
-                    placeholder="123456"
-                    autoComplete="one-time-code"
+                    onChange={setTwoFactorCode}
                   />
                 </div>
               </div>
