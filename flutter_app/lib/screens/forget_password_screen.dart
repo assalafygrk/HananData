@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../widgets/shared_widgets.dart';
 import '../utils/ui_helpers.dart';
@@ -55,6 +56,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
     if (res['success'] == true) {
       if (mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('app_lock_lockout_time');
+        await prefs.remove('app_lock_failed_attempts');
         UiHelpers.showBanner(context, 'Password reset successful. You can now login.');
         Navigator.pop(context);
       }

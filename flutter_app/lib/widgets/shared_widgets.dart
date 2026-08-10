@@ -1411,8 +1411,9 @@ class TxnRowApi extends StatelessWidget {
       isScrollControlled: true,
       builder: (ctx) {
         return Container(
+        return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: Color(0xFFF3F4F6), // light grey background behind receipt
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 24),
@@ -1426,98 +1427,49 @@ class TxnRowApi extends StatelessWidget {
               Screenshot(
                 controller: screenshotController,
                 child: Container(
-                  color: Colors.white,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                    ],
+                  ),
                   child: Column(
                     children: [
+                      Icon(statusIcon, color: statusColor, size: 48),
+                      const SizedBox(height: 12),
+                      Text(statusText, style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryDark)),
+                      const SizedBox(height: 4),
+                      Text(dateStr, style: dFont(size: 13, color: kMutedText)),
+                      const SizedBox(height: 24),
+                      Text('Amount', style: dFont(size: 13, color: kMutedText)),
+                      const SizedBox(height: 4),
+                      Text('${isCredit ? '+' : ''}₦$amount', style: dFont(size: 32, weight: FontWeight.w900, color: kPrimaryDark)),
+                      const SizedBox(height: 24),
+                      _DashedDivider(),
+                      const SizedBox(height: 24),
+                      _receiptRow('Transaction Type', type.toUpperCase()),
+                      if (network != null && network.isNotEmpty)
+                        _receiptRow('Network', network),
+                      _receiptRow('Service Details', planText),
+                      _receiptRow('Reference No.', ref),
+                      _receiptRow('Status', statusText),
+                      const SizedBox(height: 16),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (imageUrl != null)
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Colors.grey[100],
-                              backgroundImage: AssetImage(imageUrl),
-                            )
-                          else
-                            CircleAvatar(
-                              backgroundColor: const Color(0xFFFFF7E6),
-                              radius: 20,
-                              child: Text(avatarLetter, style: dFont(color: const Color(0xFFF59E0B), weight: FontWeight.w700)),
-                            ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(planText, style: dFont(size: 16, weight: FontWeight.w700, color: kPrimaryDark)),
-                                Text(dateStr, style: dFont(size: 13, color: kMutedText)),
-                              ],
-                            ),
-                          ),
+                          const Icon(Icons.flash_on_rounded, color: kPrimaryNavy, size: 16),
+                          const SizedBox(width: 4),
+                          Text('Powered by HananData', style: dFont(size: 12, weight: FontWeight.w600, color: kMutedText)),
                         ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF29519E),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            Text('Amount Paid', style: dFont(size: 13, color: Colors.white70)),
-                            const SizedBox(height: 8),
-                            Text('${isCredit ? '+' : '-'}₦$amount', style: dFont(size: 32, weight: FontWeight.w800, color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: statusColor),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(statusIcon, color: statusColor, size: 16),
-                            const SizedBox(width: 8),
-                            Text(statusText, style: dFont(size: 13, weight: FontWeight.w600, color: statusColor)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Column(
-                          children: [
-                            _receiptRow('Type', type.toUpperCase()),
-                            Divider(color: Colors.grey[200], height: 1),
-                            if (network != null) ...[
-                              _receiptRow('Network', network),
-                              Divider(color: Colors.grey[200], height: 1),
-                            ],
-                            _receiptRow('Date', dateStr),
-                            Divider(color: Colors.grey[200], height: 1),
-                            _receiptRow('Reference', ref),
-                          ],
-                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 height: 52,

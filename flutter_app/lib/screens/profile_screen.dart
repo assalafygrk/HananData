@@ -147,30 +147,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 const SizedBox(height: 2),
                                 Text(_userData?['phone'] ?? '+234 --- --- ----',
                                     style: dFont(size: 13, color: kMutedText)),
-                                const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: _userData?['kycStatus'] ==
-                                                'verified'
-                                            ? kAccentGreen
-                                            : Colors.orange,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                        '${_userData?['kycStatus'] == 'verified' ? 'Verified' : 'Unverified'} · Tier ${_userData?['kycTier'] ?? 0}',
-                                        style: dFont(
-                                            size: 11,
-                                            weight: FontWeight.w600,
-                                            color: _userData?['kycStatus'] ==
-                                                    'verified'
-                                                ? kAccentGreen2
-                                                : Colors.orange)),
+                                    const Icon(Icons.verified, color: kAccentGreen, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('Verified',
+                                      style: dFont(size: 12, weight: FontWeight.w700, color: kAccentGreen)),
                                   ],
                                 ),
                               ],
@@ -241,8 +223,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                       child: GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                            context, '/login', (_) => false),
+                        onTap: () async {
+                          await ApiService.logout();
+                          if (mounted) {
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                          }
+                        },
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -313,8 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(height: 1, color: kCardBorder),
               _infoRow('Email', _userData?['email'] ?? 'N/A'),
               const Divider(height: 1, color: kCardBorder),
-              _infoRow('Tier',
-                  'Tier ${_userData?['kycTier'] ?? 0} · ${_userData?['kycStatus'] == 'verified' ? 'Verified' : 'Unverified'}'),
+              // Tier info removed
               const Divider(height: 1, color: kCardBorder),
               _infoRow('Account No.',
                   _userData?['virtualAccount']?['accountNumber'] ?? 'N/A'),

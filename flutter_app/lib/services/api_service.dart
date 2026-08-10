@@ -110,6 +110,7 @@ class ApiService {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userToken', data['data']['token']);
         await prefs.setString('userData', jsonEncode(data['data']));
+        await prefs.setString('accountPin', password);
       }
       return data;
     } catch (e) {
@@ -134,6 +135,12 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('userToken');
     await prefs.remove('userData');
+    await prefs.remove('accountPin');
+    await prefs.remove('txnPin');
+    await prefs.remove('useBiometrics');
+    await prefs.remove('requirePinForPayment');
+    await prefs.remove('app_lock_failed_attempts');
+    await prefs.remove('app_lock_lockout_time');
   }
 
   // --- User / Wallet ---

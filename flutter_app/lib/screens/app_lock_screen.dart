@@ -76,22 +76,49 @@ class _AppLockScreenState extends State<AppLockScreen> {
   }
 
   void _processPin() async {
-    // In a real app, you might verify this PIN with the backend.
-    // Here we verify with the locally saved pin if it exists, or just let them in if we haven't synced it yet for simplicity, but let's check local storage.
     final prefs = await SharedPreferences.getInstance();
-    final saved =
-        prefs.getString('account_pin') ?? prefs.getString('app_lock_pin');
-
-    if (saved != null && saved.isNotEmpty) {
-      if (_pin == saved) {
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        if (mounted) showTopBanner(context, 'Incorrect PIN', isError: true);
+    
+    // Check lockout
+    final lockoutTimeStr = prefs.getString('app_lock_lockout_time');
+    if (lockoutTimeStr != null) {
+      final lockoutTime = DateTime.parse(lockoutTimeStr);
+      if (DateTime.now().isBefore(lockoutTime)) {
+        final diff = lockoutTime.difference(DateTime.now()).inMinutes;
+        if (mounted) showTopBanner(context, 'Locked out. Try again in $diff minutes.', isError: true);
         setState(() => _pin = '');
+        return;
+      } else {
+        await prefs.remove('app_lock_lockout_time');
+        await prefs.remove('app_lock_failed_attempts');
       }
-    } else {
-      // If no PIN was ever saved locally, let them through (fallback)
+    }
+
+    final saved = prefs.getString('accountPin');
+    
+    // Fallback: If no accountPin saved, don't let them in! Force them to login screen so it gets saved next time.
+    if (saved == null || saved.isEmpty) {
+      await ApiService.logout();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+      return;
+    }
+
+    if (_pin == saved) {
+      await prefs.remove('app_lock_failed_attempts');
       if (mounted) Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      int attempts = prefs.getInt('app_lock_failed_attempts') ?? 0;
+      attempts++;
+      if (attempts >= 5) {
+        final lockoutTime = DateTime.now().add(const Duration(minutes: 3));
+        await prefs.setString('app_lock_lockout_time', lockoutTime.toIso8601String());
+        if (mounted) showTopBanner(context, 'Too many attempts. Locked out for 3 minutes.', isError: true);
+      } else {
+        await prefs.setInt('app_lock_failed_attempts', attempts);
+        if (mounted) showTopBanner(context, 'Incorrect PIN. ${5 - attempts} attempts left.', isError: true);
+      }
+      setState(() => _pin = '');
     }
   }
 
@@ -146,41 +173,18 @@ class _AppLockScreenState extends State<AppLockScreen> {
     return Column(
       children: [
         const SizedBox(height: 60),
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: kPrimaryNavy.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.lock_rounded, color: kPrimaryNavy, size: 40),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text('Enter your PIN',
+              style: dFont(size: 22, weight: FontWeight.w800, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : kPrimaryDark)),
+            const SizedBox(height: 8),
+            Text('Welcome back to HananData',
+              style: dFont(size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : kMutedText)),
+          ],
         ),
-        const SizedBox(height: 24),
-        Text('Enter your 6-digit PIN',
-            style: dFont(size: 18, weight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        Text('Welcome back to HananData',
-            style: dFont(size: 14, color: kMutedText)),
         const SizedBox(height: 40),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (index) {
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: _pin.length > index ? kPrimaryNavy : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                    color: _pin.length > index
-                        ? kPrimaryNavy
-                        : Colors.grey.shade400,
-                    width: 2),
-              ),
-            );
-          }),
-        ),
+        PINDots(value: _pin),
         if (_biometricsEnabled) ...[
           const SizedBox(height: 20),
           TextButton(
@@ -191,31 +195,14 @@ class _AppLockScreenState extends State<AppLockScreen> {
           )
         ],
         const Spacer(),
-        // Numpad
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-          child: Column(
-            children: [
-              for (var i = 0; i < 3; i++)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(3, (j) {
-                    final num = i * 3 + j + 1;
-                    return _NumpadBtn(
-                        text: num.toString(),
-                        onTap: () => _onKey(num.toString()));
-                  }),
-                ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const _NumpadBtn(text: '', onTap: null, isEmpty: true),
-                  _NumpadBtn(text: '0', onTap: () => _onKey('0')),
-                  _NumpadBtn(text: '⌫', onTap: _onDelete, isIcon: true),
-                ],
-              ),
-            ],
-          ),
+        NumPad(
+          value: _pin,
+          onChanged: (v) {
+            setState(() => _pin = v);
+            if (v.length == 6) {
+              Future.delayed(const Duration(milliseconds: 100), _processPin);
+            }
+          },
         ),
         const SizedBox(height: 20),
       ],
@@ -227,35 +214,12 @@ class _AppLockScreenState extends State<AppLockScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: _showPinScreen ? _buildPinScreen() : _buildBiometricScreen(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _showPinScreen ? _buildPinScreen() : _buildBiometricScreen(),
+        ),
       ),
     );
   }
 }
 
-class _NumpadBtn extends StatelessWidget {
-  final String text;
-  final VoidCallback? onTap;
-  final bool isEmpty;
-  final bool isIcon;
-  const _NumpadBtn(
-      {required this.text,
-      this.onTap,
-      this.isEmpty = false,
-      this.isIcon = false});
-
-  @override
-  Widget build(BuildContext context) {
-    if (isEmpty) return const SizedBox(width: 72, height: 72);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 72,
-        height: 72,
-        alignment: Alignment.center,
-        child: Text(text,
-            style: dFont(size: isIcon ? 28 : 28, weight: FontWeight.w600)),
-      ),
-    );
-  }
-}

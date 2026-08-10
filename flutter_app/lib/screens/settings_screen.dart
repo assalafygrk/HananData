@@ -147,9 +147,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _TapTile(
                         icon: Icons.lock_reset_rounded,
                         iconColor: kErrorRed,
-                        label: 'Set Transaction PIN',
+                        label: 'Change Transaction PIN',
                         sub: 'Update your 4-digit PIN',
-                        onTap: () => _showChangePIN(context),
+                        onTap: () => _showChangeTxnPIN(context),
+                        showArrow: true,
+                      ),
+                      const _Divider(),
+                      _TapTile(
+                        icon: Icons.security_rounded,
+                        iconColor: kPrimaryNavy,
+                        label: 'Change Account PIN',
+                        sub: 'Update your 6-digit App PIN',
+                        onTap: () => _showChangeAccountPIN(context),
                         showArrow: true,
                       ),
                     ]),
@@ -236,7 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showChangePIN(BuildContext context) {
+  void _showChangeTxnPIN(BuildContext context) {
     final oldPinController = TextEditingController();
     final newPinController = TextEditingController();
     bool isLoading = false;
@@ -266,7 +275,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Row(children: [
                           const Text('🔐', style: TextStyle(fontSize: 24)),
                           const SizedBox(width: 10),
-                          Text('Set / Change PIN', style: dFont(size: 20, weight: FontWeight.w800)),
+                          Text('Change Transaction PIN', style: dFont(size: 20, weight: FontWeight.w800)),
                         ]),
                         const SizedBox(height: 12),
                         Text('Enter your current PIN (if already set) and your new 4-digit PIN.', style: dFont(size: 13, color: kMutedText)),
@@ -348,6 +357,132 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Failed to update PIN')));
                             }
+                          }
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  void _showChangeAccountPIN(BuildContext context) {
+    final oldPinController = TextEditingController();
+    final newPinController = TextEditingController();
+    bool isLoading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Container(
+            margin: const EdgeInsets.only(top: 60),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 4, decoration: BoxDecoration(color: kCardBorder, borderRadius: BorderRadius.circular(2))),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          const Text('🔐', style: TextStyle(fontSize: 24)),
+                          const SizedBox(width: 10),
+                          Text('Change Account PIN', style: dFont(size: 20, weight: FontWeight.w800)),
+                        ]),
+                        const SizedBox(height: 12),
+                        Text('Enter your current 6-digit PIN and your new 6-digit PIN.', style: dFont(size: 13, color: kMutedText)),
+                        const SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Current PIN', style: dFont(size: 12, weight: FontWeight.w600, color: kMutedText)),
+                            const SizedBox(height: 6),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: kCardBorder, width: 2),
+                              ),
+                              child: TextField(
+                                controller: oldPinController,
+                                obscureText: true,
+                                maxLength: 6,
+                                keyboardType: TextInputType.number,
+                                style: dFont(size: 20, letterSpacing: 4),
+                                decoration: InputDecoration(
+                                  hintText: '••••••',
+                                  hintStyle: dFont(size: 20, color: kCardBorder, letterSpacing: 4),
+                                  border: InputBorder.none,
+                                  counterText: '',
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('New 6-Digit PIN', style: dFont(size: 12, weight: FontWeight.w600, color: kMutedText)),
+                            const SizedBox(height: 6),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: kCardBorder, width: 2),
+                              ),
+                              child: TextField(
+                                controller: newPinController,
+                                obscureText: true,
+                                maxLength: 6,
+                                keyboardType: TextInputType.number,
+                                style: dFont(size: 20, letterSpacing: 4),
+                                decoration: InputDecoration(
+                                  hintText: '••••••',
+                                  hintStyle: dFont(size: 20, color: kCardBorder, letterSpacing: 4),
+                                  border: InputBorder.none,
+                                  counterText: '',
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        PrimaryBtn(
+                          label: isLoading ? 'Saving...' : 'Save PIN',
+                          onPressed: () async {
+                            if (newPinController.text.length != 6) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New PIN must be exactly 6 digits')));
+                              return;
+                            }
+                            setModalState(() => isLoading = true);
+                            final prefs = await SharedPreferences.getInstance();
+                            final savedPin = prefs.getString('accountPin');
+                            if (savedPin != null && savedPin.isNotEmpty && savedPin != oldPinController.text) {
+                              setModalState(() => isLoading = false);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Current PIN is incorrect')));
+                              return;
+                            }
+                            await prefs.setString('accountPin', newPinController.text);
+                            setModalState(() => isLoading = false);
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account PIN updated successfully', style: TextStyle(color: Colors.white)), backgroundColor: kAccentGreen));
                           }
                         ),
                       ],

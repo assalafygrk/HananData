@@ -19,6 +19,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
   String _pin = '';
   bool _isLoading = false;
   Map<String, dynamic>? _userData;
+  bool _requirePin = true;
 
   @override
   void initState() {
@@ -28,6 +29,9 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
 
   Future<void> _loadBalance() async {
     final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _requirePin = prefs.getBool('setting_txnPin') ?? true;
+    });
     final userStr = prefs.getString('userData');
     if (userStr != null && mounted) {
       try {
@@ -385,36 +389,37 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
                     ),
                     const SizedBox(height: 20),
                     // PIN entry
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: kCardBorder),
+                    if (_requirePin)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: kCardBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SectionLabel('Transaction PIN'),
+                            const SizedBox(height: 4),
+                            PINDots(value: _pin, max: 4),
+                            const SizedBox(height: 16),
+                            NumPad(
+                              value: _pin,
+                              max: 4,
+                              onChanged: (v) {
+                                setState(() => _pin = v);
+                                if (v.length == 4) {
+                                  Future.delayed(
+                                      const Duration(milliseconds: 120), () {
+                                    if (mounted) _confirm(txn);
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SectionLabel('Transaction PIN'),
-                          const SizedBox(height: 4),
-                          PINDots(value: _pin, max: 4),
-                          const SizedBox(height: 16),
-                          NumPad(
-                            value: _pin,
-                            max: 4,
-                            onChanged: (v) {
-                              setState(() => _pin = v);
-                              if (v.length == 4) {
-                                Future.delayed(
-                                    const Duration(milliseconds: 120), () {
-                                  if (mounted) _confirm(txn);
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -425,7 +430,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
                   ? const Center(child: BrandLoader())
                   : PrimaryBtn(
                       label: 'Confirm & Pay',
-                      disabled: _pin.length < 4,
+                      disabled: _requirePin ? _pin.length < 4 : false,
                       onPressed: () => _confirm(txn),
                     ),
             ),
