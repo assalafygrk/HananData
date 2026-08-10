@@ -362,7 +362,6 @@ class _HomeScreenState extends State<HomeScreen> {
               if (id != 'home') Navigator.pushNamed(context, '/$id');
             },
           ),
-          ),
         ],
       ),
       if (_isLoading && _transactions.isEmpty)

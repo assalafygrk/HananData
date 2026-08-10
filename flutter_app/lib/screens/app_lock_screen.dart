@@ -60,21 +60,6 @@ class _AppLockScreenState extends State<AppLockScreen> {
     }
   }
 
-  void _onKey(String val) {
-    if (_pin.length < 6) {
-      setState(() => _pin += val);
-      if (_pin.length == 6) {
-        Future.delayed(const Duration(milliseconds: 200), _processPin);
-      }
-    }
-  }
-
-  void _onDelete() {
-    if (_pin.isNotEmpty) {
-      setState(() => _pin = _pin.substring(0, _pin.length - 1));
-    }
-  }
-
   void _processPin() async {
     final prefs = await SharedPreferences.getInstance();
     
