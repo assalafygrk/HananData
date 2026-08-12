@@ -28,6 +28,9 @@ class ApiService {
     if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
       return _customBaseUrl!;
     }
+    if (kReleaseMode) {
+      return 'https://hanandata.onrender.com/api';
+    }
     if (kIsWeb) {
       final host = Uri.base.host;
       if (host.isNotEmpty && host != 'localhost') {

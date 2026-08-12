@@ -27,7 +27,8 @@ export function SystemLogs() {
     };
     fetchLogs();
 
-    const socket = io(`http://${window.location.hostname}:5000`);
+    const socketUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : `http://${window.location.hostname}:5000`;
+    const socket = io(socketUrl);
     socket.on('new-log', (newLog) => {
       setLogs((prevLogs) => [newLog, ...prevLogs]);
     });
