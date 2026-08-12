@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Gift, Save, CheckCircle2 } from 'lucide-react';
+import { Users, Gift, CheckCircle2 } from 'lucide-react';
 import api from '../api';
 
 export function ReferralManagement() {
