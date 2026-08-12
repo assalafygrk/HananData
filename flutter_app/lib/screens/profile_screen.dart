@@ -224,11 +224,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                       child: GestureDetector(
-                        onTap: () async {
-                          await ApiService.logout();
-                          if (mounted) {
-                            Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
-                          }
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext ctx) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                title: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(10)),
+                                      child: const Icon(Icons.logout_rounded, color: kErrorRed),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text('Confirm Logout', style: dFont(size: 18, weight: FontWeight.w700)),
+                                  ],
+                                ),
+                                content: Text('Are you sure you want to log out of your account?', style: dFont(size: 14, color: kMutedText)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: Text('Cancel', style: dFont(size: 15, weight: FontWeight.w600, color: kMutedText)),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: kErrorRed,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      elevation: 0,
+                                    ),
+                                    onPressed: () async {
+                                      Navigator.pop(ctx);
+                                      await ApiService.logout();
+                                      if (mounted) {
+                                        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                                      }
+                                    },
+                                    child: Text('Log Out', style: dFont(size: 15, weight: FontWeight.w600, color: Colors.white)),
+                                  ),
+                                ],
+                              );
+                            }
+                          );
                         },
                         child: Container(
                           width: double.infinity,

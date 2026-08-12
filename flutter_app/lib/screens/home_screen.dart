@@ -60,14 +60,33 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final quickActions = [
-      const _QuickAction(label: 'Buy Data',      icon: Icons.signal_cellular_alt_rounded, route: '/data'),
-      const _QuickAction(label: 'Buy Airtime',   icon: Icons.phone_android_rounded,       route: '/airtime'),
-      const _QuickAction(label: 'Cable TV',      icon: Icons.tv_rounded,                  route: '/cable'),
-      const _QuickAction(label: 'Electricity',   icon: Icons.bolt_rounded,                route: '/electricity'),
-      const _QuickAction(label: 'Airtime→Cash',  icon: Icons.swap_horiz_rounded,          route: '/airtimecash'),
-      const _QuickAction(label: 'Exam PIN',      icon: Icons.school_rounded,              route: '/exam-pin'),
-      const _QuickAction(label: 'Fund Wallet',   icon: Icons.account_balance_wallet_outlined, route: '/wallet'),
-      const _QuickAction(label: 'Coming Soon',   icon: Icons.auto_awesome_rounded,        route: '/coming-soon'),
+      _QuickAction(label: 'Buy Data',      icon: Icons.signal_cellular_alt_rounded, onTap: () => Navigator.pushNamed(context, '/data')),
+      _QuickAction(label: 'Buy Airtime',   icon: Icons.phone_android_rounded,       onTap: () => Navigator.pushNamed(context, '/airtime')),
+      _QuickAction(label: 'Cable TV',      icon: Icons.tv_rounded,                  onTap: () => Navigator.pushNamed(context, '/cable')),
+      _QuickAction(label: 'Electricity',   icon: Icons.bolt_rounded,                onTap: () => Navigator.pushNamed(context, '/electricity')),
+      _QuickAction(label: 'Airtime→Cash',  icon: Icons.swap_horiz_rounded,          onTap: () {
+        final settings = _userData?['settings'];
+        if (settings != null && settings['airtimeToCashEnabled'] == false) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Temporarily Unavailable'),
+              content: const Text('Airtime-to-Cash service is currently unavailable. Please check back later.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          Navigator.pushNamed(context, '/airtimecash');
+        }
+      }),
+      _QuickAction(label: 'Exam PIN',      icon: Icons.school_rounded,              onTap: () => Navigator.pushNamed(context, '/exam-pin')),
+      _QuickAction(label: 'Fund Wallet',   icon: Icons.account_balance_wallet_outlined, onTap: () => Navigator.pushNamed(context, '/wallet')),
+      _QuickAction(label: 'Coming Soon',   icon: Icons.auto_awesome_rounded,        onTap: () => Navigator.pushNamed(context, '/coming-soon')),
     ];
 
     return Scaffold(
@@ -378,8 +397,8 @@ class _HomeScreenState extends State<HomeScreen> {
 class _QuickAction {
   final String label;
   final IconData icon;
-  final String route;
-  const _QuickAction({required this.label, required this.icon, required this.route});
+  final VoidCallback onTap;
+  const _QuickAction({required this.label, required this.icon, required this.onTap});
 }
 
 class _QuickActionTile extends StatelessWidget {
@@ -389,7 +408,7 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, qa.route),
+      onTap: qa.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,

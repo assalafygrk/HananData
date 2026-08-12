@@ -52,6 +52,43 @@ exports.updateProfile = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    
+    if (!newPassword || !/^\d{6}$/.test(newPassword.toString())) {
+      return sendResponse(res, 400, false, 'New password must be exactly 6 digits.');
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!oldPassword) {
+      return sendResponse(res, 400, false, 'Current password is required.');
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword.toString(), user.passwordHash);
+    if (!isMatch) {
+      return sendResponse(res, 401, false, 'Current password/PIN is incorrect.');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword.toString(), salt);
+    await user.save();
+
+    await AuditLog.create({
+      actorId: user._id,
+      actorType: 'user',
+      actorModel: 'User',
+      action: 'CHANGE_PASSWORD',
+      level: 'info',
+      source: 'mobile_app',
+      details: 'User changed their 6-digit password/PIN'
+    });
+
+    return sendResponse(res, 200, true, { message: 'Password changed successfully.' });
+  } catch (error) { next(error); }
+};
+
 exports.getWalletBalance = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);

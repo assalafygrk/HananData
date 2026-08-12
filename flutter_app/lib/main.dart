@@ -35,6 +35,7 @@ import 'screens/restricted_screen.dart';
 import 'services/notification_service.dart';
 import 'services/api_service.dart';
 import 'screens/app_lock_screen.dart';
+import 'widgets/offline_wrapper.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -59,8 +60,9 @@ class HananDataApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HananData',
+    return OfflineWrapper(
+      child: MaterialApp(
+        title: 'HananData',
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.light,
@@ -122,7 +124,8 @@ class HananDataApp extends StatelessWidget {
               transitionDuration: const Duration(milliseconds: 280),
             );
           },
-        );
+        ),
+    );
   }
 }
 

@@ -49,11 +49,12 @@ exports.verify2FA = async (req, res, next) => {
     const admin = await Admin.findById(adminId);
     if (!admin) return sendResponse(res, 404, false, 'Admin not found');
 
+    const cleanCode = String(code).trim().replace(/\s/g, '');
     const verified = speakeasy.totp.verify({
       secret: admin.twoFactorSecret,
       encoding: 'base32',
-      token: code,
-      window: 1 // Allow slight time drift
+      token: cleanCode,
+      window: 2 // Allow slight time drift
     });
 
     if (verified) {
@@ -96,11 +97,12 @@ exports.enable2FA = async (req, res, next) => {
     const { code } = req.body;
     const admin = await Admin.findById(req.admin._id);
 
+    const cleanCode = String(code).trim().replace(/\s/g, '');
     const verified = speakeasy.totp.verify({
       secret: admin.twoFactorSecret,
       encoding: 'base32',
-      token: code,
-      window: 1
+      token: cleanCode,
+      window: 2
     });
 
     if (verified) {

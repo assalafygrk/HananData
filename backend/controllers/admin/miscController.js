@@ -310,7 +310,18 @@ exports.syncPricing = async (req, res, next) => {
 exports.getReferrals = async (req, res, next) => {
   try {
     const ReferralHistory = require('../../models/ReferralHistory');
-    const referrals = await ReferralHistory.find().populate('referrer referredUser', 'name email').sort({ createdAt: -1 }).limit(100);
+    const histories = await ReferralHistory.find()
+      .populate('referrerId referredUserId', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(100);
+      
+    const referrals = histories.map(h => {
+      const doc = h.toObject();
+      doc.referrer = doc.referrerId;
+      doc.referredUser = doc.referredUserId;
+      return doc;
+    });
+    
     return sendResponse(res, 200, true, referrals);
   } catch (error) { next(error); }
 };

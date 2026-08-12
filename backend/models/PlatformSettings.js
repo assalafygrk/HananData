@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const platformSettingsSchema = new mongoose.Schema({
   maintenanceMode: { type: Boolean, default: false },
   disableRegistration: { type: Boolean, default: false },
+  airtimeToCashEnabled: { type: Boolean, default: true },
   minFunding: { type: Number, default: 100 },
   tier1Limit: { type: Number, default: 10000 },
   tier2Limit: { type: Number, default: 50000 },

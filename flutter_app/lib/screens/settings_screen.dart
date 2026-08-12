@@ -355,7 +355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Navigator.pop(ctx);
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PIN updated successfully', style: TextStyle(color: Colors.white)), backgroundColor: kAccentGreen));
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Failed to update PIN')));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Failed to update PIN', style: const TextStyle(color: Colors.white)), backgroundColor: kErrorRed));
                             }
                           }
                         ),
@@ -471,18 +471,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New PIN must be exactly 6 digits')));
                               return;
                             }
-                            setModalState(() => isLoading = true);
-                            final prefs = await SharedPreferences.getInstance();
-                            final savedPin = prefs.getString('accountPin');
-                            if (savedPin != null && savedPin.isNotEmpty && savedPin != oldPinController.text) {
-                              setModalState(() => isLoading = false);
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Current PIN is incorrect')));
+                            if (oldPinController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Current PIN is required')));
                               return;
                             }
-                            await prefs.setString('accountPin', newPinController.text);
+                            setModalState(() => isLoading = true);
+                            
+                            final res = await ApiService.post('/profile/change-password', {
+                              'oldPassword': oldPinController.text,
+                              'newPassword': newPinController.text
+                            }, requiresAuth: true);
+                            
                             setModalState(() => isLoading = false);
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account PIN updated successfully', style: TextStyle(color: Colors.white)), backgroundColor: kAccentGreen));
+                            
+                            if (res['success'] == true) {
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setString('accountPin', newPinController.text);
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account PIN updated successfully', style: TextStyle(color: Colors.white)), backgroundColor: kAccentGreen));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Failed to update Account PIN', style: const TextStyle(color: Colors.white)), backgroundColor: kErrorRed));
+                            }
                           }
                         ),
                       ],

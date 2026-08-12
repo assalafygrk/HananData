@@ -1367,38 +1367,6 @@ class TxnRowApi extends StatelessWidget {
       planText = '$network Data'; 
     }
 
-    final avatarLetter = (network != null && network.isNotEmpty) 
-        ? network[0].toUpperCase() 
-        : type.isNotEmpty ? type[0].toUpperCase() : 'T';
-
-    String? imageUrl;
-    if (network != null) {
-      final netLower = network.toLowerCase();
-      if (netLower.contains('mtn')) imageUrl = 'assets/images/providers/MTN.png';
-      else if (netLower.contains('airtel')) imageUrl = 'assets/images/providers/Airtel.png';
-      else if (netLower.contains('glo')) imageUrl = 'assets/images/providers/Glo.jpeg';
-      else if (netLower.contains('9mobile') || netLower.contains('etisalat')) imageUrl = 'assets/images/providers/9mobile.jpeg';
-      else if (netLower.contains('dstv')) imageUrl = 'assets/images/providers/Dstv.jpeg';
-      else if (netLower.contains('gotv')) imageUrl = 'assets/images/providers/Gotv.png';
-      else if (netLower.contains('startime')) imageUrl = 'assets/images/providers/Startime.jpeg';
-      else {
-        final discoStr = network.toUpperCase();
-        const discoMap = {
-          'IKEDC':  'assets/images/providers/IKED.png',
-          'EKEDC':  'assets/images/providers/EKEDC.png',
-          'PHED':   'assets/images/providers/PHED.png',
-          'IBEDC':  'assets/images/providers/IBEDC.jpeg',
-          'BEDC':   'assets/images/providers/BEDC.jpeg',
-          'EEDC':   'assets/images/providers/EEDC.png',
-          'JED':    'assets/images/providers/JED.jpeg',
-          'KAEDCO': 'assets/images/providers/KAEDCO.jpeg',
-          'KEDCO':  'assets/images/providers/KEDCO.jpeg',
-          'YEDC':   'assets/images/providers/YEDC.jpeg',
-        };
-        imageUrl = discoMap[discoStr];
-      }
-    }
-
     final statusIcon = status == 'success' ? Icons.check_circle : (status == 'failed' ? Icons.cancel : Icons.pending);
     final statusColor = status == 'success' ? kAccentGreen : (status == 'failed' ? Colors.red : Colors.orange);
     final statusText = status == 'success' ? 'Transaction Successful' : (status == 'failed' ? 'Transaction Failed' : 'Transaction Pending');

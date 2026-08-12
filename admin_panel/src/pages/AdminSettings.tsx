@@ -7,6 +7,7 @@ import { LogoLoader } from '../components/LogoLoader';
 export function AdminSettings() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [disableRegistration, setDisableRegistration] = useState(false);
+  const [airtimeToCashEnabled, setAirtimeToCashEnabled] = useState(true);
   
   const [minFunding, setMinFunding] = useState('100');
   const [tier1Limit, setTier1Limit] = useState('10000');
@@ -27,6 +28,7 @@ export function AdminSettings() {
           const s = res.data.data;
           setMaintenanceMode(s.maintenanceMode || false);
           setDisableRegistration(s.disableRegistration || false);
+          setAirtimeToCashEnabled(s.airtimeToCashEnabled ?? true);
           setMinFunding(s.minFunding?.toString() || '100');
           setTier1Limit(s.tier1Limit?.toString() || '10000');
           setTier2Limit(s.tier2Limit?.toString() || '50000');
@@ -49,6 +51,7 @@ export function AdminSettings() {
       await api.put('/admin/settings', {
         maintenanceMode,
         disableRegistration,
+        airtimeToCashEnabled,
         minFunding: Number(minFunding),
         tier1Limit: Number(tier1Limit),
         tier2Limit: Number(tier2Limit),
@@ -119,6 +122,22 @@ export function AdminSettings() {
                   onChange={() => setDisableRegistration(!disableRegistration)}
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+              </label>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <div>
+                <h4 className="font-bold text-gray-900">Airtime-to-Cash Service</h4>
+                <p className="text-sm text-gray-600 mt-1">Enable or disable the Airtime-to-Cash service globally</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer"
+                  checked={airtimeToCashEnabled}
+                  onChange={() => setAirtimeToCashEnabled(!airtimeToCashEnabled)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1B3A6B]"></div>
               </label>
             </div>
           </div>

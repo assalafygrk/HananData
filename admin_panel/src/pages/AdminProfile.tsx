@@ -49,9 +49,15 @@ export function AdminProfile() {
     }
   };
 
-  const handleEnable2FA = async () => {
+  const handleEnable2FA = async (e?: React.FormEvent | string, codeOverride?: string) => {
+    // If e is a string (from onComplete), use it. If e is an event, prevent default.
+    const code = typeof e === 'string' ? e : (codeOverride || verifyCode);
+    if (typeof e !== 'string' && e?.preventDefault) {
+      e.preventDefault();
+    }
+    
     try {
-      await api.post('/admin/auth/2fa/enable', { code: verifyCode });
+      await api.post('/admin/auth/2fa/enable', { code });
       toast.success('2FA enabled successfully');
       setTwoFactorEnabled(true);
       setQrCode('');
@@ -166,8 +172,9 @@ export function AdminProfile() {
                   <OtpInput 
                     value={verifyCode}
                     onChange={setVerifyCode}
+                    onComplete={(val) => handleEnable2FA(val)}
                   />
-                  <button onClick={handleEnable2FA} className="w-full px-4 py-2 bg-[#1B3A6B] text-white font-medium rounded-lg hover:bg-[#2A5A9E] transition-colors">
+                  <button onClick={handleEnable2FA as any} className="w-full px-4 py-2 bg-[#1B3A6B] text-white font-medium rounded-lg hover:bg-[#2A5A9E] transition-colors">
                     Verify
                   </button>
                 </div>

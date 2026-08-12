@@ -26,14 +26,14 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange, onComp
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Backspace') {
       e.preventDefault();
-      const newValue = value.split('');
-      if (newValue[index]) {
-        newValue[index] = '';
+      const newValue = value.padEnd(length, ' ').split('');
+      if (newValue[index] && newValue[index] !== ' ') {
+        newValue[index] = ' ';
         onChange(newValue.join(''));
       } else if (index > 0) {
         focusInput(index - 1);
-        const prevValue = value.split('');
-        prevValue[index - 1] = '';
+        const prevValue = value.padEnd(length, ' ').split('');
+        prevValue[index - 1] = ' ';
         onChange(prevValue.join(''));
       }
     } else if (e.key === 'ArrowLeft') {
@@ -47,15 +47,14 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange, onComp
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     let char = e.target.value;
-    // Sanitize: only allow numbers
     char = char.replace(/\D/g, '').slice(-1);
 
     if (char) {
-      const newValue = value.split('');
-      newValue[index] = char;
-      const newValStr = newValue.join('');
+      const paddedValue = value.padEnd(length, ' ').split('');
+      paddedValue[index] = char;
+      const newValStr = paddedValue.join('');
       onChange(newValStr);
-      if (newValStr.length === length && onComplete) {
+      if (newValStr.trim().length === length && onComplete) {
         onComplete(newValStr);
       }
       focusInput(index + 1);
@@ -67,10 +66,10 @@ const OtpInput: React.FC<OtpInputProps> = ({ length = 6, value, onChange, onComp
     let pastedText = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
     
     if (pastedText) {
-      const newValue = pastedText.padEnd(length, '').slice(0, length);
+      const newValue = pastedText.padEnd(length, ' ').slice(0, length);
       onChange(newValue);
       
-      if (newValue.length === length && onComplete) {
+      if (newValue.trim().length === length && onComplete) {
         onComplete(newValue);
       }
 
