@@ -74,45 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showDevMenu() {
-    final _ipCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Developer Settings'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter local backend IP (e.g. 192.168.0.105) or leave blank for default:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _ipCtrl,
-              decoration: const InputDecoration(
-                hintText: '192.168.0.x',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await ApiService.setCustomBaseUrl(_ipCtrl.text.trim());
-              if (mounted) {
-                Navigator.pop(ctx);
-                UiHelpers.showBanner(ctx, 'API URL updated. New requests will use this URL.', isError: false);
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,12 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 32),
                     // Logo mark
-                    GestureDetector(
-                      onLongPress: _showDevMenu,
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        width: 64, height: 64,
-                      ),
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 64, height: 64,
                     ),
                     const SizedBox(height: 28),
                     Row(
