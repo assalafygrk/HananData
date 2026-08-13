@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const Provider = require('../models/Provider');
@@ -56,6 +57,26 @@ exports.getOrCreateVirtualAccount = async (req, res, next) => {
 
 exports.handleWebhook = async (req, res, next) => {
   try {
+    const signature = req.headers['paymentpoint-signature'];
+    
+    // Fetch provider config for the secret key
+    const providerConfig = await Provider.findOne({ type: 'payment-gateway', status: 'active', name: { $regex: /paymentpoint/i } });
+    const secretKey = providerConfig?.secretKeyEncrypted;
+    
+    if (secretKey && signature) {
+      const calculatedSignature = crypto.createHmac('sha256', secretKey.trim())
+                                        .update(JSON.stringify(req.body || {}))
+                                        .digest('hex');
+      
+      if (calculatedSignature !== signature) {
+        console.warn('⚠️ PaymentPoint Webhook Invalid Signature Detected');
+        return res.status(400).json({ error: 'Invalid signature' });
+      }
+    } else {
+       console.warn('⚠️ PaymentPoint Webhook Missing Signature or Secret Key');
+       return res.status(400).json({ error: 'Missing signature or configuration' });
+    }
+
     const payload = req.body || {};
     console.log('💳 PaymentPoint Webhook Payload:', JSON.stringify(payload));
 
