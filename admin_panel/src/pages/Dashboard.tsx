@@ -1,7 +1,8 @@
-import { Users, CreditCard, TrendingUp, AlertTriangle, Wallet, Sparkles, Edit2, Trash2 } from 'lucide-react';
+import { Users, CreditCard, TrendingUp, AlertTriangle, Wallet, Sparkles, Edit2, Trash2, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../api';
 import { LogoLoader } from '../components/LogoLoader';
 
@@ -62,6 +63,19 @@ export function Dashboard() {
     };
     fetchDashboard();
   }, []);
+
+  const handleSync = async () => {
+    try {
+      const res = await api.post('/admin/pricing/sync');
+      if (res.data.success) {
+        toast.success(res.data.message || 'Pricing sync started in background');
+      } else {
+        toast.error('Failed to sync pricing');
+      }
+    } catch (error) {
+      toast.error('An error occurred during sync');
+    }
+  };
   const StatCard = ({ title, value, icon: Icon, trend }: any) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center justify-between">
@@ -86,8 +100,16 @@ export function Dashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-        <div className="text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-          Last updated: Just now
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleSync}
+            className="flex items-center gap-2 bg-white text-[#1B3A6B] border border-[#1B3A6B] px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" /> Sync Prices
+          </button>
+          <div className="text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+            Last updated: Just now
+          </div>
         </div>
       </div>
 

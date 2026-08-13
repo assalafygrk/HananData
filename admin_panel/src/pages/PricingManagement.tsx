@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Edit2, X } from 'lucide-react';
+import { Save, Edit2, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
 import { LogoLoader } from '../components/LogoLoader';
@@ -147,16 +147,37 @@ export function PricingManagement() {
     'exam-pin': 'Exam PIN',
   };
 
+  const handleSync = async () => {
+    try {
+      const res = await api.post('/admin/pricing/sync');
+      if (res.data.success) {
+        toast.success(res.data.message || 'Pricing sync started in background');
+      } else {
+        toast.error('Failed to sync pricing');
+      }
+    } catch (error) {
+      toast.error('An error occurred during sync');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Pricing & Routing</h2>
-        <button
-          onClick={handleAddClick}
-          className="bg-[#1B3A6B] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2A5A9E] transition-colors flex items-center gap-2"
-        >
-          <Edit2 className="w-4 h-4" /> Add Configuration
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleSync}
+            className="flex items-center gap-2 bg-white text-[#1B3A6B] border border-[#1B3A6B] px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" /> Sync Prices
+          </button>
+          <button
+            onClick={handleAddClick}
+            className="bg-[#1B3A6B] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#2A5A9E] transition-colors flex items-center gap-2"
+          >
+            <Edit2 className="w-4 h-4" /> Add Configuration
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
