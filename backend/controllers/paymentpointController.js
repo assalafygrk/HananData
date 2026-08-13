@@ -113,8 +113,8 @@ exports.handleWebhook = async (req, res, next) => {
       return res.status(200).json({ status: true, message: 'User not found for account' });
     }
 
-    // Calculate fee (1% capped at 50 Naira)
-    const fee = Math.min(amount * 0.01, 50);
+    // Calculate fee (1% capped at 100 Naira)
+    const fee = Math.min(amount * 0.01, 100);
     const creditAmount = amount - fee;
 
     // Credit user wallet
