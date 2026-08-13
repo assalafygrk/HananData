@@ -53,6 +53,10 @@ io.on('connection', (socket) => {
   });
 });
 
+// Initialize Cron Jobs
+const { initCronJob } = require('./scripts/priceSync');
+initCronJob();
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT} (listening on 0.0.0.0)`);
 });

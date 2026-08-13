@@ -199,12 +199,8 @@ exports.addProvider = async (req, res, next) => {
     
     // Automatically trigger sync if it's a VTU provider
     if (type === 'vtu') {
-      const { exec } = require('child_process');
-      const path = require('path');
-      const scriptPath = path.join(__dirname, '../../../scripts/syncSubandgainPricing.js');
-      exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-        if (error) console.error(`Error auto-syncing pricing: ${error.message}`);
-      });
+      const { fetchAndSyncPrices } = require('../../../scripts/priceSync');
+      fetchAndSyncPrices().catch(err => console.error(`Error auto-syncing pricing: ${err.message}`));
     }
 
     return sendResponse(res, 201, true, newProvider);
@@ -292,16 +288,10 @@ exports.addRole = async (req, res, next) => {
 
 exports.syncPricing = async (req, res, next) => {
   try {
-    const { exec } = require('child_process');
-    const path = require('path');
-    const scriptPath = path.join(__dirname, '../../../scripts/syncSubandgainPricing.js');
+    const { fetchAndSyncPrices } = require('../../../scripts/priceSync');
     
-    // We execute it asynchronously so it doesn't block
-    exec(`node ${scriptPath}`, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error syncing pricing: ${error.message}`);
-      }
-    });
+    // Execute asynchronously so it doesn't block
+    fetchAndSyncPrices().catch(err => console.error(`Error in manual sync: ${err.message}`));
 
     return sendResponse(res, 200, true, { message: 'Pricing synchronization started in the background.' });
   } catch (error) { next(error); }
