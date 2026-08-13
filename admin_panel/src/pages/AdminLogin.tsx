@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2, ShieldAlert } from 'lucide-react';
 import OtpInput from '../components/OtpInput';
 import api from '../api';
@@ -8,6 +8,12 @@ export function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    if (localStorage.getItem('adminToken')) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

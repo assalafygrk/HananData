@@ -16,6 +16,7 @@ export function AdminSettings() {
   
   const [supportPhone, setSupportPhone] = useState('');
   const [supportEmail, setSupportEmail] = useState('');
+  const [apkDownloadUrl, setApkDownloadUrl] = useState('');
   
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,8 @@ export function AdminSettings() {
           setTier2Limit(s.tier2Limit?.toString() || '50000');
           setTier3Limit(s.tier3Limit?.toString() || '500000');
           setSupportPhone(s.supportPhone || '');
-          setSupportEmail(s.supportEmail || '');        }
+          setSupportEmail(s.supportEmail || '');
+          setApkDownloadUrl(s.apkDownloadUrl || '');        }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
         toast.error('Failed to fetch settings');
@@ -57,7 +59,8 @@ export function AdminSettings() {
         tier2Limit: Number(tier2Limit),
         tier3Limit: Number(tier3Limit),
         supportPhone,
-        supportEmail,      });
+        supportEmail,
+        apkDownloadUrl,      });
       setIsSaved(true);
       toast.success('Settings saved successfully');
       setTimeout(() => setIsSaved(false), 3000);
@@ -223,6 +226,17 @@ export function AdminSettings() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
                 />
               </div>
+            </div>
+            <div className="pt-4 border-t border-gray-100 mt-6">
+              <label className="block text-sm font-bold text-gray-700 mb-1">Android APK Download Link</label>
+              <p className="text-xs text-gray-500 mb-2">Provide a direct download link (e.g., from GitHub Releases, Google Drive, or Dropbox). This will be used by the landing page "Download" buttons.</p>
+              <input 
+                type="url" 
+                value={apkDownloadUrl}
+                onChange={(e) => setApkDownloadUrl(e.target.value)}
+                placeholder="https://github.com/assalafygrk/HananData/releases/latest/download/app-release.apk"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
+              />
             </div>
           </div>
         </div>

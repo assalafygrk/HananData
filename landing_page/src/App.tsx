@@ -1,8 +1,25 @@
 import { Smartphone, Globe, Download, Tv, Lightbulb, Phone, Mail, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function App() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [settings, setSettings] = useState({
+    supportEmail: 'support@hanandata.com',
+    supportPhone: '+234 (0) 800 000 0000',
+    whatsapp: '',
+    apkDownloadUrl: '#'
+  });
+
+  useEffect(() => {
+    fetch('https://hanandata.onrender.com/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setSettings(prev => ({ ...prev, ...data.data }));
+        }
+      })
+      .catch(err => console.error('Failed to fetch settings:', err));
+  }, []);
 
   const toggleFaq = (index: number) => {
     if (openFaq === index) {
@@ -26,9 +43,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#1B3A6B] flex items-center justify-center shadow-inner">
-                <Globe className="w-5 h-5 text-white" />
-              </div>
+              <img src="/favicon.png" alt="HananData Logo" className="w-10 h-10 object-contain drop-shadow-sm" />
               <span className="text-xl font-extrabold text-[#1B3A6B]">HananData</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
@@ -39,7 +54,7 @@ function App() {
               <a href="#faq" className="text-gray-600 hover:text-[#1B3A6B] text-sm font-semibold transition-colors">FAQ</a>
             </div>
             <div className="flex items-center gap-4">
-              <a href="#download" className="text-sm font-bold text-white bg-[#1B3A6B] hover:bg-[#122a50] px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+              <a href={settings.apkDownloadUrl !== '#' ? settings.apkDownloadUrl : '/HananData.apk'} download className="text-sm font-bold text-white bg-[#1B3A6B] hover:bg-[#122a50] px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                 Download App
               </a>
             </div>
@@ -61,7 +76,7 @@ function App() {
             Experience the fastest, most secure, and highly reliable way to purchase Airtime, Cheap Data, Cable TV, and Electricity tokens.
           </p>
           <div id="download" className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="/HananData.apk" download className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-[#1B3A6B] text-white font-bold text-lg hover:bg-[#122a50] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-900/20">
+            <a href={settings.apkDownloadUrl !== '#' ? settings.apkDownloadUrl : '/HananData.apk'} download className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-[#1B3A6B] text-white font-bold text-lg hover:bg-[#122a50] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-900/20">
               <Download className="w-6 h-6" />
               Download APK
             </a>
@@ -222,19 +237,19 @@ function App() {
               <Mail className="w-8 h-8 text-blue-300" />
               <div className="text-left">
                 <div className="text-blue-200 text-sm font-semibold mb-1">Email Us</div>
-                <div className="font-bold text-lg">support@hanandata.com</div>
+                <div className="font-bold text-lg">{settings.supportEmail}</div>
               </div>
             </div>
             <div className="flex items-center gap-4 bg-white/10 px-8 py-6 rounded-2xl backdrop-blur-sm border border-white/20">
               <Phone className="w-8 h-8 text-green-300" />
               <div className="text-left">
                 <div className="text-green-200 text-sm font-semibold mb-1">Call / WhatsApp</div>
-                <div className="font-bold text-lg">+234 (0) 800 000 0000</div>
+                <div className="font-bold text-lg">{settings.supportPhone}</div>
               </div>
             </div>
           </div>
           
-          <a href="/HananData.apk" download className="inline-flex justify-center items-center gap-2 px-10 py-5 rounded-full bg-white text-[#1B3A6B] font-bold text-xl hover:bg-blue-50 transition-all shadow-2xl hover:scale-105 active:scale-95">
+          <a href={settings.apkDownloadUrl !== '#' ? settings.apkDownloadUrl : '/HananData.apk'} download className="inline-flex justify-center items-center gap-2 px-10 py-5 rounded-full bg-white text-[#1B3A6B] font-bold text-xl hover:bg-blue-50 transition-all shadow-2xl hover:scale-105 active:scale-95">
             <Download className="w-6 h-6" />
             Get HananData Now
           </a>
@@ -247,9 +262,7 @@ function App() {
           <div className="grid md:grid-cols-2 gap-8 items-center border-b border-gray-800 pb-12 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-[#1B3A6B] flex items-center justify-center">
-                  <Globe className="w-6 h-6 text-white" />
-                </div>
+                <img src="/favicon.png" alt="HananData Logo" className="w-12 h-12 object-contain drop-shadow-sm" />
                 <span className="text-2xl font-black text-white tracking-tight">HananData</span>
               </div>
               <p className="max-w-sm text-gray-500 font-medium leading-relaxed">

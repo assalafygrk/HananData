@@ -2,7 +2,21 @@ const Transaction = require('../models/Transaction');
 const KYCSubmission = require('../models/KYCSubmission');
 const Broadcast = require('../models/Broadcast');
 const ReferralHistory = require('../models/ReferralHistory');
+const PlatformSettings = require('../models/PlatformSettings');
 const { sendResponse } = require('../utils/helpers');
+
+exports.getPublicSettings = async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.findOne();
+    if (!settings) return sendResponse(res, 200, true, {});
+    return sendResponse(res, 200, true, {
+      supportPhone: settings.supportPhone,
+      supportEmail: settings.supportEmail,
+      whatsapp: settings.whatsapp,
+      apkDownloadUrl: settings.apkDownloadUrl
+    });
+  } catch (error) { next(error); }
+};
 
 exports.getTransactions = async (req, res, next) => {
   try {

@@ -10,6 +10,9 @@ const chatCtrl = require('../controllers/chatController');
 const paymentpointCtrl = require('../controllers/paymentpointController');
 const { securityGuardrail } = require('../middleware/guardrail');
 
+// Public Settings
+router.get('/settings', miscCtrl.getPublicSettings);
+
 // Auth
 router.post('/auth/check', authLimiter, authCtrl.checkUser);
 router.post('/auth/signup/init', authLimiter, authCtrl.signupInit);

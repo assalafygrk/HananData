@@ -14,7 +14,8 @@ const platformSettingsSchema = new mongoose.Schema({
   whatsapp: { type: String, default: '+2349160048633' },
   paymentPointApiKey: { type: String, default: '' },
   paymentPointApiSecret: { type: String, default: '' },
-  paymentPointBusinessId: { type: String, default: '' }
+  paymentPointBusinessId: { type: String, default: '' },
+  apkDownloadUrl: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('PlatformSettings', platformSettingsSchema);
