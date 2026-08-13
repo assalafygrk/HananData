@@ -1,4 +1,4 @@
-import { Smartphone, Shield, Zap, Globe, Download, CheckCircle, CreditCard, Tv, Lightbulb, Phone, Mail, MapPin, ChevronDown } from 'lucide-react';
+import { Smartphone, Globe, Download, Tv, Lightbulb, Phone, Mail, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 function App() {
