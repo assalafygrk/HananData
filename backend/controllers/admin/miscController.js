@@ -199,7 +199,7 @@ exports.addProvider = async (req, res, next) => {
     
     // Automatically trigger sync if it's a VTU provider
     if (type === 'vtu') {
-      const { fetchAndSyncPrices } = require('../../../scripts/priceSync');
+      const { fetchAndSyncPrices } = require('../../scripts/priceSync');
       fetchAndSyncPrices().catch(err => console.error(`Error auto-syncing pricing: ${err.message}`));
     }
 
@@ -288,7 +288,7 @@ exports.addRole = async (req, res, next) => {
 
 exports.syncPricing = async (req, res, next) => {
   try {
-    const { fetchAndSyncPrices } = require('../../../scripts/priceSync');
+    const { fetchAndSyncPrices } = require('../../scripts/priceSync');
     
     // Execute asynchronously so it doesn't block
     fetchAndSyncPrices().catch(err => console.error(`Error in manual sync: ${err.message}`));
