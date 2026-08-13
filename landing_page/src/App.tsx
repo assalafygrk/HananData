@@ -54,9 +54,15 @@ function App() {
               <a href="#faq" className="text-gray-600 hover:text-[#1B3A6B] text-sm font-semibold transition-colors">FAQ</a>
             </div>
             <div className="flex items-center gap-4">
-              <a href={settings.apkDownloadUrl !== '#' ? settings.apkDownloadUrl : '/HananData.apk'} download className="text-sm font-bold text-white bg-[#1B3A6B] hover:bg-[#122a50] px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                Download App
-              </a>
+              {settings.apkDownloadUrl && settings.apkDownloadUrl !== '#' ? (
+                <a href={settings.apkDownloadUrl} className="text-sm font-bold text-white bg-[#1B3A6B] hover:bg-[#122a50] px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                  Download App
+                </a>
+              ) : (
+                <button onClick={() => alert("The HananData APK is currently being uploaded. Please check back in a few minutes!")} className="text-sm font-bold text-white bg-[#1B3A6B] hover:bg-[#122a50] px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                  Download App
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -76,10 +82,17 @@ function App() {
             Experience the fastest, most secure, and highly reliable way to purchase Airtime, Cheap Data, Cable TV, and Electricity tokens.
           </p>
           <div id="download" className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href={settings.apkDownloadUrl !== '#' ? settings.apkDownloadUrl : '/HananData.apk'} download className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-[#1B3A6B] text-white font-bold text-lg hover:bg-[#122a50] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-900/20">
-              <Download className="w-6 h-6" />
-              Download APK
-            </a>
+            {settings.apkDownloadUrl && settings.apkDownloadUrl !== '#' ? (
+              <a href={settings.apkDownloadUrl} className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-[#1B3A6B] text-white font-bold text-lg hover:bg-[#122a50] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-900/20">
+                <Download className="w-6 h-6" />
+                Download APK
+              </a>
+            ) : (
+              <button onClick={() => alert("The HananData APK is currently being uploaded. Please check back in a few minutes!")} className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-[#1B3A6B] text-white font-bold text-lg hover:bg-[#122a50] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-900/20">
+                <Download className="w-6 h-6" />
+                Download APK
+              </button>
+            )}
             <button className="inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full bg-white text-gray-700 font-bold text-lg border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all shadow-sm cursor-not-allowed opacity-70" title="Coming soon to Play Store">
               <Smartphone className="w-6 h-6 text-green-600" />
               Google Play (Soon)
@@ -249,10 +262,17 @@ function App() {
             </div>
           </div>
           
-          <a href={settings.apkDownloadUrl !== '#' ? settings.apkDownloadUrl : '/HananData.apk'} download className="inline-flex justify-center items-center gap-2 px-10 py-5 rounded-full bg-white text-[#1B3A6B] font-bold text-xl hover:bg-blue-50 transition-all shadow-2xl hover:scale-105 active:scale-95">
-            <Download className="w-6 h-6" />
-            Get HananData Now
-          </a>
+          {settings.apkDownloadUrl && settings.apkDownloadUrl !== '#' ? (
+            <a href={settings.apkDownloadUrl} className="inline-flex justify-center items-center gap-2 px-10 py-5 rounded-full bg-white text-[#1B3A6B] font-bold text-xl hover:bg-blue-50 transition-all shadow-2xl hover:scale-105 active:scale-95">
+              <Download className="w-6 h-6" />
+              Get HananData Now
+            </a>
+          ) : (
+            <button onClick={() => alert("The HananData APK is currently being uploaded. Please check back in a few minutes!")} className="inline-flex justify-center items-center gap-2 px-10 py-5 rounded-full bg-white text-[#1B3A6B] font-bold text-xl hover:bg-blue-50 transition-all shadow-2xl hover:scale-105 active:scale-95">
+              <Download className="w-6 h-6" />
+              Get HananData Now
+            </button>
+          )}
         </div>
       </section>
 
