@@ -1,5 +1,4 @@
-import React from 'react';
-import { Smartphone, Shield, Zap, Globe, Download, ChevronRight } from 'lucide-react';
+import { Smartphone, Shield, Zap, Globe, Download } from 'lucide-react';
 
 function App() {
   return (
