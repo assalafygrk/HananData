@@ -113,15 +113,20 @@ exports.handleWebhook = async (req, res, next) => {
       return res.status(200).json({ status: true, message: 'User not found for account' });
     }
 
+    // Calculate fee (1% capped at 50 Naira)
+    const fee = Math.min(amount * 0.01, 50);
+    const creditAmount = amount - fee;
+
     // Credit user wallet
-    user.walletBalance = (user.walletBalance || 0) + amount;
+    user.walletBalance = (user.walletBalance || 0) + creditAmount;
     await user.save();
 
     // Record transaction
     await Transaction.create({
       userId: user._id,
       type: 'wallet-funding',
-      amount,
+      amount: creditAmount,
+      fee: fee,
       status: 'success',
       refId,
       network: 'PaymentPoint Bank Transfer',
@@ -135,13 +140,13 @@ exports.handleWebhook = async (req, res, next) => {
       action: 'WALLET_AUTO_FUNDED',
       level: 'info',
       source: 'paymentpoint_webhook',
-      details: `Wallet auto-funded with ₦${amount} via PaymentPoint`
+      details: `Wallet auto-funded with ₦${creditAmount} (Fee: ₦${fee}) via PaymentPoint`
     });
 
     await Notification.create({
       userId: user._id,
       title: 'Wallet Funded Successfully',
-      message: `Your wallet has been credited with ₦${amount} via Bank Transfer.`,
+      message: `Your wallet has been credited with ₦${creditAmount} (Fee: ₦${fee}) via Bank Transfer.`,
       type: 'transaction',
       relatedId: refId
     });
