@@ -21,6 +21,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _promoNotifs    = true;
   String _language     = 'English';
   String _currency     = 'NGN (₦)';
+  String _appLockTimeout = '3';
+
+  String _timeoutToLabel(String val) {
+    if (val == '0') return 'Immediately';
+    if (val == 'never') return 'Never';
+    if (val == '1') return '1 Minute';
+    return '$val Minutes';
+  }
+
+  String _labelToTimeout(String label) {
+    if (label == 'Immediately') return '0';
+    if (label == 'Never') return 'never';
+    if (label == '1 Minute') return '1';
+    return label.replaceAll(' Minutes', '');
+  }
 
   @override
   void initState() {
@@ -39,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _promoNotifs = prefs.getBool('setting_promoNotifs') ?? true;
       _language    = prefs.getString('setting_language') ?? 'English';
       _currency    = prefs.getString('setting_currency') ?? 'NGN (₦)';
+      _appLockTimeout = prefs.getString('setting_appLockTimeout') ?? '3';
     });
   }
 
@@ -160,6 +176,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         sub: 'Update your 6-digit App PIN',
                         onTap: () => _showChangeAccountPIN(context),
                         showArrow: true,
+                      ),
+                      const _Divider(),
+                      _TapTile(
+                        icon: Icons.timer_outlined,
+                        iconColor: const Color(0xFFF59E0B),
+                        label: 'App Lock Timeout',
+                        sub: _timeoutToLabel(_appLockTimeout),
+                        onTap: () => _pickOption(
+                          title: 'Select Timeout',
+                          options: ['Immediately', '1 Minute', '3 Minutes', '5 Minutes', 'Never'],
+                          current: _timeoutToLabel(_appLockTimeout),
+                          onSelect: (v) { 
+                            final val = _labelToTimeout(v);
+                            setState(() => _appLockTimeout = val); 
+                            _saveString('setting_appLockTimeout', val); 
+                          },
+                        ),
                       ),
                     ]),
 

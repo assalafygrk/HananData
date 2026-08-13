@@ -1,4 +1,4 @@
-import { Users, CreditCard, TrendingUp, AlertTriangle, Wallet } from 'lucide-react';
+import { Users, CreditCard, TrendingUp, AlertTriangle, Wallet, Sparkles, Edit2, Trash2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ totalUsers: 0, revenueToday: 0, walletFloat: 0, poolBalance: 0, pendingAlerts: 0, failedAlerts: 0 });
   const [recentTx, setRecentTx] = useState<any[]>([]);
+  const [upcomingFeatures, setUpcomingFeatures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [chartData, setChartData] = useState<any[]>([]);
@@ -16,12 +17,16 @@ export function Dashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const [statsRes, txRes] = await Promise.all([
+        const [statsRes, txRes, upcomingRes] = await Promise.all([
           api.get('/admin/dashboard/stats'),
-          api.get('/admin/transactions')
+          api.get('/admin/transactions'),
+          api.get('/admin/upcoming-services')
         ]);
         if (statsRes.data.success) {
           setStats(statsRes.data.data);
+        }
+        if (upcomingRes.data.success) {
+          setUpcomingFeatures((upcomingRes.data.data || []).slice(0, 5));
         }
         if (txRes.data.success) {
           const allTx = txRes.data.data || [];
@@ -198,6 +203,46 @@ export function Dashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Upcoming Features Widget */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-bold text-gray-900">Upcoming Features Widget</h3>
+          </div>
+          <button onClick={() => navigate('/upcoming-features')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+            View All (Read/Edit/Delete)
+          </button>
+        </div>
+        <div className="p-0">
+          {upcomingFeatures.length === 0 ? (
+            <div className="p-6 text-center text-gray-400 text-sm">No upcoming features found. Add some from the Upcoming Features page.</div>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {upcomingFeatures.map(feat => (
+                <li key={feat._id} className="p-4 flex justify-between items-center hover:bg-gray-50">
+                  <div>
+                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                      {feat.title}
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{feat.status.replace('_', ' ')}</span>
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">{feat.description}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => navigate('/upcoming-features')} className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Edit Feature">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => navigate('/upcoming-features')} className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Delete Feature">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

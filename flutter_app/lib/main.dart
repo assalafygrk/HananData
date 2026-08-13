@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/login_screen.dart';
@@ -55,14 +56,57 @@ void main() async {
   runApp(const HananDataApp());
 }
 
-class HananDataApp extends StatelessWidget {
+class HananDataApp extends StatefulWidget {
   const HananDataApp({super.key});
 
   @override
+  State<HananDataApp> createState() => _HananDataAppState();
+}
+
+class _HananDataAppState extends State<HananDataApp> with WidgetsBindingObserver {
+  DateTime? _pausedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.paused) {
+      _pausedTime = DateTime.now();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_pausedTime != null) {
+        final prefs = await SharedPreferences.getInstance();
+        final timeoutStr = prefs.getString('setting_appLockTimeout') ?? '3'; // Default 3 mins
+        if (timeoutStr != 'never') {
+          final timeoutMinutes = int.tryParse(timeoutStr) ?? 3;
+          final diff = DateTime.now().difference(_pausedTime!);
+          // If timeoutMinutes is 0, lock immediately
+          if (diff.inMinutes >= timeoutMinutes || timeoutMinutes == 0) {
+            final hasPin = prefs.getString('userPin') != null;
+            if (hasPin) {
+              navigatorKey.currentState?.pushNamed('/app_lock');
+            }
+          }
+        }
+      }
+      _pausedTime = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return OfflineWrapper(
-      child: MaterialApp(
-        title: 'HananData',
+    return MaterialApp(
+      builder: (context, child) => OfflineWrapper(child: child!),
+      title: 'HananData',
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.light,
@@ -124,8 +168,7 @@ class HananDataApp extends StatelessWidget {
               transitionDuration: const Duration(milliseconds: 280),
             );
           },
-        ),
-    );
+        );
   }
 }
 
