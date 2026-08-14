@@ -38,6 +38,12 @@ const sendEmail = async (options) => {
   let otp = otpMatch ? otpMatch[0] : null;
 
   console.log(`📧 Dispatching Email to [${options.email}] | Subject: "${options.subject}"`);
+  if (process.env.BREVO_API_KEY) {
+    const k = process.env.BREVO_API_KEY.trim();
+    console.log(`🔑 BREVO_API_KEY loaded: "${k.substring(0, 12)}..." (length: ${k.length})`);
+  } else {
+    console.warn('⚠️ BREVO_API_KEY is NOT set in environment variables!');
+  }
 
   const htmlContent = `
 <!DOCTYPE html>
