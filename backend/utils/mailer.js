@@ -1,20 +1,30 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-  const transporter = nodemailer.createTransport({
-    service: process.env.SMTP_HOST?.includes('gmail') ? 'gmail' : undefined,
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 465,
-    secure: parseInt(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
-    family: 4, // Force IPv4 to prevent ENETUNREACH on Render/Cloud containers
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
+  const isGmail = !process.env.SMTP_HOST || process.env.SMTP_HOST.includes('gmail');
+  const port = parseInt(process.env.SMTP_PORT) || 587;
+
+  const transporterOptions = isGmail ? {
+    service: 'gmail',
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
     }
-  });
+  } : {
+    host: process.env.SMTP_HOST,
+    port: port,
+    secure: port === 465,
+    family: 4,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  };
+
+  const transporter = nodemailer.createTransport(transporterOptions);
 
   // Automatically extract a 4-6 digit OTP if present in the message
   let otpMatch = options.message ? options.message.match(/\b\d{4,6}\b/) : null;
