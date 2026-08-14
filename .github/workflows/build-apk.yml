@@ -26,8 +26,8 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Install Android SDK 36
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36"
+      - name: Install Android SDK 35
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35"
 
       - name: Install dependencies
         working-directory: ./flutter_app
