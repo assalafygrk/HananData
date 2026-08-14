@@ -42,19 +42,15 @@ exports.signupInit = async (req, res, next) => {
     await SignupOTP.findOneAndUpdate(
       { email },
       { name, email, phone, referralCode, otp: otpHash, createdAt: Date.now() },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     const sendEmail = require('../utils/mailer');
-    try {
-      await sendEmail({
-        email,
-        subject: 'HananData - Email Verification OTP',
-        message: `Welcome to HananData! Your email verification OTP is ${otp}. It expires in 24 hours.`
-      });
-    } catch (err) {
-      console.error('Error sending OTP email:', err.message);
-    }
+    sendEmail({
+      email,
+      subject: 'HananData - Email Verification OTP',
+      message: `Welcome to HananData! Your email verification OTP is ${otp}. It expires in 24 hours.`
+    }).catch(err => console.error('Error sending OTP email:', err.message));
 
     return sendResponse(res, 200, true, { message: 'OTP sent to email. Please verify.' });
   } catch (error) { next(error); }
@@ -224,15 +220,11 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save();
 
     const sendEmail = require('../utils/mailer');
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'HananData - Password Reset OTP',
-        message: `Your OTP to reset your account password is ${otp}. It expires in 10 minutes.`
-      });
-    } catch (err) {
-      console.error('Error sending OTP email:', err.message);
-    }
+    sendEmail({
+      email: user.email,
+      subject: 'HananData - Password Reset OTP',
+      message: `Your OTP to reset your account password is ${otp}. It expires in 10 minutes.`
+    }).catch(err => console.error('Error sending OTP email:', err.message));
 
     return sendResponse(res, 200, true, { message: 'OTP sent successfully to your email.' });
   } catch (error) { next(error); }

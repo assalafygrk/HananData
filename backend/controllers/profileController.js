@@ -171,15 +171,11 @@ exports.forgotPin = async (req, res, next) => {
     await user.save();
 
     const sendEmail = require('../utils/mailer');
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'HananData - PIN Reset OTP',
-        message: `Your OTP to reset your transaction PIN is ${otp}. It expires in 10 minutes.`
-      });
-    } catch (err) {
-      console.error('Error sending OTP email:', err.message);
-    }
+    sendEmail({
+      email: user.email,
+      subject: 'HananData - PIN Reset OTP',
+      message: `Your OTP to reset your transaction PIN is ${otp}. It expires in 10 minutes.`
+    }).catch(err => console.error('Error sending OTP email:', err.message));
     
     return sendResponse(res, 200, true, { message: 'OTP sent successfully to your email.' });
   } catch (error) { next(error); }
