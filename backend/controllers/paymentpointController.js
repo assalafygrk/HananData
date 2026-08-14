@@ -64,8 +64,9 @@ exports.handleWebhook = async (req, res, next) => {
     const secretKey = providerConfig?.secretKeyEncrypted;
     
     if (secretKey && signature) {
+      const payloadString = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body || {});
       const calculatedSignature = crypto.createHmac('sha256', secretKey.trim())
-                                        .update(JSON.stringify(req.body || {}))
+                                        .update(payloadString)
                                         .digest('hex');
       
       if (calculatedSignature !== signature) {
