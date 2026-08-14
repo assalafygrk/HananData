@@ -13,6 +13,7 @@ export function AdminSettings() {
   const [tier1Limit, setTier1Limit] = useState('10000');
   const [tier2Limit, setTier2Limit] = useState('50000');
   const [tier3Limit, setTier3Limit] = useState('500000');
+  const [poolBalance, setPoolBalance] = useState('0');
   
   const [supportPhone, setSupportPhone] = useState('');
   const [supportEmail, setSupportEmail] = useState('');
@@ -34,6 +35,7 @@ export function AdminSettings() {
           setTier1Limit(s.tier1Limit?.toString() || '10000');
           setTier2Limit(s.tier2Limit?.toString() || '50000');
           setTier3Limit(s.tier3Limit?.toString() || '500000');
+          setPoolBalance(s.poolBalance?.toString() || '0');
           setSupportPhone(s.supportPhone || '');
           setSupportEmail(s.supportEmail || '');
           setApkDownloadUrl(s.apkDownloadUrl || '');        }
@@ -58,6 +60,7 @@ export function AdminSettings() {
         tier1Limit: Number(tier1Limit),
         tier2Limit: Number(tier2Limit),
         tier3Limit: Number(tier3Limit),
+        poolBalance: Number(poolBalance),
         supportPhone,
         supportEmail,
         apkDownloadUrl,      });
@@ -159,6 +162,17 @@ export function AdminSettings() {
                 type="number" 
                 value={minFunding}
                 onChange={(e) => setMinFunding(e.target.value)}
+                className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none mb-4"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Admin Reserve Pool (₦)</label>
+              <p className="text-xs text-gray-500 mb-2">Maximum capital pool allocated for manual user credits and operations.</p>
+              <input 
+                type="number" 
+                value={poolBalance}
+                onChange={(e) => setPoolBalance(e.target.value)}
                 className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3A6B] outline-none"
               />
             </div>

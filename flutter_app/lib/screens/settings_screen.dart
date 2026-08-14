@@ -56,6 +56,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _currency    = prefs.getString('setting_currency') ?? 'NGN (₦)';
       _appLockTimeout = prefs.getString('setting_appLockTimeout') ?? '3';
     });
+
+    try {
+      final res = await ApiService.getProfile();
+      if (res['success'] == true && res['data'] != null) {
+        final profile = res['data'];
+        if (profile['appLockTimeout'] != null) {
+          final serverTimeout = profile['appLockTimeout'].toString();
+          await prefs.setString('setting_appLockTimeout', serverTimeout);
+          if (mounted) {
+            setState(() => _appLockTimeout = serverTimeout);
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> _saveBool(String key, bool value) async {
@@ -74,6 +88,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveString(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
+
+    if (key == 'setting_appLockTimeout') {
+      await ApiService.updateProfile({'appLockTimeout': value});
+    }
   }
 
   @override

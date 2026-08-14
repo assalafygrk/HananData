@@ -119,7 +119,7 @@ export function Dashboard() {
         <StatCard title="Transactions Today" value={(recentTx?.length || 0).toString()} icon={CreditCard} />
         <StatCard title="Revenue Today" value={`₦${(stats?.revenueToday || 0).toLocaleString()}`} icon={TrendingUp} />
         <StatCard title="Wallet Float" value={`₦${(stats?.walletFloat || 0).toLocaleString()}`} icon={Wallet} />
-        <StatCard title="Total Pool" value={`₦${(stats?.poolBalance || 0).toLocaleString()}`} icon={Wallet} />
+        <StatCard title="Admin Reserve Pool" value={`₦${(stats?.poolBalance || 0).toLocaleString()}`} icon={Wallet} />
       </div>
 
       {/* Alerts & Chart */}

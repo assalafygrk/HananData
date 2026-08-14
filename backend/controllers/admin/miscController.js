@@ -269,6 +269,22 @@ exports.getLogs = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+exports.clearAllLogs = async (req, res, next) => {
+  try {
+    const AuditLog = require('../../models/AuditLog');
+    await AuditLog.deleteMany({});
+    return sendResponse(res, 200, true, { message: 'All logs cleared successfully from database.' });
+  } catch (error) { next(error); }
+};
+
+exports.deleteLog = async (req, res, next) => {
+  try {
+    const AuditLog = require('../../models/AuditLog');
+    await AuditLog.findByIdAndDelete(req.params.id);
+    return sendResponse(res, 200, true, { message: 'Log deleted successfully.' });
+  } catch (error) { next(error); }
+};
+
 exports.getRoles = async (req, res, next) => {
   try {
     const Admin = require('../../models/Admin');

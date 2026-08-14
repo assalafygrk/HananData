@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
   pushNotifs: { type: Boolean, default: true },
   emailNotifs: { type: Boolean, default: false },
   smsNotifs: { type: Boolean, default: false },
+  appLockEnabled: { type: Boolean, default: false },
+  appLockTimeout: { type: String, default: '3' },
   readBroadcasts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Broadcast' }],
   twoFactorEnabled: { type: Boolean, default: false },
   twoFactorSecret: { type: String },

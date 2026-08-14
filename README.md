@@ -84,7 +84,7 @@ This repository uses **GitHub Actions** to fully automate the Android app compil
 Every time code is pushed to the `main` branch, an action automatically builds a highly-optimized release APK and attaches it to the **Latest Release** page. The landing page dynamically links to this exact file, meaning the download button is always serving your newest app!
 
 ## 🤝 Support
-If you have any questions or need help setting up the environment, please contact the development team at [support@hanandata.com](mailto:support@hanandata.com).
+If you have any questions or need help setting up the environment, please contact the development team at [assalafyithub@gmail.com](mailto:assalafyithub@gmail.com).
 
 ---
 <div align="center">

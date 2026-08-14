@@ -28,7 +28,7 @@ exports.getProfile = async (req, res, next) => {
 
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, email, phone, pushNotifs, emailNotifs, smsNotifs } = req.body;
+    const { name, email, phone, pushNotifs, emailNotifs, smsNotifs, appLockEnabled, appLockTimeout } = req.body;
     const user = await User.findById(req.user._id);
     if (name !== undefined) user.name = name;
     if (email !== undefined) user.email = email;
@@ -36,6 +36,8 @@ exports.updateProfile = async (req, res, next) => {
     if (pushNotifs !== undefined) user.pushNotifs = pushNotifs;
     if (emailNotifs !== undefined) user.emailNotifs = emailNotifs;
     if (smsNotifs !== undefined) user.smsNotifs = smsNotifs;
+    if (appLockEnabled !== undefined) user.appLockEnabled = appLockEnabled;
+    if (appLockTimeout !== undefined) user.appLockTimeout = appLockTimeout;
     await user.save();
 
     await AuditLog.create({

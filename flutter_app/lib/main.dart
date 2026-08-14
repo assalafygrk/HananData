@@ -89,8 +89,8 @@ class _HananDataAppState extends State<HananDataApp> with WidgetsBindingObserver
         if (timeoutStr != 'never') {
           final timeoutMinutes = int.tryParse(timeoutStr) ?? 3;
           final diff = DateTime.now().difference(_pausedTime!);
-          // If timeoutMinutes is 0, lock immediately
-          if (diff.inMinutes >= timeoutMinutes || timeoutMinutes == 0) {
+          final requiredSeconds = timeoutMinutes * 60;
+          if (diff.inSeconds >= requiredSeconds || timeoutMinutes == 0) {
             final hasPin = prefs.getString('userPin') != null;
             if (hasPin) {
               navigatorKey.currentState?.pushNamed('/app_lock');

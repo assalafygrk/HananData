@@ -50,13 +50,23 @@ export function SystemLogs() {
     return matchesSearch && matchesLevel && matchesSource;
   });
 
-  const handleDeleteLog = (id: string) => {
-    setLogs(logs.filter(l => l.id !== id));
+  const handleDeleteLog = async (id: string) => {
+    try {
+      await api.delete(`/admin/logs/${id}`);
+      setLogs(logs.filter(l => l.id !== id));
+    } catch (error) {
+      console.error("Failed to delete log", error);
+    }
   };
 
-  const handleClearAll = () => {
-    if (confirm('Are you sure you want to clear all system logs? This action cannot be undone.')) {
-      setLogs([]);
+  const handleClearAll = async () => {
+    if (confirm('Are you sure you want to clear all system logs from the database? This action cannot be undone.')) {
+      try {
+        await api.delete('/admin/logs');
+        setLogs([]);
+      } catch (error) {
+        console.error("Failed to clear logs", error);
+      }
     }
   };
 

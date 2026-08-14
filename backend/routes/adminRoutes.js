@@ -48,6 +48,8 @@ router.get('/search', requireRole(['Super Admin']), miscCtrl.globalSearch);
 
 // Logs
 router.get('/logs', requireRole(['Super Admin']), miscCtrl.getLogs);
+router.delete('/logs', requireRole(['Super Admin']), miscCtrl.clearAllLogs);
+router.delete('/logs/:id', requireRole(['Super Admin']), miscCtrl.deleteLog);
 
 // Roles
 router.get('/roles', requireRole(['Super Admin']), miscCtrl.getRoles);
