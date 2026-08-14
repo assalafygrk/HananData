@@ -30,6 +30,35 @@ const sendEmail = async (options) => {
   let otpMatch = options.message ? options.message.match(/\b\d{4,6}\b/) : null;
   let otp = otpMatch ? otpMatch[0] : null;
 
+  console.log(`📧 Sending Email to [${options.email}] | Subject: "${options.subject}" ${otp ? `| 🔑 OTP Code: [ ${otp} ]` : ''}`);
+
+  // HTTP API Support for Resend (Bypasses Render SMTP port blocking)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: process.env.FROM_EMAIL || 'HananData <onboarding@resend.dev>',
+          to: [options.email],
+          subject: options.subject,
+          html: options.html || htmlContent
+        })
+      });
+      const resendData = await resendRes.json();
+      if (resendRes.ok) {
+        console.log('✅ Email delivered via Resend HTTP API:', resendData.id);
+        return;
+      }
+      console.warn('⚠️ Resend HTTP API returned error:', resendData);
+    } catch (apiErr) {
+      console.error('⚠️ Resend HTTP API Exception:', apiErr.message);
+    }
+  }
+
   const htmlContent = `
 <!DOCTYPE html>
 <html>
