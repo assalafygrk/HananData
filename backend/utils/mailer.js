@@ -5,10 +5,17 @@ const sendEmail = async (options) => {
   const port = parseInt(process.env.SMTP_PORT) || 587;
 
   const transporterOptions = isGmail ? {
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // TLS via STARTTLS (Port 587 works on Render)
+    requireTLS: true,
+    family: 4,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
+      pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : ''
     }
   } : {
     host: process.env.SMTP_HOST,
