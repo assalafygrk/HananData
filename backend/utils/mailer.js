@@ -50,7 +50,8 @@ const sendEmail = async (options) => {
   .wrapper { width: 100%; table-layout: fixed; background-color: #f4f7f6; padding: 40px 0; }
   .main { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
   .header { background-color: #1B3A6B; padding: 30px; text-align: center; }
-  .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 1.5px; font-weight: bold; }
+  .header img { width: 80px; height: 80px; border-radius: 18px; display: block; margin: 0 auto 12px auto; }
+  .header h1 { color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1.5px; font-weight: bold; }
   .content { padding: 40px 35px; color: #4a5568; line-height: 1.6; font-size: 16px; }
   .content p { margin: 0 0 20px 0; }
   .otp-container { margin: 35px 0; text-align: center; }
@@ -65,6 +66,7 @@ const sendEmail = async (options) => {
   <div class="wrapper">
     <div class="main">
       <div class="header">
+        <img src="https://raw.githubusercontent.com/assalafygrk/HananData/main/Logos/hanan_mark_v1-1.png" alt="HananData Logo" />
         <h1>HananData</h1>
       </div>
       <div class="content">
