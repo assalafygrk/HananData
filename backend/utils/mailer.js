@@ -37,34 +37,7 @@ const sendEmail = async (options) => {
   let otpMatch = options.message ? options.message.match(/\b\d{4,6}\b/) : null;
   let otp = otpMatch ? otpMatch[0] : null;
 
-  console.log(`📧 Sending Email to [${options.email}] | Subject: "${options.subject}" ${otp ? `| 🔑 OTP Code: [ ${otp} ]` : ''}`);
-
-  // HTTP API Support for Resend (Bypasses Render SMTP port blocking)
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const resendRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: process.env.FROM_EMAIL || 'HananData <onboarding@resend.dev>',
-          to: [options.email],
-          subject: options.subject,
-          html: options.html || htmlContent
-        })
-      });
-      const resendData = await resendRes.json();
-      if (resendRes.ok) {
-        console.log('✅ Email delivered via Resend HTTP API:', resendData.id);
-        return;
-      }
-      console.warn('⚠️ Resend HTTP API returned error:', resendData);
-    } catch (apiErr) {
-      console.error('⚠️ Resend HTTP API Exception:', apiErr.message);
-    }
-  }
+  console.log(`📧 Dispatching Email to [${options.email}] | Subject: "${options.subject}"`);
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -119,6 +92,61 @@ const sendEmail = async (options) => {
 </body>
 </html>
   `;
+
+  // Brevo HTTP API Support (Bypasses Render SMTP port blocking)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY.trim(),
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: process.env.FROM_NAME || 'HananData', email: process.env.SMTP_USER || 'support@hanandata.ng' },
+          to: [{ email: options.email }],
+          subject: options.subject,
+          htmlContent: options.html || htmlContent
+        })
+      });
+      const brevoData = await brevoRes.json();
+      if (brevoRes.ok) {
+        console.log('✅ Email delivered via Brevo HTTPS API:', brevoData.messageId);
+        return;
+      }
+      console.warn('⚠️ Brevo HTTPS API returned error:', brevoData);
+    } catch (apiErr) {
+      console.error('⚠️ Brevo HTTPS API Exception:', apiErr.message);
+    }
+  }
+
+  // Resend HTTP API Support (Bypasses Render SMTP port blocking)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: process.env.FROM_EMAIL || 'HananData <onboarding@resend.dev>',
+          to: [options.email],
+          subject: options.subject,
+          html: options.html || htmlContent
+        })
+      });
+      const resendData = await resendRes.json();
+      if (resendRes.ok) {
+        console.log('✅ Email delivered via Resend HTTP API:', resendData.id);
+        return;
+      }
+      console.warn('⚠️ Resend HTTP API returned error:', resendData);
+    } catch (apiErr) {
+      console.error('⚠️ Resend HTTP API Exception:', apiErr.message);
+    }
+  }
 
   const message = {
     from: `${process.env.FROM_NAME || 'HananData'} <${process.env.SMTP_USER}>`,
