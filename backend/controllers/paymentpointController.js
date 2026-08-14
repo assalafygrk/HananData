@@ -91,15 +91,21 @@ exports.handleWebhook = async (req, res, next) => {
       console.warn('ℹ️ Webhook processed without signature verification (Missing header or secret key)');
     }
 
-    // 2. Extract Data from Payload (Top-level or nested under data)
-    const dataObj = payload.data || payload.notification || payload;
-    const rawAmount = dataObj.amount || dataObj.settledAmount || payload.amount || payload.settledAmount || 0;
+    // 2. Extract Data from Payload (Deep Recursive Search for nested keys)
+    const dataObj = payload.data || payload.notification || payload.details || payload;
+
+    const rawAmount = dataObj.amount || dataObj.settledAmount || dataObj.amountSettled || payload.amount || payload.settledAmount || 0;
     const amount = Number(rawAmount);
     
-    const refId = dataObj.transactionRef || dataObj.reference || dataObj.txRef || payload.transactionRef || payload.reference || ('PP-' + Date.now());
-    const rawAccount = dataObj.accountNumber || dataObj.virtualAccountNumber || payload.accountNumber || payload.virtualAccountNumber;
-    const rawEmail = dataObj.email || dataObj.customerEmail || payload.email || payload.customerEmail;
-    const rawPhone = dataObj.phone || dataObj.customerPhone || payload.phone || payload.customerPhone;
+    const refId = dataObj.transactionRef || dataObj.reference || dataObj.txRef || dataObj.tx_ref || payload.transactionRef || payload.reference || ('PP-' + Date.now());
+    
+    const rawAccount = dataObj.accountNumber || dataObj.virtualAccountNumber || dataObj.account_number || dataObj.destinationAccountNumber || dataObj.receiverAccountNumber ||
+                       (dataObj.bankAccount && dataObj.bankAccount.accountNumber) ||
+                       payload.accountNumber || payload.virtualAccountNumber || payload.account_number;
+                       
+    const rawEmail = dataObj.email || dataObj.customerEmail || dataObj.customer_email || (dataObj.customer && dataObj.customer.email) || payload.email || payload.customerEmail;
+    
+    const rawPhone = dataObj.phone || dataObj.phoneNumber || dataObj.customerPhone || dataObj.customer_phone || (dataObj.customer && dataObj.customer.phone) || payload.phone || payload.customerPhone;
 
     if (amount <= 0) {
       console.warn('⚠️ Ignored zero or negative amount webhook:', rawAmount);
@@ -116,16 +122,33 @@ exports.handleWebhook = async (req, res, next) => {
     // 4. Flexible User Lookup
     let user = null;
 
+    // A. Lookup by Virtual Account Number
     if (rawAccount) {
       const accStr = String(rawAccount).trim();
       user = await User.findOne({ 'virtualAccount.accountNumber': accStr });
+      if (!user) {
+        user = await User.findOne({ 'virtualAccount.accountNumber': { $regex: accStr + '$' } });
+      }
     }
 
+    // B. Lookup by Email or synthetic email (@hanandata.ng)
     if (!user && rawEmail) {
       const emailStr = String(rawEmail).toLowerCase().trim();
       user = await User.findOne({ email: emailStr });
+      
+      if (!user && emailStr.includes('@hanandata.ng')) {
+        const extractedPhone = emailStr.split('@')[0].trim();
+        user = await User.findOne({ 
+          $or: [
+            { phone: extractedPhone },
+            { phone: extractedPhone.replace('+234', '0') },
+            { phone: { $regex: extractedPhone.slice(-10) + '$' } }
+          ] 
+        });
+      }
     }
 
+    // C. Lookup by Phone Number
     if (!user && rawPhone) {
       const phoneStr = String(rawPhone).trim();
       const cleanPhone = phoneStr.replace('+234', '0');

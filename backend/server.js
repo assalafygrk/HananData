@@ -26,7 +26,12 @@ const userRoutes = require('./routes/userRoutes');
 const paymentpointCtrl = require('./controllers/paymentpointController');
 const { checkMaintenanceMode } = require('./middleware/maintenance');
 
-app.post('/api/paymentpoint/webhook', paymentpointCtrl.handleWebhook);
+app.all(['/api/paymentpoint/webhook', '/api/paymentpoint-webhook', '/api/webhook/paymentpoint', '/api/webhook'], (req, res, next) => {
+  if (req.method === 'GET') {
+    return res.status(200).send('PaymentPoint Webhook Endpoint is Active');
+  }
+  return paymentpointCtrl.handleWebhook(req, res, next);
+});
 app.use('/api/admin', adminRoutes);
 app.use('/api', checkMaintenanceMode, userRoutes);
 
