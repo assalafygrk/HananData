@@ -91,21 +91,25 @@ exports.handleWebhook = async (req, res, next) => {
       console.warn('ℹ️ Webhook processed without signature verification (Missing header or secret key)');
     }
 
-    // 2. Extract Data from Payload (Deep Recursive Search for nested keys)
+    // 2. Extract Data from Payload (Exact PaymentPoint Schema + Nested Fallbacks)
     const dataObj = payload.data || payload.notification || payload.details || payload;
 
-    const rawAmount = dataObj.amount || dataObj.settledAmount || dataObj.amountSettled || payload.amount || payload.settledAmount || 0;
+    const rawAmount = payload.amount_paid || payload.amount || payload.settlement_amount || payload.settledAmount ||
+                      dataObj.amount_paid || dataObj.amount || dataObj.settlement_amount || dataObj.settledAmount || 0;
     const amount = Number(rawAmount);
     
-    const refId = dataObj.transactionRef || dataObj.reference || dataObj.txRef || dataObj.tx_ref || payload.transactionRef || payload.reference || ('PP-' + Date.now());
+    const refId = payload.transaction_id || payload.transactionRef || payload.reference || payload.txRef ||
+                  dataObj.transaction_id || dataObj.transactionRef || dataObj.reference || ('PP-' + Date.now());
     
-    const rawAccount = dataObj.accountNumber || dataObj.virtualAccountNumber || dataObj.account_number || dataObj.destinationAccountNumber || dataObj.receiverAccountNumber ||
-                       (dataObj.bankAccount && dataObj.bankAccount.accountNumber) ||
-                       payload.accountNumber || payload.virtualAccountNumber || payload.account_number;
+    const rawAccount = payload.receiver?.account_number || payload.receiver?.accountNumber || 
+                       payload.accountNumber || payload.virtualAccountNumber || payload.account_number ||
+                       dataObj.receiver?.account_number || dataObj.accountNumber || dataObj.virtualAccountNumber;
                        
-    const rawEmail = dataObj.email || dataObj.customerEmail || dataObj.customer_email || (dataObj.customer && dataObj.customer.email) || payload.email || payload.customerEmail;
+    const rawEmail = payload.customer?.email || payload.email || payload.customerEmail || payload.customer_email ||
+                     dataObj.customer?.email || dataObj.email || dataObj.customerEmail;
     
-    const rawPhone = dataObj.phone || dataObj.phoneNumber || dataObj.customerPhone || dataObj.customer_phone || (dataObj.customer && dataObj.customer.phone) || payload.phone || payload.customerPhone;
+    const rawPhone = payload.customer?.phone || payload.phone || payload.phoneNumber || payload.customerPhone ||
+                     dataObj.customer?.phone || dataObj.phone || dataObj.customerPhone;
 
     if (amount <= 0) {
       console.warn('⚠️ Ignored zero or negative amount webhook:', rawAmount);
