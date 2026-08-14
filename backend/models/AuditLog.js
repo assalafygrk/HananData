@@ -9,7 +9,7 @@ const auditLogSchema = new mongoose.Schema({
   targetId: { type: mongoose.Schema.Types.ObjectId },
   note: { type: String },
   level: { type: String, enum: ['info', 'warning', 'error', 'critical'], default: 'info' },
-  source: { type: String, enum: ['admin_panel', 'mobile_app', 'system'], default: 'admin_panel' },
+  source: { type: String, enum: ['admin_panel', 'mobile_app', 'system', 'webhook', 'paymentpoint_webhook'], default: 'admin_panel' },
   details: { type: String }
 }, { timestamps: { createdAt: 'timestamp', updatedAt: false } });
 

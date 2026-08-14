@@ -194,24 +194,28 @@ exports.handleWebhook = async (req, res, next) => {
       failureReason: `Bank Deposit to ${user.virtualAccount?.bankName || 'Virtual Account'}`
     });
 
-    // 8. Create Audit Log & Notification
-    await AuditLog.create({
-      actorId: user._id,
-      actorType: 'system',
-      actorModel: 'User',
-      action: 'WALLET_AUTO_FUNDED',
-      level: 'info',
-      source: 'paymentpoint_webhook',
-      details: `Wallet auto-funded with ₦${creditAmount} (Fee: ₦${fee}) via PaymentPoint`
-    });
+    // 8. Create Audit Log & Notification (safely caught so non-critical logging errors don't fail the webhook)
+    try {
+      await AuditLog.create({
+        actorId: user._id,
+        actorType: 'system',
+        actorModel: 'User',
+        action: 'WALLET_AUTO_FUNDED',
+        level: 'info',
+        source: 'system',
+        details: `Wallet auto-funded with ₦${creditAmount} (Fee: ₦${fee}) via PaymentPoint`
+      });
 
-    await Notification.create({
-      userId: user._id,
-      title: 'Wallet Funded Successfully',
-      message: `Your wallet has been credited with ₦${creditAmount} (Fee: ₦${fee}) via Bank Transfer.`,
-      type: 'transaction',
-      relatedId: refId
-    });
+      await Notification.create({
+        userId: user._id,
+        title: 'Wallet Funded Successfully',
+        message: `Your wallet has been credited with ₦${creditAmount} (Fee: ₦${fee}) via Bank Transfer.`,
+        type: 'transaction',
+        relatedId: refId
+      });
+    } catch (logErr) {
+      console.warn('⚠️ Webhook notification/audit log warning:', logErr.message);
+    }
 
     // 9. Real-time Socket.IO Push to Mobile App / Admin Panel
     if (global.io) {
